@@ -22,6 +22,9 @@ builder.Services.AddScoped<Supabase.Client>(_ =>
     new Supabase.Client(supabaseUrl, supabaseKey, new Supabase.SupabaseOptions { AutoConnectRealtime = true })
 );
 
+builder.Services.AddScoped<Votify.API.Factories.IUsuarioFactory, Votify.API.Factories.UsuarioFactory>();
+builder.Services.AddScoped<Votify.API.Services.IAuthService, Votify.API.Services.AuthService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
