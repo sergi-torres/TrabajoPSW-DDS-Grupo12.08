@@ -1,31 +1,25 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Sergi\\Desktop\\Repos\\TrabajoPSW-DDS\\Backend\\Votify.API\\Votify.API.csproj": {}
+    "/home/jorgecl/Documentos/PROYECTO PSW-DDS/TrabajoPSW-DDS/Backend/Votify.API/Votify.API.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Sergi\\Desktop\\Repos\\TrabajoPSW-DDS\\Backend\\Votify.API\\Votify.API.csproj": {
+    "/home/jorgecl/Documentos/PROYECTO PSW-DDS/TrabajoPSW-DDS/Backend/Votify.API/Votify.API.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Sergi\\Desktop\\Repos\\TrabajoPSW-DDS\\Backend\\Votify.API\\Votify.API.csproj",
+        "projectUniqueName": "/home/jorgecl/Documentos/PROYECTO PSW-DDS/TrabajoPSW-DDS/Backend/Votify.API/Votify.API.csproj",
         "projectName": "Votify.API",
-        "projectPath": "C:\\Users\\Sergi\\Desktop\\Repos\\TrabajoPSW-DDS\\Backend\\Votify.API\\Votify.API.csproj",
-        "packagesPath": "C:\\Users\\Sergi\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Sergi\\Desktop\\Repos\\TrabajoPSW-DDS\\Backend\\Votify.API\\obj\\",
+        "projectPath": "/home/jorgecl/Documentos/PROYECTO PSW-DDS/TrabajoPSW-DDS/Backend/Votify.API/Votify.API.csproj",
+        "packagesPath": "/home/jorgecl/.nuget/packages/",
+        "outputPath": "/home/jorgecl/Documentos/PROYECTO PSW-DDS/TrabajoPSW-DDS/Backend/Votify.API/obj/",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-        ],
         "configFilePaths": [
-          "C:\\Users\\Sergi\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "/home/jorgecl/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net9.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -44,7 +38,7 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "9.0.300"
+        "SdkAnalysisLevel": "9.0.200"
       },
       "frameworks": {
         "net9.0": {
@@ -69,14 +63,6 @@
               "suppressParent": "All",
               "target": "Package",
               "version": "[9.0.0, )"
-            },
-            "Npgsql.EntityFrameworkCore.PostgreSQL": {
-              "target": "Package",
-              "version": "[9.0.0, )"
-            },
-            "supabase-csharp": {
-              "target": "Package",
-              "version": "[1.2.9, )"
             }
           },
           "imports": [
@@ -98,7 +84,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.308/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/9.0.203/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
