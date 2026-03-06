@@ -1,0 +1,30 @@
+# Environment variables (NUNCA subir claves a Git)
+.env
+.env.*
+
+# .NET build artifacts
+bin/
+obj/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Visual Studio
+.vs/
+
+# JetBrains Rider
+.idea/
+
+# NuGet
+*.nupkg
+project.lock.json
+project.fragment.lock.json
+
+# ASP.NET
+appsettings.Development.json
+
+# Guías de estudio personales (archivos numerados en la raíz)
+/0[0-9]_*.md
