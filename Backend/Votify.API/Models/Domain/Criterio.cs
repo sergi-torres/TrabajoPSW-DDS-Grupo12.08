@@ -1,17 +1,18 @@
 using Supabase.Postgrest.Attributes;
+using System.Runtime.Serialization;
 
 namespace Votify.API.Models.Domain
 {
     public enum TipoCriterioEnum
     {
-    [MapTo("Numerico")]
-    Numerico,
-    
-    [MapTo("Checklist")]
-    Checklist,
-    
-    [MapTo("Rubrica")]
-    Rubrica
+        [EnumMember(Value = "Numerico")]
+        Numerico,
+
+        [EnumMember(Value = "Checklist")]
+        Checklist,
+
+        [EnumMember(Value = "Rubrica")]
+        Rubrica
     }   
 
     [Table("criterio")]

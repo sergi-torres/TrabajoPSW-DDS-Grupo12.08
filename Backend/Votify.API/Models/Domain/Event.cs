@@ -37,5 +37,24 @@ namespace Votify.API.Models.Domain
 
         [Column("tipo_evento")]
         public string TipoEvento { get; set; } = string.Empty;
+
+        // Constructor sin parámetros (necesario para Supabase/deserialización)
+        public Event() { }
+
+        // Constructor con parámetros (usado por las Factories)
+        public Event(int id, string nombre, string descripcion, DateTime fechaInicio,
+                     DateTime fechaFin, string estado, int idOrganizador,
+                     List<Categoria> categorias, List<Baremo> baremos)
+        {
+            Id = id;
+            Nombre = nombre;
+            Descripcion = descripcion;
+            FechaInicio = fechaInicio;
+            FechaFin = fechaFin;
+            Estado = estado;
+            IdOrganizador = idOrganizador;
+            Categorias = categorias;
+            Baremos = baremos;
+        }
     }
 }
