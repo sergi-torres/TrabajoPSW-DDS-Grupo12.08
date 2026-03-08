@@ -1,0 +1,49 @@
+/* Paleta de colores, tipografía y espaciado */
+@theme {
+    --color-org: #2563EB;
+    --color-part: #8B5CF6;
+    --color-jur: #F97316;
+    --color-pub: #10B981;
+
+    --color-bg-app: #F3F4F6;
+    --color-bg-card: #FFFFFF;
+    --color-bg-elevated: #F9FAFB;
+    --color-border-light: #E5E7EB;
+    --color-border-focus: #D1D5DB;
+
+    --color-text-primary: #111827;
+    --color-text-secondary: #6B7280;
+    --color-text-tertiary: #9CA3AF;
+    --color-text-inverse: #FFFFFF;
+
+    --color-state-error: #EF4444;
+    --color-state-success: #22C55E;
+    --color-state-warning: #F59E0B;
+    --color-state-info: #3B82F6;
+
+    --color-state-error-bg: #FEF2F2;
+    --color-state-success-bg: #F0FDF4;
+    --color-state-warning-bg: #FFFBEB;
+    --color-state-info-bg: #EFF6FF;
+
+    --font-heading: 'Poppins', sans-serif;
+    --font-body: 'Inter', sans-serif;
+
+    --spacing-space-xs: 4px;
+    --spacing-space-sm: 8px;
+    --spacing-space-md: 16px;
+    --spacing-space-lg: 24px;
+    --spacing-space-xl: 32px;
+    --spacing-space-2xl: 48px;
+    --spacing-space-3xl: 64px;
+
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-full: 9999px;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-base: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    --shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    --shadow-modal: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
+}

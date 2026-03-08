@@ -28,3 +28,4 @@ appsettings.Development.json
 
 # Guías de estudio personales (archivos numerados en la raíz)
 /0[0-9]_*.md
+/1[0-9]_*.md
