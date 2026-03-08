@@ -1,0 +1,87 @@
+### ============================================
+### CAMBIAR EL PUERTO SI ES NECESARIO
+### ============================================
+@baseUrl = http://localhost:5245/api
+# En la entrega, en Supabase, Authentication → Providers → Email → Enable Email Confirmation: false
+
+### ============================================
+### 1. REGISTRAR un Organizador
+### ============================================
+POST {{baseUrl}}/Auth/register
+Content-Type: application/json
+
+{
+    "email": "organizadorr@test.com",
+    "password": "123456",
+    "nombreCompleto": "Marioo",
+    "nombreUsuario": "marioo",
+    "rol": "Organizador"
+}
+
+### ============================================
+### 2. REGISTRAR un Jurado
+### ============================================
+POST {{baseUrl}}/Auth/register
+Content-Type: application/json
+
+{
+    "email": "jurado@test.com",
+    "password": "123456",
+    "nombreCompleto": "Ana García",
+    "nombreUsuario": "anaaaa",
+    "rol": "Jurado"
+}
+
+### ============================================
+### 3. REGISTRAR un Participante
+### ============================================
+POST {{baseUrl}}/Auth/register
+Content-Type: application/json
+
+{
+    "email": "participante@test.com",
+    "password": "123456",
+    "nombreCompleto": "Carlos López",
+    "nombreUsuario": "carlos",
+    "rol": "Participante"
+}
+
+### ============================================
+### 4. LOGIN con un usuario registrado
+### ============================================
+POST {{baseUrl}}/Auth/login
+Content-Type: application/json
+
+{
+    "email": "organizador@test.com",
+    "password": "123456"
+}
+
+### ============================================
+### 5. Probar conexión con Supabase
+### ============================================
+GET {{baseUrl}}/test-connection
+
+### ============================================
+### 6. LOGIN con credenciales incorrectas (debería fallar)
+### ============================================
+POST {{baseUrl}}/Auth/login
+Content-Type: application/json
+
+{
+    "email": "noexiste@test.com",
+    "password": "wrongpassword"
+}
+
+### ============================================
+### 7. REGISTRO con datos inválidos (sin email, debería fallar)
+### ============================================
+POST {{baseUrl}}/Auth/register
+Content-Type: application/json
+
+{
+    "email": "",
+    "password": "123456",
+    "nombreCompleto": "Test",
+    "rol": "Organizador"
+}

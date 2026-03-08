@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Votify.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f759d4a68f6a0e89546f106af7184700b13f9d7b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ec71a34b695cffd2e587df0d5b03c3cb9df5e152")]
 [assembly: System.Reflection.AssemblyProductAttribute("Votify.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Votify.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
