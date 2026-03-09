@@ -25,7 +25,6 @@ namespace Votify.API.Models.DTOs
         [MinLength(4)]
         public string? NombreUsuario { get; set; } = string.Empty;
 
-        [Required]
         public string Rol { get; set; } = string.Empty;
     }
 
