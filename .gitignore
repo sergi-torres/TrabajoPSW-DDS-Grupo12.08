@@ -3,8 +3,8 @@
 .env.*
 
 # .NET build artifacts
-Backend/bin/
-Backend/obj/
+[Bb]in/
+[Oo]bj/
 
 # User-specific files
 *.user
