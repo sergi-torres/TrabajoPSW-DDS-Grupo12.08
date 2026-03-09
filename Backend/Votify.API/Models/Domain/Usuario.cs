@@ -6,7 +6,7 @@ namespace Votify.API.Models.Domain
     [Table("usuario")]
     public class Usuario : BaseModel
     {
-        [PrimaryKey("id", false)]
+        [PrimaryKey("id", false)] // Con false se autogenera el id
         public int Id { get; set; }
 
         [Column("nombrecompleto")]

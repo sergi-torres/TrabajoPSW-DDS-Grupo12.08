@@ -3,8 +3,8 @@
 .env.*
 
 # .NET build artifacts
-bin/
-obj/
+[Bb]in/
+[Oo]bj/
 
 # User-specific files
 *.user
@@ -26,5 +26,24 @@ project.fragment.lock.json
 # ASP.NET
 appsettings.Development.json
 
-# Guías de estudio personales (archivos numerados en la raíz)
 /0[0-9]_*.md
+/1[0-9]_*.md
+
+# Frontend
+Frontend/node_modules
+Frontend/.vite
+Frontend/dist
+
+# OS / Editor Files
+.DS_Store
+Thumbs.db
+
+# Additional Node/React ignores
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+Frontend/coverage/
+Frontend/.env.local
+Frontend/.env.development.local
+Frontend/.env.test.local
+Frontend/.env.production.local
