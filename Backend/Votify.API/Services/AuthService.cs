@@ -1,53 +1,45 @@
-using Supabase.Gotrue;
+using Votify.API.Models.Domain;
 using Votify.API.Models.DTOs;
+using Votify.API.Factories;
+using System.Threading.Tasks;
+using System;
 
 namespace Votify.API.Services
 {
     public class AuthService : IAuthService
     {
-        private readonly Supabase.Client _supabaseClient;
-        private readonly ILogger<AuthService> _logger;
+        private readonly Supabase.Client _supabase;
+        private readonly IUsuarioFactory _usuarioFactory;
 
-        public AuthService(Supabase.Client supabaseClient, ILogger<AuthService> logger)
+        public AuthService(Supabase.Client supabase, IUsuarioFactory usuarioFactory)
         {
-            _supabaseClient = supabaseClient;
-            _logger = logger;
+            _supabase = supabase;
+            _usuarioFactory = usuarioFactory;
         }
 
-        public async Task<string?> RegisterAsync(RegisterRequestDto request)
+        public async Task<string?> RegistrarAsync(RegistroRequestDto request)
         {
+            var usuario = _usuarioFactory.CrearUsuario(request);
+
             try
             {
-                var signUpOptions = new SignUpOptions
-                {
-                    Data = new Dictionary<string, object>
-                    {
-                        { "nombre_completo", request.NombreCompleto },
-                        { "nombre_usuario", request.NombreUsuario }
-                    }
-                };
-
-                var session = await _supabaseClient.Auth.SignUp(request.Email, request.Password, signUpOptions);
+                var session = await _supabase.Auth.SignUp(usuario.Email, usuario.Password);
+                await _supabase.From<Usuario>().Insert(usuario);
                 return session?.AccessToken;
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error registering user in Supabase");
-                return null;
+            catch(Exception ex){
+                throw new Exception("Error al registrar el usuario", ex);
             }
         }
 
         public async Task<string?> LoginAsync(LoginRequestDto request)
         {
-            try
-            {
-                var session = await _supabaseClient.Auth.SignIn(request.Email, request.Password);
+            try{
+                var session = await _supabase.Auth.SignIn(request.Email, request.Password);
                 return session?.AccessToken;
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error logging in to Supabase");
-                return null;
+            catch(Exception ex){
+                throw new Exception("Error al iniciar sesión", ex);
             }
         }
     }

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Votify.API.Models.DTOs;
 using Votify.API.Services;
+using System.Threading.Tasks;
 
 namespace Votify.API.Controllers
 {
@@ -16,27 +17,33 @@ namespace Votify.API.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)
+        public async Task<IActionResult> RegistrarAsync(RegistroRequestDto request)
         {
-            var token = await _authService.RegisterAsync(request);
-            if (token == null)
+            try
             {
-                return BadRequest("No se pudo registrar al usuario. Revisa el log o comprueba si el usuario ya existe.");
+                var session = await _authService.RegistrarAsync(request);
+                return Ok(new { token = session }); // El token sirve para autenticar las peticiones posteriores
             }
-
-            return Ok(new { Token = token, Message = "Usuario registrado exitosamente" });
+            catch (Exception ex)
+            {
+                // ex.InnerException contiene el error REAL de Supabase
+                return BadRequest(ex.InnerException?.Message ?? ex.Message);
+            }
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
+        public async Task<IActionResult> LoginAsync(LoginRequestDto request)
         {
-            var token = await _authService.LoginAsync(request);
-            if (token == null)
+            try
             {
-                return Unauthorized("Credenciales inválidas.");
+                var session = await _authService.LoginAsync(request);
+                return Ok(new { token = session });
             }
-
-            return Ok(new { Token = token, Message = "Login exitoso" });
+            catch (Exception ex)
+            {
+                // ex.InnerException contiene el error real de Supabase
+                return BadRequest(ex.InnerException?.Message ?? ex.Message);
+            }
         }
     }
 }
