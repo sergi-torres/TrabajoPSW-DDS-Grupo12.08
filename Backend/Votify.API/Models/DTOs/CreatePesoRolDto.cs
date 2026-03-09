@@ -9,6 +9,6 @@ namespace Votify.API.Models.DTOs
 
         [Required]
         [Range(1, 100, ErrorMessage = "El peso del voto debe ser un porcentaje entre 1 y 100.")]
-        public double Peso { get; set; }
+        public float Peso { get; set; }
     }
 }

@@ -14,5 +14,8 @@ namespace Votify.API.Models.Domain
 
         [Column("idevento")]
         public int IdEvento { get; set; }
+
+        [Reference(typeof(PesoCategoriaRol))]
+        public List<PesoCategoriaRol> PesosPorRol { get; set; } = new List<PesoCategoriaRol>();
     }
 }

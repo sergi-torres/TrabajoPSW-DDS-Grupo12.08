@@ -9,5 +9,9 @@ namespace Votify.API.Models.DTOs
 
         [Required]
         public string TipoCriterio { get; set; } = string.Empty;
+
+        [Required]
+        [Range(0, 100)]
+        public double Peso { get; set; }
     }
 }
