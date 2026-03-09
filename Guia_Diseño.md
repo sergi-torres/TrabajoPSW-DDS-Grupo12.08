@@ -23,24 +23,24 @@ Votify es una plataforma de evaluación para hackathons y eventos. Su interfaz e
 
 **Fondos y Superficies:**
 
-| Token              | Valor       | Uso                                    |
-| ------------------ | ----------- | -------------------------------------- |
-| `--bg-app`         | `#F3F4F6`   | Fondo general de la aplicación         |
-| `--bg-card`        | `#FFFFFF`   | Tarjetas, modales, contenedores        |
-| `--bg-elevated`    | `#F9FAFB`   | Superficies elevadas (sidebars, hover) |
-| `--border-light`   | `#E5E7EB`   | Divisiones, bordes de inputs           |
-| `--border-focus`   | `#D1D5DB`   | Bordes más marcados (hover en inputs)  |
+| Token              | Valor (oklch/hex)       | Uso                                    |
+| ------------------ | ----------------------- | -------------------------------------- |
+| `--background`     | `#ffffff`               | Fondo general de la aplicación         |
+| `--card`           | `#ffffff`               | Tarjetas, modales, contenedores        |
+| `--muted`          | `#ececf0`               | Superficies elevadas (sidebars, hover) |
+| `--border`         | `rgba(0, 0, 0, 0.1)`    | Divisiones, bordes de inputs           |
+| `--ring`           | `oklch(0.708 0 0)`      | Bordes más marcados (focus en inputs)  |
 
 **Texto:**
 
-| Token              | Valor       | Uso                                 |
-| ------------------ | ----------- | ----------------------------------- |
-| `--text-primary`   | `#111827`   | Títulos y cuerpo principal          |
-| `--text-secondary` | `#6B7280`   | Subtítulos, descripciones, labels   |
-| `--text-tertiary`  | `#9CA3AF`   | Placeholders, texto deshabilitado   |
-| `--text-inverse`   | `#FFFFFF`   | Texto sobre fondos de color         |
+| Token                     | Valor                  | Uso                                 |
+| ------------------------- | ---------------------- | ----------------------------------- |
+| `--foreground`            | `oklch(0.145 0 0)`     | Títulos y cuerpo principal          |
+| `--muted-foreground`      | `#717182`              | Subtítulos, descripciones, labels   |
+| `--primary-foreground`    | `oklch(1 0 0)`         | Texto sobre fondos primarios        |
+| `--destructive-foreground`| `#ffffff`              | Texto sobre botones destructivos    |
 
-**Acentos Semánticos por Rol:**
+**Acentos Semánticos por Rol (Legacy Support):**
 
 | Token          | Valor       | Rol           | Uso principal                             |
 | -------------- | ----------- | ------------- | ----------------------------------------- |
@@ -185,14 +185,14 @@ Votify es una plataforma de evaluación para hackathons y eventos. Su interfaz e
 
 | Estado      | Fondo       | Borde                        | Sombra          |
 | ----------- | ----------- | ---------------------------- | --------------- |
-| Base        | `#FFFFFF`   | `1px solid --border-light`   | Ninguna         |
-| Hover       | `#FFFFFF`   | `1px solid --border-focus`   | `--shadow-sm`   |
+| Base        | `#FFFFFF`   | `1px solid var(--border)`    | Ninguna         |
+| Hover       | `#FFFFFF`   | `1px solid var(--ring)`      | `--shadow-sm`   |
 | Focus       | `#FFFFFF`   | `2px solid {color-rol}`      | `0 0 0 3px {color-rol}/15` |
-| Error       | `#FFFFFF`   | `2px solid --color-error`    | `0 0 0 3px --color-error/15` |
-| Disabled    | `--bg-app`  | `1px solid --border-light`   | Ninguna         |
+| Error       | `#FFFFFF`   | `2px solid var(--color-error)` | `0 0 0 3px --color-error/15` |
+| Disabled    | `var(--muted)` | `1px solid var(--border)`   | Ninguna         |
 
-- **Labels:** Inter 500, `0.875rem`, color `--text-secondary`. Margen inferior `8px`.
-- **Placeholder:** Inter 400, color `--text-tertiary`.
+- **Labels:** Inter 500, `0.875rem`, color `var(--muted-foreground)`. Margen inferior `8px`.
+- **Placeholder:** Inter 400, color `var(--muted-foreground)`.
 - **Helper text:** Inter 400, `0.75rem`, color `--text-secondary`. Margen superior `4px`.
 - **Error text:** Inter 400, `0.75rem`, color `--color-error`. Margen superior `4px`.
 - **Focus:** Eliminar `outline` nativo del navegador y sustituirlo por el ring de sombra definido arriba.
