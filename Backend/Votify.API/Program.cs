@@ -6,6 +6,8 @@ Env.TraversePath().Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddScoped<Votify.API.Services.ICreateEventService, Votify.API.Services.CreateEventService>();
+
 // Add services to the container.
 builder.Services.AddControllers();
 
@@ -18,7 +20,7 @@ if (string.IsNullOrEmpty(supabaseUrl) || string.IsNullOrEmpty(supabaseKey))
     throw new Exception("SUPABASE_URL o SUPABASE_KEY no están definidos en el archivo .env");
 }
 
-builder.Services.AddScoped<Supabase.Client>(_ => 
+builder.Services.AddScoped<Supabase.Client>(_ =>
     new Supabase.Client(supabaseUrl, supabaseKey, new Supabase.SupabaseOptions { AutoConnectRealtime = true })
 );
 
@@ -65,6 +67,7 @@ app.MapGet("/api/test-connection", async (Supabase.Client supabase) =>
         return Results.Problem($"Error: {ex.Message}");
     }
 });
+
 
 app.MapControllers();
 

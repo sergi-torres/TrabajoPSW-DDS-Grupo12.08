@@ -37,7 +37,7 @@ namespace Votify.API.Services
               eventDto.Descripcion,
               eventDto.FechaInicio,
               eventDto.FechaFin,
-              "Configuración", // por poner uno ahora mismo
+              "Configuracion", // por poner uno ahora mismo
               eventDto.IdOrganizador,
               categorias,
               baremos

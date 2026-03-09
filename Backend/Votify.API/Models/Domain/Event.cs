@@ -5,7 +5,7 @@ using System;
 
 namespace Votify.API.Models.Domain
 {
-    [Table("event")]
+    [Table("evento")]
     public class Event : BaseModel
     {
         [PrimaryKey("id", false)]

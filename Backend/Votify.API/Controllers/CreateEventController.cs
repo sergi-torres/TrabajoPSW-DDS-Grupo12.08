@@ -32,7 +32,13 @@ namespace Votify.API.Controllers
 
                 // Devolvemos un código HTTP 201 (Created) que es el estándar para creaciones exitosas.
                 // Le pasamos la URL ficticia de dónde podría ver su evento, y el objeto creado.
-                return Created($"/api/event/{eventoGuardado.Id}", eventoGuardado);
+                return Created($"/api/event/{eventoGuardado.Id}", new
+                {
+                    id = eventoGuardado.Id,
+                    nombre = eventoGuardado.Nombre,
+                    estado = eventoGuardado.Estado,
+                    mensaje = "¡Evento creado con éxito en Supabase!"
+                });
             }
             catch (ArgumentException ex)
             {
