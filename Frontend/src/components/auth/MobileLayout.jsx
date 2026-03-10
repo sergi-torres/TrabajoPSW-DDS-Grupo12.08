@@ -67,10 +67,12 @@ export function MobileLayout() {
                         <form onSubmit={handleJoin} className="space-y-4">
                             <input
                                 type="text"
-                                placeholder="000 000"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
+                                placeholder="000000"
                                 maxLength={6}
                                 value={pin}
-                                onChange={(e) => setPin(e.target.value)}
+                                onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
                                 className="w-full text-center text-4xl font-body font-black tracking-widest py-6 px-4 rounded-xl bg-muted border-2 border-border focus:border-[var(--color-pub)] focus:ring-4 focus:ring-[var(--color-pub)]/20 outline-none transition-all placeholder:text-muted-foreground text-foreground"
                             />
 

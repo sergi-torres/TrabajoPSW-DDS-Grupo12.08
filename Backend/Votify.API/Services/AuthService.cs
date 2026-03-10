@@ -9,17 +9,23 @@ namespace Votify.API.Services
     public class AuthService : IAuthService
     {
         private readonly Supabase.Client _supabase;
-        private readonly IUsuarioFactory _usuarioFactory;
 
-        public AuthService(Supabase.Client supabase, IUsuarioFactory usuarioFactory)
+        public AuthService(Supabase.Client supabase)
         {
             _supabase = supabase;
-            _usuarioFactory = usuarioFactory;
         }
 
         public async Task<string?> RegistrarAsync(RegistroRequestDto request)
         {
-            var usuario = _usuarioFactory.CrearUsuario(request);
+            UsuarioCreator creator = request.Rol switch
+            {
+                "Organizador" => new OrganizadorCreator(),
+                "Jurado" => new JuradoCreator(),
+                "Participante" => new ParticipanteCreator(),
+                _ => throw new ArgumentException($"Rol '{request.Rol}' no válido para registro.")
+            };
+
+            var usuario = creator.Create(request);
 
             try
             {
@@ -27,18 +33,21 @@ namespace Votify.API.Services
                 await _supabase.From<Usuario>().Insert(usuario);
                 return session?.AccessToken;
             }
-            catch(Exception ex){
+            catch (Exception ex)
+            {
                 throw new Exception("Error al registrar el usuario", ex);
             }
         }
 
         public async Task<string?> LoginAsync(LoginRequestDto request)
         {
-            try{
+            try
+            {
                 var session = await _supabase.Auth.SignIn(request.Email, request.Password);
                 return session?.AccessToken;
             }
-            catch(Exception ex){
+            catch (Exception ex)
+            {
                 throw new Exception("Error al iniciar sesión", ex);
             }
         }
