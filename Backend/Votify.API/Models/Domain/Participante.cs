@@ -1,4 +1,4 @@
-using Supabase.Postgrest.Attributes;
+using Postgrest.Attributes;
 
 namespace Votify.API.Models.Domain
 {
