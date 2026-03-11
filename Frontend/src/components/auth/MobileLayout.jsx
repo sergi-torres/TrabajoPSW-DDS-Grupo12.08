@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 import { LoginDrawer } from "./LoginDrawer";
 import logo from "../../assets/LogoSinTexto.png";
 import { useNavigate } from "react-router-dom";
+import { joinEvento } from "../../api/eventosApi";
 
 /**
  * MobileLayout.jsx
@@ -21,25 +22,11 @@ export function MobileLayout() {
 
         if (pin.length > 0) {
             try {
-                // Aquí hay que hacer una petición al Votify.API para validar si el PIN existe
-                const response = await fetch(`http://localhost:5245/api/Eventos/join?pin=${pin}`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ pin })
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    //a) Navegar a la sala de espera del evento (Público)
-                    navigate(`/votacion/${data.id}`);
-                } else {
-                    //b) Mostrar error "El PIN no es válido o el evento ha terminado"
-                    alert("El PIN no es válido o el evento ha terminado");
-                }
+                const data = await joinEvento(pin);
+                navigate(`/votacion/${data.id}`);
             } catch (error) {
                 console.error("Error validando PIN:", error);
-                alert("Error de conexión con el servidor.");
+                alert(error.message);
             }
         }
     };

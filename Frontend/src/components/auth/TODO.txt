@@ -2,9 +2,4 @@ MobileLayout.jsx:
 - Hacer funcionar el unirse a eventos con el PIN
 
 AuthForm.jsx:
-- Hacer que el drawer no se salga por arriba en registro
 - Acabar endpoints para que apunten a seleccion de rol
-- Que rol esta por defecto en registro?
-
-DesktopLayout.jsx:
-- Hacer que la tarjeta de unirse por pin no se joda al meter zoom
