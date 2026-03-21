@@ -24,7 +24,6 @@ builder.Services.AddScoped<Supabase.Client>(_ =>
     new Supabase.Client(supabaseUrl, supabaseKey, new Supabase.SupabaseOptions { AutoConnectRealtime = true })
 );
 
-builder.Services.AddScoped<Votify.API.Factories.IUsuarioFactory, Votify.API.Factories.UsuarioFactory>();
 builder.Services.AddScoped<Votify.API.Services.IAuthService, Votify.API.Services.AuthService>();
 
 // Configurar CORS para permitir que el frontend de Vite (localhost:5173) acceda a la API

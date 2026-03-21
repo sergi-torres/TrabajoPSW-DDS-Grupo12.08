@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'sonner'
+import { AuthProvider } from './context/AuthContext'
 import LoginPage from './pages/LoginPage'
 import './App.css'
 import CreateEvent from './pages/CreateEvent'

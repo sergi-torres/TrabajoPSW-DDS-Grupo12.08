@@ -22,7 +22,7 @@ export function DesktopLayout() {
                 {/* Logo */}
                 <div className="relative z-10">
                     <div className="flex items-center gap-2 text-4xl font-heading font-black tracking-tighter text-white">
-                        <img src={logo} alt="Votify Logo" className="w-12 h-12 object-contain drop-shadow-md brightness-0 invert" />
+                        <img src={logo} alt="Votify Logo" className="w-12 h-12 object-contain drop-shadow-lg" />
                         Votify
                     </div>
                 </div>
@@ -45,8 +45,8 @@ export function DesktopLayout() {
             </div>
 
             {/* PANEL DERECHO: Formularios */}
-            <div className="w-1/2 bg-background flex flex-col justify-center items-center p-12 overflow-y-auto">
-                <div className="w-full max-w-md space-y-10">
+            <div className="w-1/2 bg-background flex flex-col items-center px-12 py-12 overflow-y-auto">
+                <div className="w-full max-w-md space-y-10 my-auto">
 
                     {/* Tarjeta Principal */}
                     <div className="bg-card p-10 rounded-[32px] shadow-modal border border-border">
@@ -71,15 +71,19 @@ export function DesktopLayout() {
                             </div>
                             <h3 className="font-heading font-bold text-foreground text-lg">¿Tienes un código de evento?</h3>
                         </div>
-                        <div className="flex gap-3">
+                        <div className="flex flex-wrap gap-3">
                             <input
                                 type="text"
-                                placeholder="PIN del evento"
-                                className="flex-1 bg-muted border border-border rounded-xl px-4 py-3 font-mono font-bold text-lg focus:ring-2 focus:ring-[var(--color-pub)]/20 focus:border-[var(--color-pub)] outline-none transition-all placeholder:font-body placeholder:font-normal placeholder:text-muted-foreground text-foreground"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
+                                maxLength={6}
+                                placeholder="000000"
+                                onChange={(e) => e.target.value = e.target.value.replace(/\D/g, '')}
+                                className="flex-1 min-w-0 bg-muted border border-border rounded-xl px-4 py-3 font-mono font-bold text-lg focus:ring-2 focus:ring-[var(--color-pub)]/20 focus:border-[var(--color-pub)] outline-none transition-all placeholder:font-body placeholder:font-normal placeholder:text-muted-foreground text-foreground"
                             />
                             <button
                                 type="button"
-                                className="bg-[var(--color-pub)] hover:opacity-90 text-white font-heading font-bold py-3 px-6 rounded-xl transition-colors flex items-center shadow-md active:scale-95"
+                                className="bg-[var(--color-pub)] hover:opacity-90 text-white font-heading font-bold py-3 px-6 rounded-xl transition-colors flex items-center shadow-md active:scale-95 shrink-0"
                             >
                                 Unirse
                             </button>
