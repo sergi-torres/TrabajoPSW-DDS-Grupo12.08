@@ -23,8 +23,5 @@ namespace Votify.API.Models.Domain
 
         [Column("fecharegistro")]
         public DateTime FechaRegistro { get; set; } = DateTime.UtcNow;
-
-        [Column("rol")]
-        public string Rol { get; set; } = "Publico"; // Default, no se que poner, dejo esto que parece que tiene mas sentido
     }
 }

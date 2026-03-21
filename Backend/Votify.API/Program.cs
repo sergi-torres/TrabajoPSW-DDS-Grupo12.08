@@ -23,6 +23,7 @@ builder.Services.AddScoped<Supabase.Client>(_ =>
 );
 
 builder.Services.AddScoped<Votify.API.Services.IAuthService, Votify.API.Services.AuthService>();
+builder.Services.AddScoped<Votify.API.Services.IEventoService, Votify.API.Services.EventoService>();
 
 // Configurar CORS para permitir que el frontend de Vite (localhost:5173) acceda a la API
 builder.Services.AddCors(options =>
@@ -43,8 +44,6 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
-
-app.UseHttpsRedirection();
 
 // Aplicar CORS justo antes de la autorización
 app.UseCors("AllowFrontend");

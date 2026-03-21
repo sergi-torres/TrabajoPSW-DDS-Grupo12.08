@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import LoginPage from './pages/LoginPage'
+import DashboardPage from './pages/DashboardPage'
 import './App.css'
 
 function App() {
@@ -9,7 +10,8 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
-          {/* Default redirect to login for now */}
+          <Route path="/eventos" element={<DashboardPage />} />
+          {/* Redireccion login default */}
           <Route path="/" element={<Navigate to="/login" replace />} />
         </Routes>
       </BrowserRouter>

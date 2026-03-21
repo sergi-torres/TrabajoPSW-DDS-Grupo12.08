@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Votify.API.Models.DTOs
 {
-    // DTO para registrar un Organizador, Jurado o Participante con contraseña en Supabase Auth
+    // DTO para registrar un nuevo usuario
     public class RegistroRequestDto
     {
         [Required]
@@ -24,8 +24,6 @@ namespace Votify.API.Models.DTOs
         [MaxLength(60)]
         [MinLength(4)]
         public string? NombreUsuario { get; set; } = string.Empty;
-
-        public string Rol { get; set; } = string.Empty;
     }
 
     // DTO para hacer Login

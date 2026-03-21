@@ -26,3 +26,14 @@ export async function joinEvento(pin) {
 
     return response.json();
 }
+
+/**
+ * @param {number} userId
+ * @returns {Promise<Array>} Lista de eventos del usuario
+ */
+export async function getMisEventos(userId) {
+    const response = await fetch(`${API_URL}/mis-eventos?userId=${userId}`);
+    if (!response.ok) throw new Error("Error al obtener mis eventos");
+    return response.json();
+}
+
