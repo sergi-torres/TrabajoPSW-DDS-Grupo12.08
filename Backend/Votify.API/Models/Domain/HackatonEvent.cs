@@ -12,8 +12,8 @@ namespace Votify.API.Models.Domain
 
         public HackatonEvent(int id, string nombre, string descripcion, DateTime fechaInicio,
                              DateTime fechaFin, string estado, int idOrganizador,
-                             List<Categoria> categorias, List<Baremo> baremos)
-            : base(id, nombre, descripcion, fechaInicio, fechaFin, estado, idOrganizador, categorias, baremos)
+                             List<Categoria> categorias, List<Baremo> baremos, int codEvento)
+            : base(id, nombre, descripcion, fechaInicio, fechaFin, estado, idOrganizador, categorias, baremos, codEvento)
         {
             TipoEvento = "Hackaton";
         }

@@ -38,13 +38,16 @@ namespace Votify.API.Models.Domain
         [Column("tipo_evento")]
         public string TipoEvento { get; set; } = string.Empty;
 
+        [Column("cod_evento")]
+        public int CodEvento { get; set; }
+
         // Constructor sin parámetros (necesario para Supabase/deserialización)
         public Event() { }
 
         // Constructor con parámetros (usado por las Factories)
         public Event(int id, string nombre, string descripcion, DateTime fechaInicio,
                      DateTime fechaFin, string estado, int idOrganizador,
-                     List<Categoria> categorias, List<Baremo> baremos)
+                     List<Categoria> categorias, List<Baremo> baremos, int codEvento)
         {
             Id = id;
             Nombre = nombre;
@@ -55,6 +58,7 @@ namespace Votify.API.Models.Domain
             IdOrganizador = idOrganizador;
             Categorias = categorias;
             Baremos = baremos;
+            CodEvento = codEvento;
         }
     }
 }

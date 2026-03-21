@@ -40,7 +40,8 @@ namespace Votify.API.Services
               "Configuracion", // por poner uno ahora mismo
               eventDto.IdOrganizador,
               categorias,
-              baremos
+              baremos,
+              eventDto.CodEvento
             );
 
             var response = await _supabaseClient.From<Event>().Insert(NuevoEvento);

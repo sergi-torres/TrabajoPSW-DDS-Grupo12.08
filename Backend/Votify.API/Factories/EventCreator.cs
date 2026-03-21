@@ -13,6 +13,7 @@ namespace Votify.API.Factories
          string estado,
          int idorganizador,
          List<Categoria> categorias,
-         List<Baremo> baremos);
+         List<Baremo> baremos,
+         int codEvento);
     }
 }
