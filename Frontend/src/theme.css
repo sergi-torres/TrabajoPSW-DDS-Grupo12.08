@@ -45,6 +45,18 @@
     --color-pub: #10B981;
     --color-state-success: #10B981;
     --color-state-success-bg: #ECFDF5;
+
+    /* Semantic colors for UI components */
+    --success: #10B981;
+    --success-foreground: #ffffff;
+    --error: #EF4444;
+    --error-foreground: #ffffff;
+    --error-bg: #FEF2F2;
+    --warning: #F59E0B;
+    --warning-foreground: #ffffff;
+    --info: #3B82F6;
+    --info-foreground: #ffffff;
+    --info-bg: #EFF6FF;
 }
 
 @theme {
@@ -86,6 +98,18 @@
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-ring: var(--sidebar-ring);
+
+    /* Semantic colors */
+    --color-success: var(--success);
+    --color-success-foreground: var(--success-foreground);
+    --color-error: var(--error);
+    --color-error-foreground: var(--error-foreground);
+    --color-error-bg: var(--error-bg);
+    --color-warning: var(--warning);
+    --color-warning-foreground: var(--warning-foreground);
+    --color-info: var(--info);
+    --color-info-foreground: var(--info-foreground);
+    --color-info-bg: var(--info-bg);
 
     /* Mapping the legacy project tokens to ensure UI components don't break entirely while we migrate to the new standard */
     --color-app: var(--background);

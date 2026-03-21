@@ -19,7 +19,7 @@ namespace Votify.API.Services
                 // Buscar en la tabla relación evento_usuario los eventos de este usuario
                 var relaciones = await _supabase
                     .From<EventoUsuario>()
-                    .Where(eu => eu.IdUsuario == userId)
+                    .Filter("idusuario", Supabase.Postgrest.Constants.Operator.Equals, userId.ToString())
                     .Get();
 
                 var resultado = new List<EventoResponseDto>();
@@ -27,8 +27,8 @@ namespace Votify.API.Services
                 foreach (var rel in relaciones.Models)
                 {
                     var eventoResponse = await _supabase
-                        .From<Evento>()
-                        .Where(e => e.Id == rel.IdEvento)
+                        .From<EventoLite>()
+                        .Filter("id", Supabase.Postgrest.Constants.Operator.Equals, rel.IdEvento.ToString())
                         .Get();
 
                     var evento = eventoResponse.Models.FirstOrDefault();
@@ -39,7 +39,7 @@ namespace Votify.API.Services
                             Id = evento.Id,
                             Nombre = evento.Nombre,
                             Descripcion = evento.Descripcion,
-                            FechaIni = evento.FechaIni,
+                            FechaIni = evento.FechaInicio,
                             FechaFin = evento.FechaFin,
                             Estado = evento.Estado,
                             Rol = rel.Rol

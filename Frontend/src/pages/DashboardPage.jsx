@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useContext } from "react";
 import { Plus, Search } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { DesktopHeader } from "../components/eventos/DesktopHeader";
 import { MobileNav } from "../components/eventos/MobileNav";
 import { EventCard } from "../components/eventos/EventCard";
@@ -11,6 +12,7 @@ import { AuthContext } from "../context/AuthContext";
  */
 export default function DashboardPage() {
     const { userId } = useContext(AuthContext);
+    const navigate = useNavigate();
     const [misEventos, setMisEventos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -55,9 +57,8 @@ export default function DashboardPage() {
                     <h1 className="font-heading text-3xl font-bold text-foreground leading-tight tracking-tight">
                         Eventos
                     </h1>
-                    {/* TODO: Conectar cuando se implemente la creación de eventos */}
                     <button
-                        onClick={() => alert("Funcionalidad de crear evento próximamente")}
+                        onClick={() => navigate("/create-event")}
                         className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[var(--color-org)] hover:opacity-90 hover:scale-[1.02] transition-all hover:shadow-hover text-white h-12 px-6 rounded-xl font-heading font-bold shadow-md active:scale-[0.98]"
                     >
                         <Plus size={20} strokeWidth={2} />

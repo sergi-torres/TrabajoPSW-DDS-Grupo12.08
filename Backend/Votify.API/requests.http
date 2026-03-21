@@ -61,3 +61,67 @@ Content-Type: application/json
     "password": "123456",
     "nombreCompleto": "Test"
 }
+
+### ============================================
+### 8. CREAR un Evento Válido (Hackathon)
+### ============================================
+POST {{baseUrl}}/Event
+Content-Type: application/json
+
+{
+  "nombre": "Hackathon Innovación 2026",
+  "descripcion": "48 horas de puro código para crear soluciones del futuro.",
+  "fechaIni": "2026-05-10T10:00:00",
+  "fechaFin": "2026-05-12T10:00:00",
+  "tipoEvento": "Hackaton",
+  "idOrganizador": 1,
+  "categorias": [
+    {
+      "nombre": "Mejor Arquitectura Backend",
+      "pesos": [
+        {
+          "rolVotante": "Jurado",
+          "peso": 70
+        },
+        {
+          "rolVotante": "Publico",
+          "peso": 30
+        }
+      ]
+    }
+  ],
+  "baremos": [
+    {
+      "nombre": "Evaluación Técnica",
+      "criterios": [
+        {
+          "nombre": "Calidad del Código",
+          "peso": 50,
+          "tipoCriterio": "Numerico"
+        },
+        {
+          "nombre": "Originalidad",
+          "peso": 50,
+          "tipoCriterio": "Numerico"
+        }
+      ]
+    }
+  ]
+}
+
+### ============================================
+### 9. CREAR un Evento INVÁLIDO (Debería dar error 400)
+### ============================================
+POST {{baseUrl}}/Event
+Content-Type: application/json
+
+{
+  "nombre": "Ev", 
+  "descripcion": "Este evento va a fallar por todos lados",
+  "fechaIni": "2026-10-10T10:00:00",
+  "fechaFin": "2026-10-08T10:00:00", 
+  "tipoEvento": "Fiesta", 
+  "idOrganizador": 1,
+  "categorias": [],
+  "baremos": []
+}
