@@ -101,7 +101,7 @@ const CreateEvent = () => {
         fechaFin: new Date(detalles.fechaFin).toISOString(),
         tipoEvento,
         idOrganizador: userId,
-        codEvento: Date.now() % 2000000000, // Código único que cabe en int de C#
+        codEvento: Math.floor(100000 + Math.random() * 900000), // Código único de 6 dígitos
         baremos: reglas.dimensiones.map((d) => ({
           nombre: d.nombre,
           criterios: [],
