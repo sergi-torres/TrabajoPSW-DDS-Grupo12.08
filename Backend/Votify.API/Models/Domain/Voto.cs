@@ -35,5 +35,9 @@ namespace Votify.API.Models.Domain
 
         [Column("idcategoria")]
         public int IdCategoria { get; set; }
-    }
+    
+    public abstract float CalcularPuntuacionFinal(float peso); 
+    
+    
+    } 
 }
