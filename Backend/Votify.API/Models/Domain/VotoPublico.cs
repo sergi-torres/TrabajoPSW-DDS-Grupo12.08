@@ -1,4 +1,4 @@
-using Postgrest.Attributes;
+using Supabase.Postgrest.Attributes;
 using Votify.API.Models.Domain;
 
 [Table("voto")] //indicaremos que se guarde en esta tabla 
