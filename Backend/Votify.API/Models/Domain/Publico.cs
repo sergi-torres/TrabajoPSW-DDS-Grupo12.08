@@ -1,5 +1,3 @@
-using Supabase.Postgrest.Attributes;
-
 namespace Votify.API.Models.Domain
 {
     // El Público es el votante anónimo.
@@ -10,8 +8,6 @@ namespace Votify.API.Models.Domain
     {
         public Publico()
         {
-            // Forzamos el rol por seguridad
-            Rol = "Publico";
             // Forzamos valores anónimos
             Email = "anon@votify.local";
             NombreCompleto = "Votante Anónimo";
