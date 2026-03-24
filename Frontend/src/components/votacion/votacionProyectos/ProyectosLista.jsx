@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 
 const ProyectosLista = ({ categoria, alVolver }) => {
   const [seleccionado, setSeleccionado] = useState(null);
+  const [comentario, setComentario] = useState(""); // 1. Estado para el comentario
 
   const proyectos = [
     { id: 1, nombre: "InnovaTech", desc: "Plataforma de innovación tecnológica para empresas", img: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=400", estado: "disponible" },
@@ -10,11 +11,40 @@ const ProyectosLista = ({ categoria, alVolver }) => {
     { id: 4, nombre: "IA Salud", desc: "Inteligencia artificial aplicada al sector salud", img: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=400", estado: "disponible" },
   ];
 
+  // 2. FUNCIÓN ENVIAR VOTO (Conexión con el Backend)
+  const enviarVoto = async () => {
+    if (!seleccionado) return;
+
+    const votoDto = {
+      categoriaId: categoria.id,
+      proyectoId: seleccionado.id,
+      comentario: comentario // Guardamos lo que escribió el usuario
+    };
+
+    try {
+      const response = await fetch('http://localhost:5245/api/votacion/votar', { // Revisa tu puerto
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(votoDto)
+      });
+
+      if (response.ok) {
+        alert(`¡Voto registrado! Proyecto: ${seleccionado.nombre}\nComentario: ${comentario}`);
+        alVolver(); 
+      } else {
+        alert("Error en el servidor al registrar el voto.");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("No se pudo conectar con el servidor.");
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto p-8 font-sans bg-white min-h-screen">
       <header className="mb-10">
         <h2 className="text-4xl font-bold text-gray-900">Vota un proyecto en "{categoria?.titulo || 'Categoría'}"</h2>
-        <p className="text-gray-500 mt-2">Selecciona el proyecto que más te guste de la lista. Tu opinión es importante para nosotros. Solo puedes votar por un proyecto a la vez.</p>
+        <p className="text-gray-500 mt-2">Selecciona el proyecto que más te guste de la lista. Tu opinión es importante para nosotros.</p>
       </header>
 
       {/* Grid de Proyectos */}
@@ -31,7 +61,6 @@ const ProyectosLista = ({ categoria, alVolver }) => {
               <p className="text-gray-500 text-sm h-12 line-clamp-2">{p.desc}</p>
             </div>
             
-            {/* Barra de estado inferior */}
             <div className={`p-4 border-t flex justify-between items-center ${p.estado === 'votado' ? 'bg-red-50 text-red-500' : 'bg-gray-50 text-gray-400'}`}>
               <span className="text-sm font-medium">
                 {p.estado === 'votado' ? 'Votado anteriormente' : (seleccionado?.id === p.id ? 'Seleccionado' : 'No seleccionado')}
@@ -49,6 +78,8 @@ const ProyectosLista = ({ categoria, alVolver }) => {
         <label className="block text-gray-700 font-bold mb-2">Añadir comentario</label>
         <textarea 
           placeholder="Escribe tu comentario aquí..."
+          value={comentario} // 3. Vinculamos el valor
+          onChange={(e) => setComentario(e.target.value)} // 4. Actualizamos el estado
           className="w-full h-32 p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all resize-none"
         ></textarea>
 
@@ -60,13 +91,7 @@ const ProyectosLista = ({ categoria, alVolver }) => {
             Atrás
           </button>
           <button 
-            onClick={() => {
-                if (seleccionado) {
-                // Simulamos una alerta de éxito para la demo
-                alert(`¡Voto registrado con éxito para: ${seleccionado.nombre}!`);
-                alVolver(); // <--- Esto es lo que te devuelve a las categorías
-                }
-            }}
+            onClick={enviarVoto} // 5. Llamamos a la función real
             disabled={!seleccionado}
             className={`px-10 py-3 rounded-xl font-bold text-white shadow-lg transition-all ${
                 seleccionado 
