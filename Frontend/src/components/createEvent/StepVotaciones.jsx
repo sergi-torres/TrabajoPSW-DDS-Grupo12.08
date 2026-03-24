@@ -12,9 +12,9 @@ const StepVotaciones = ({ data, onChange }) => {
                 </p>
             </div>
 
-            <div className="rounded-lg border border-border p-6 space-y-6">
+            <div className="rounded-lg shadow-base bg-card p-6 space-y-6">
                 <div className="flex items-start gap-3">
-                    <Users className="w-5 h-5 text-primary mt-0.5" strokeWidth={1.75} />
+                    <Users className="w-5 h-5 text-org mt-0.5" strokeWidth={1.75} />
                     <div>
                         <h4 className="text-base font-heading font-semibold text-foreground">Categorías de Votantes</h4>
                         <p className="text-sm text-muted-foreground mt-1">
@@ -24,10 +24,10 @@ const StepVotaciones = ({ data, onChange }) => {
                     </div>
                 </div>
 
-                <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
+                    <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                            <Users className="w-5 h-5 text-primary" strokeWidth={1.75} />
+                        <div className="w-10 h-10 rounded-full bg-org/10 flex items-center justify-center">
+                            <Users className="w-5 h-5 text-org" strokeWidth={1.75} />
                         </div>
                         <div>
                             <label className="text-sm font-medium text-foreground">Voto del Público</label>
@@ -41,7 +41,7 @@ const StepVotaciones = ({ data, onChange }) => {
                         role="switch"
                         aria-checked={data.votoPublicoHabilitado}
                         onClick={() => onChange({ ...data, votoPublicoHabilitado: !data.votoPublicoHabilitado })}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${data.votoPublicoHabilitado ? 'bg-primary' : 'bg-muted'}`}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${data.votoPublicoHabilitado ? 'bg-org' : 'bg-muted'}`}
                     >
                         <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${data.votoPublicoHabilitado ? 'translate-x-6' : 'translate-x-1'}`} />
                     </button>
@@ -53,7 +53,7 @@ const StepVotaciones = ({ data, onChange }) => {
                             <Scale className="w-5 h-5 text-muted-foreground" strokeWidth={1.75} />
                             <span className="text-sm font-medium text-foreground">Peso del Jurado</span>
                         </div>
-                        <span className="text-lg font-heading font-bold text-primary">
+                        <span className="text-lg font-heading font-bold text-org">
                             {data.pesoJurado}%
                         </span>
                     </div>
@@ -65,7 +65,7 @@ const StepVotaciones = ({ data, onChange }) => {
                         max={100}
                         step={5}
                         disabled={!data.votoPublicoHabilitado}
-                        className="w-full accent-primary"
+                        className="w-full accent-org"
                     />
                 </div>
 

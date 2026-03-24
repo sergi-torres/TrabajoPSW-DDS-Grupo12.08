@@ -172,7 +172,7 @@ const CreateEvent = () => {
           <button
             onClick={handlePrev}
             disabled={currentStep === 1}
-            className="flex items-center gap-2 h-12 px-6 rounded-lg font-heading font-semibold border border-border bg-background text-foreground hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="flex items-center gap-2 h-12 px-6 rounded-md font-heading font-semibold border border-border bg-background text-foreground hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             Anterior
@@ -181,7 +181,7 @@ const CreateEvent = () => {
           {currentStep < 3 ? (
             <button
               onClick={handleNext}
-              className="flex items-center gap-2 h-12 px-6 rounded-lg font-heading font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+              className="flex items-center gap-2 h-12 px-6 rounded-md font-heading font-semibold bg-org text-white hover:brightness-105 hover:scale-[1.02] hover:shadow-hover transition-all duration-[150ms]"
             >
               Siguiente
               <ArrowRight className="w-4 h-4" />
@@ -189,7 +189,7 @@ const CreateEvent = () => {
           ) : (
             <button
               onClick={handlePublish}
-              className="flex items-center gap-2 h-12 px-6 rounded-lg font-heading font-semibold bg-success text-primary-foreground hover:bg-success/90 transition-colors"
+              className="flex items-center gap-2 h-12 px-6 rounded-md font-heading font-semibold bg-success text-white hover:brightness-105 hover:scale-[1.02] hover:shadow-hover transition-all duration-[150ms]"
             >
               Publicar Evento
               <Check className="w-4 h-4" strokeWidth={2.5} />

@@ -42,7 +42,7 @@ const StepReglas = ({ data, onChange }) => {
                 <select
                     value={data.plantilla}
                     onChange={(e) => onChange({ ...data, plantilla: e.target.value })}
-                    className="mt-2 h-12 w-full rounded-lg border border-border bg-background px-3 font-body focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                    className="mt-2 h-12 w-full rounded-md border border-border bg-background px-3 font-body focus:outline-none focus:ring-2 focus:ring-org focus:border-org"
                 >
                     <option value="" disabled>Seleccionar plantilla</option>
                     <option value="hackathon">Hackathon estándar</option>
@@ -51,7 +51,7 @@ const StepReglas = ({ data, onChange }) => {
                 </select>
             </div>
 
-            <div className="rounded-lg border border-border p-6 space-y-4">
+            <div className="rounded-lg shadow-base bg-card p-6 space-y-4">
                 <div className="flex items-center justify-between">
                     <h4 className="text-base font-heading font-semibold text-foreground">Dimensiones de Valor</h4>
                     <span
@@ -66,7 +66,7 @@ const StepReglas = ({ data, onChange }) => {
                         <p className="text-sm">No hay dimensiones definidas.</p>
                         <button
                             onClick={addDimension}
-                            className="mt-2 text-sm font-heading font-semibold text-foreground hover:text-primary transition-colors"
+                            className="mt-2 text-sm font-heading font-semibold text-foreground hover:text-org transition-colors"
                         >
                             Añadir una dimensión
                         </button>
@@ -79,7 +79,7 @@ const StepReglas = ({ data, onChange }) => {
                                     placeholder="Nombre de la dimensión"
                                     value={dim.nombre}
                                     onChange={(e) => updateDimension(dim.id, "nombre", e.target.value)}
-                                    className="flex-1 h-10 rounded-md border border-border bg-background px-3 font-body focus:outline-none focus:ring-2 focus:ring-primary"
+                                    className="flex-1 h-10 rounded-md border border-border bg-background px-3 font-body focus:outline-none focus:ring-2 focus:ring-org"
                                 />
                                 <div className="flex items-center gap-1">
                                     <input
@@ -88,7 +88,7 @@ const StepReglas = ({ data, onChange }) => {
                                         max={100}
                                         value={dim.peso}
                                         onChange={(e) => updateDimension(dim.id, "peso", parseInt(e.target.value) || 0)}
-                                        className="w-20 h-10 rounded-md border border-border bg-background px-2 font-body text-center focus:outline-none focus:ring-2 focus:ring-primary"
+                                        className="w-20 h-10 rounded-md border border-border bg-background px-2 font-body text-center focus:outline-none focus:ring-2 focus:ring-org"
                                     />
                                     <span className="text-sm text-muted-foreground font-medium">%</span>
                                 </div>
@@ -105,7 +105,7 @@ const StepReglas = ({ data, onChange }) => {
 
                 <button
                     onClick={addDimension}
-                    className="w-full flex items-center justify-center gap-2 py-3 border-2 border-dashed border-border rounded-lg text-sm font-heading font-semibold text-foreground hover:border-primary hover:text-primary transition-colors"
+                    className="w-full flex items-center justify-center gap-2 py-3 border-2 border-dashed border-border rounded-md text-sm font-heading font-semibold text-foreground hover:border-org hover:text-org transition-colors"
                 >
                     <Plus className="w-4 h-4" strokeWidth={2} />
                     Añadir Dimensión
@@ -134,7 +134,7 @@ const StepReglas = ({ data, onChange }) => {
                     role="switch"
                     aria-checked={data.analisisAutomatico}
                     onClick={() => onChange({ ...data, analisisAutomatico: !data.analisisAutomatico })}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${data.analisisAutomatico ? 'bg-primary' : 'bg-muted'}`}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${data.analisisAutomatico ? 'bg-org' : 'bg-muted'}`}
                 >
                     <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${data.analisisAutomatico ? 'translate-x-6' : 'translate-x-1'}`} />
                 </button>

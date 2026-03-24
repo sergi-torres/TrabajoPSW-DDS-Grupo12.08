@@ -35,7 +35,7 @@ const StepDetalles = ({ data, onChange }) => {
                         placeholder="Ej. Hackathon Anual 2024"
                         value={data.nombre}
                         onChange={(e) => onChange({ ...data, nombre: e.target.value })}
-                        className="mt-2 h-12 w-full rounded-lg border border-border bg-background px-3 font-body focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                        className="mt-2 h-12 w-full rounded-md border border-border bg-background px-3 font-body focus:outline-none focus:ring-2 focus:ring-org focus:border-org"
                     />
                 </div>
 
@@ -48,7 +48,7 @@ const StepDetalles = ({ data, onChange }) => {
                         placeholder="Describe brevemente el propósito del evento..."
                         value={data.descripcion}
                         onChange={(e) => onChange({ ...data, descripcion: e.target.value })}
-                        className="mt-2 min-h-[120px] w-full rounded-lg border border-border bg-background px-3 py-2 font-body focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary resize-none"
+                        className="mt-2 min-h-[120px] w-full rounded-md border border-border bg-background px-3 py-2 font-body focus:outline-none focus:ring-2 focus:ring-org focus:border-org resize-none"
                     />
                 </div>
 
@@ -63,7 +63,7 @@ const StepDetalles = ({ data, onChange }) => {
                             max="9999-12-31T23:59"
                             value={data.fechaInicio}
                             onChange={(e) => onChange({ ...data, fechaInicio: e.target.value })}
-                            className="mt-2 h-12 w-full rounded-lg border border-border bg-background px-3 font-body focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                            className="mt-2 h-12 w-full rounded-md border border-border bg-background px-3 font-body focus:outline-none focus:ring-2 focus:ring-org focus:border-org"
                         />
                     </div>
                     <div>
@@ -76,7 +76,7 @@ const StepDetalles = ({ data, onChange }) => {
                             max="9999-12-31T23:59"
                             value={data.fechaFin}
                             onChange={(e) => onChange({ ...data, fechaFin: e.target.value })}
-                            className="mt-2 h-12 w-full rounded-lg border border-border bg-background px-3 font-body focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                            className="mt-2 h-12 w-full rounded-md border border-border bg-background px-3 font-body focus:outline-none focus:ring-2 focus:ring-org focus:border-org"
                         />
                     </div>
                 </div>
@@ -85,10 +85,10 @@ const StepDetalles = ({ data, onChange }) => {
                     <label className="text-sm font-medium text-muted-foreground">Imagen de portada</label>
                     <label
                         htmlFor="imagen-upload"
-                        className="mt-2 flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary hover:bg-primary/5 transition-all duration-[var(--duration-fast)]"
+                        className="mt-2 flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-border rounded-md cursor-pointer hover:border-org hover:bg-org/5 transition-all duration-[var(--duration-fast)]"
                     >
                         {imagePreview ? (
-                            <img src={imagePreview} alt="Preview" className="h-full w-full object-cover rounded-lg" />
+                            <img src={imagePreview} alt="Preview" className="h-full w-full object-cover rounded-md" />
                         ) : (
                             <div className="flex flex-col items-center gap-2 text-muted-foreground">
                                 <Upload className="w-8 h-8" strokeWidth={1.75} />
