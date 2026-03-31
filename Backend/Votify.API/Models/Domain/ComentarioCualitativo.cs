@@ -7,18 +7,15 @@ using System.Threading.Tasks;
 
 namespace Votify.API.Models.Domain
 {
-    public class ComentarioCualitativo
+    /*public class ComentarioCualitativo
     {
-        [PrimaryKey("id", false)]
         public int Id { get; set; }
+        public int IdCriterio { get; set; }
+        public string Comentario { get; set; }
 
-
-        public void GuardarComentario(int idCriterio, int idEvaluacion, string comentario)
+        public void GuardarComentario(int idCriterio, string comentario)
         {
-            // Aquí iría la lógica para guardar el comentario en la base de datos
-            // utilizando el SDK de Supabase o cualquier otro método de acceso a datos.
-            // Por ejemplo:
-            // var nuevoComentario = new ComentarioCualitativo { IdCriterio = idCriterio, IdEvaluacion = idEvaluacion, Comentario = comentario };
+            var nuevoComentario = new ComentarioCualitativo { IdCriterio = idCriterio, Comentario = comentario };
             // await supabaseClient.From<ComentarioCualitativo>().Insert(nuevoComentario);
         }
 
@@ -35,4 +32,5 @@ namespace Votify.API.Models.Domain
         }
 
     }
+    */
 }
