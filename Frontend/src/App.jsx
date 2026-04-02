@@ -23,7 +23,7 @@ function App() {
             <Route element={<ProtectedRoute />}>
               <Route path="/create-event" element={<CreateEvent />} />
               <Route path="/eventos" element={<DashboardPage />} />
-              <Route path="/votos" element={<VotosPage />} />
+              <Route path="/Votos" element={<VotosPage />} />
             </Route>
 
             {/* Redireccion login default */}
