@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:5245/api/Votos";
+﻿const API_URL = "http://localhost:5173/api/votos";
 
 export async function obtenerVotos() {
     const response = await fetch(`${API_URL}/Votos`, {

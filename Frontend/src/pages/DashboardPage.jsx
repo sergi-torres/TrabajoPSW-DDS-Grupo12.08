@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useContext } from "react";
+﻿import { useState, useEffect, useMemo, useContext } from "react";
 import { Plus, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { DesktopHeader } from "../components/eventos/DesktopHeader";
@@ -105,7 +105,15 @@ export default function DashboardPage() {
                                         <EventCard
                                             key={evento.id}
                                             {...evento}
-                                            onClick={() => console.log("TODO: Navegar a evento", evento.id)}
+                                            onClick={
+                                                () => {
+                                                    console.log("TODO: Navegar a evento", evento.id, evento.nombre);
+                                                    //Ir a la página de Votaciones si soy un participante
+                                                    if (evento.nombre === "Feria de Ciencias Local") {
+                                                        navigate("/votos");
+                                                    }
+                                                }
+                                            }
                                         />
                                     ))}
                                 </div>
