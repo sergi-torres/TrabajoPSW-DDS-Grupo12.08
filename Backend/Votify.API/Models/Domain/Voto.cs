@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Supabase.Postgrest.Attributes;
-using Supabase.Postgrest.Models;
+﻿using Postgrest.Attributes; // <--- Aquí vive [PrimaryKey] y [Column]
+
 
 namespace Votify.API.Models.Domain
 {
+    [Table("Voto")]
     public class Voto : BaseModel
     {
         [PrimaryKey("id", false)]
@@ -23,10 +19,10 @@ namespace Votify.API.Models.Domain
         public String urlaudio { get; set; }
 
         [Column("ipdispositivo")]
-        public float ipddispositivo { get; set; }
+        public float ipdispositivo { get; set; }
 
         [Column("fechavoto")]
-        public  DateTime fechavoto { get; set; }
+        public DateTime fechavoto { get; set; }
 
         [Column("idproyecto")]
         public int idproyecto { get; set; }
@@ -40,9 +36,18 @@ namespace Votify.API.Models.Domain
         [Column("idcategoria")]
         public int idcategoria { get; set; }
 
+        [Column("idProyecto")]
+        public int IdProyecto { get; set; }
+
+        [Column("idCriterio")]
+        public int IdCriterio { get; set; }
+
+        [Column("comentario")]
+        public string Comentario { get; set; }
+
         public Voto() { }
 
-        public Voto (string id, float valor,
+        public Voto(string id, float valor,
             string comentario, string urlaudio,
             float ipddispositivo, DateTime fechavoto,
             int idproyecto, int idevaluador,
@@ -50,14 +55,15 @@ namespace Votify.API.Models.Domain
         {
             Id = id;
             this.valor = valor;
-            this.comentario = comentario;
+            this.Comentario = comentario;
             this.urlaudio = urlaudio;
-            this.ipddispositivo = ipddispositivo;
+            this.ipdispositivo = ipddispositivo;
             this.fechavoto = fechavoto;
             this.idproyecto = idproyecto;
             this.idevaluador = idevaluador;
             this.idcriterio = idcriterio;
             this.idcategoria = idcategoria;
+            this.IdProyecto = idproyecto;
         }
     }
 }

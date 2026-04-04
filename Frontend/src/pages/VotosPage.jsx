@@ -72,7 +72,7 @@ export default function ParticipantDashboard() {
 
   const state = {
     participantName: localStorage.getItem("email"),
-    projectName: "Votify Platform",
+    projectName: localStorage.getItem("eventoNombre"),
     overallScore: 85.75
   };
 
@@ -101,7 +101,7 @@ export default function ParticipantDashboard() {
               <h2 className="text-xl font-semibold">Tu Proyecto</h2>
             </div>
             <h3 className="text-2xl mb-3">{state.projectName}</h3>
-            <p className="text-gray-600">Plataforma innovadora de votación y evaluación.</p>
+            <p className="text-gray-600">{localStorage.getItem("eventoDescripcion")}</p>
           </article>
 
           <article className="bg-white rounded-lg shadow p-6 text-center">

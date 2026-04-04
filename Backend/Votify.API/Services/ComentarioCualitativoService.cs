@@ -1,49 +1,58 @@
-﻿            using Microsoft.AspNetCore.Mvc;
-using Supabase;
-using Supabase.Interfaces;
-using Supabase.Postgrest.Attributes;
-using Supabase.Postgrest.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Threading.Tasks;
+﻿using Microsoft.AspNetCore.Mvc;
+
 using Votify.API.Models.Domain;
-using Votify.API.Models.DTOs;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+
 
 namespace Votify.API.Services;
 
-public class ComentarioCualitativoService(Client supabase)
+public class ComentarioCualitativoService(Supabase.Client supabase)
 {
-
     public int Id { get; set; }
     public int IdCriterio { get; set; }
     public required string Comentario { get; set; }
 
 
-    private readonly Client _supabase = supabase;
+    private readonly Supabase.Client _supabase = supabase;
 
     [HttpPost]
 
-    public async Task<string?> GetComentarioVoto(string votoId)
+    // 1. Obtener el conteo de votos
+    public async Task<int> GetTotalVotos(int idProyecto)
+    {
+        // Usamos Get() con CountType.Exact para obtener solo la metadata del conteo
+        var response = await _supabase
+            .From<Voto>()
+            .Where(x => x.IdProyecto == idProyecto)
+            .Count(Constants.CountType.Exact)
+            .Get();
+
+        return response.Count; // Accedemos a la propiedad Count del objeto de respuesta
+    }
+
+    // 2. Obtener todos los comentarios de una vez
+    public async Task<List<string>> GetComentariosProyecto(int idProyecto)
     {
         var response = await _supabase
             .From<Voto>()
-            .Where(x => x.Id == votoId)
+            .Where(x => x.IdProyecto == idProyecto)
+            // Pasamos el nombre de la columna como un simple string
+            .Select("comentario")
             .Get();
 
-        string? comentario = response.Models.FirstOrDefault()?.comentario ;
-        if (comentario != null) return comentario;
-        return "null";
+        // Aquí response.Models ya contiene los objetos Voto con la propiedad Comentario llena
+        return response.Models
+                       .Select(v => v.Comentario)
+                       .Where(c => !string.IsNullOrEmpty(c))
+                       .ToList();
     }
+
+
 
     public string GuardarComentario(int id, int idCriterio, string comentario, string votoId)
     {
         this.Id = id;
         this.IdCriterio = idCriterio;
-        this.Comentario = GetComentarioVoto(votoId).ToString();
+        this.Comentario = comentario;
 
         return ObtenerComentario();
 
@@ -51,7 +60,7 @@ public class ComentarioCualitativoService(Client supabase)
 
     public string ObtenerComentario()
     {
-        return "Id: "+Id+", IdCriterio: "+IdCriterio+", Texto"+Comentario;
+        return "Id: " + this.Id + ", IdCriterio: " + this.IdCriterio + ", Texto: " + this.Comentario;
     }
 
 }

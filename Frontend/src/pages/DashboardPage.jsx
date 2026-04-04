@@ -109,9 +109,17 @@ export default function DashboardPage() {
                                                 () => {
                                                     console.log("TODO: Navegar a evento", evento.id, evento.nombre);
                                                     //Ir a la página de Votaciones si soy un participante
-                                                    if (evento.nombre === "Feria de Ciencias Local") {
+                                                    const rol = JSON.parse(localStorage.getItem("propsRol")).label;
+                                                    console.log("ROL EN EVENTO", rol);
+
+                                                    if (rol === "Participante") {
+                                                        localStorage.setItem("eventoId", evento.id);
+                                                        localStorage.setItem("eventoNombre", evento.nombre);
                                                         navigate("/votos");
+
+                                                        localStorage.setItem("eventoDescripcion", evento.descripcion);
                                                     }
+                                                    //OTRAS PÁGINAS SEGÚN ROL AQUÍ =>
                                                 }
                                             }
                                         />
