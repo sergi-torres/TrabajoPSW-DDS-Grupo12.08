@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import StatsBar from '../components/votacion/votacionCategorias/StatsBar';
 import CategoriaCard from '../components/votacion/votacionCategorias/CategoriaCard';
-import ProyectosLista from '../components/votacion/votacionProyectos/ProyectosLista';
+import DashboardVotacionProyectos from './DashboardVotacionProyectos';
 import { useVotacionDashboard } from '../hooks/VotacionHooks/useVotacionDashboard';
 
 const DashboardVotacionCategorias = () => {

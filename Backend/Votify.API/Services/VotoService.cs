@@ -16,6 +16,9 @@ namespace Votify.API.Services
             new ProyectosResponseDto { Id = 4, Nombre = "IA Salud", Descripcion = "Inteligencia artificial en salud", Estado = "disponible" }
         };
 
+        // Lista de votos realizados (Categoria + Proyecto)
+        private static readonly List<(int CategoriaId, int ProyectoId)> VotosRealizados = new();
+
         // 2. Inicializamos los datos usando la lista correcta
         private static DashboardResponseDto _datos = new DashboardResponseDto
         {
@@ -25,12 +28,24 @@ namespace Votify.API.Services
             TiempoRestante = "05:00",
             Categorias = new List<CategoriaResumenDto>
             {
-                new CategoriaResumenDto { Id = 1, Titulo = "Innovación Tecnológica", VotosRestantes = 3, Proyectos = ListaProyectos },
-                new CategoriaResumenDto { Id = 2, Titulo = "Impacto Social", VotosRestantes = 3, Proyectos = ListaProyectos }
+                new CategoriaResumenDto { Id = 1, Titulo = "Innovación Tecnológica", VotosRestantes = 3, Proyectos = ListaProyectos.Select(p => new ProyectosResponseDto { Id = p.Id, Nombre = p.Nombre, Descripcion = p.Descripcion, Estado = p.Estado }).ToList() },
+                new CategoriaResumenDto { Id = 2, Titulo = "Impacto Social", VotosRestantes = 3, Proyectos = ListaProyectos.Select(p => new ProyectosResponseDto { Id = p.Id, Nombre = p.Nombre, Descripcion = p.Descripcion, Estado = p.Estado }).ToList() }
             }
         };
 
-        public DashboardResponseDto ObtenerDashboard() => _datos;
+        public DashboardResponseDto ObtenerDashboard()
+        {
+            // Marcamos los proyectos como "votado" si ya fueron votados
+            foreach (var categoria in _datos.Categorias)
+            {
+                foreach (var proyecto in categoria.Proyectos)
+                {
+                    var yaVotado = VotosRealizados.Any(v => v.CategoriaId == categoria.Id && v.ProyectoId == proyecto.Id);
+                    proyecto.Estado = yaVotado ? "votado" : "disponible";
+                }
+            }
+            return _datos;
+        }
 
         public async Task<DashboardResponseDto> ProcesarVotoAsync(VotoRequestDto request)
         {
@@ -44,12 +59,15 @@ namespace Votify.API.Services
                 categoria.VotosRestantes--;
                 _datos.VotosGlobalesRealizados++;
 
+                // Guardamos el voto realizado (Categoria + Proyecto)
+                VotosRealizados.Add((request.CategoriaId, request.ProyectoId));
+
                 if (categoria.VotosRestantes == 0) categoria.Estado = "completado";
 
-                Console.WriteLine($"[VOTO REGISTRADO] Cat: {categoria.Titulo} | Total: {_datos.VotosGlobalesRealizados}");
+                Console.WriteLine($"[VOTO REGISTRADO] Cat: {categoria.Titulo} | Proyecto: {request.ProyectoId} | Total: {_datos.VotosGlobalesRealizados}");
             }
 
-            return _datos;
+            return ObtenerDashboard();
         }
     }
 }
