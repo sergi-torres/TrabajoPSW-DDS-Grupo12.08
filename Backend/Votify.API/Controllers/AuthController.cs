@@ -16,27 +16,31 @@ namespace Votify.API.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)
+        public async Task<IActionResult> RegistrarAsync(RegistroRequestDto request)
         {
-            var token = await _authService.RegisterAsync(request);
-            if (token == null)
+            try
             {
-                return BadRequest("No se pudo registrar al usuario. Revisa el log o comprueba si el usuario ya existe.");
+                var (token, userId) = await _authService.RegistrarAsync(request);
+                return Ok(new { token, userId });
             }
-
-            return Ok(new { Token = token, Message = "Usuario registrado exitosamente" });
+            catch (Exception ex)
+            {
+                return BadRequest(ex.InnerException?.Message ?? ex.Message);
+            }
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
+        public async Task<IActionResult> LoginAsync(LoginRequestDto request)
         {
-            var token = await _authService.LoginAsync(request);
-            if (token == null)
+            try
             {
-                return Unauthorized("Credenciales inválidas.");
+                var (token, userId) = await _authService.LoginAsync(request);
+                return Ok(new { token, userId });
             }
-
-            return Ok(new { Token = token, Message = "Login exitoso" });
+            catch (Exception ex)
+            {
+                return BadRequest(ex.InnerException?.Message ?? ex.Message);
+            }
         }
     }
 }

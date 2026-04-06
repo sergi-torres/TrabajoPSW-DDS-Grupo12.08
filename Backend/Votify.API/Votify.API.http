@@ -1,6 +1,0 @@
-@Votify.API_HostAddress = http://localhost:5245
-
-GET {{Votify.API_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

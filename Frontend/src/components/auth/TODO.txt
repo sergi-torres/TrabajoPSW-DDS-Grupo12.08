@@ -1,0 +1,5 @@
+MobileLayout.jsx:
+- Hacer funcionar el unirse a eventos con el PIN
+
+AuthForm.jsx:
+- Acabar endpoints para que apunten a seleccion de rol
