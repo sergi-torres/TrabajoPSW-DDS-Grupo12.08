@@ -5,7 +5,6 @@ namespace Votify.API.Models.DTOs
     // Lo que enviamos al Front para pintar el Dashboard
     public class DashboardResponseDto
     {
-        public string Usuario { get; set; } = string.Empty;
         public int VotosGlobalesRealizados { get; set; }
         public int VotosGlobalesMaximos { get; set; }
         public int ProyectosActivos { get; set; }
@@ -19,6 +18,7 @@ namespace Votify.API.Models.DTOs
         public string Titulo { get; set; } = string.Empty;
         public int VotosRestantes { get; set; }
         public string Estado { get; set; } = "pendiente"; // "pendiente" o "completado"
+        public List<ProyectosResponseDto> Proyectos { get; set; } = new();
     }
 
     // Lo que recibimos cuando el usuario vota
@@ -32,5 +32,13 @@ namespace Votify.API.Models.DTOs
 
         [MaxLength(200)]
         public string? Comentario { get; set; }
+    }
+
+    public class ProyectosResponseDto
+    {
+        public int Id { get; set; }
+        public string Nombre { get; set; } = string.Empty;
+        public string Descripcion { get; set; } = string.Empty;
+        public string Estado { get; set; } = "disponible"; // "disponible" o "votado"
     }
 }

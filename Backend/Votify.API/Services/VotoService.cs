@@ -19,19 +19,25 @@ namespace Votify.API.Services
         }
         */
 
+        const Proyectos = [
+            { id: 1, nombre: "InnovaTech", desc: "Plataforma de innovación tecnológica para empresas", estado: "disponible" },
+            { id: 2, nombre: "Energía Solar+", desc: "Solución de energía sostenible para comunidades", estado: "disponible" },
+            { id: 3, nombre: "AppMóvil Pro", desc: "Desarrollo de aplicaciones móviles de última generación", estado: "disponible" },
+            { id: 4, nombre: "IA Salud", desc: "Inteligencia artificial aplicada al sector salud", estado: "disponible" },
+        ]
         // Datos en memoria: Persisten mientras el backend esté corriendo
         private static DashboardResponseDto _datos = new DashboardResponseDto
         {
-            Usuario = "Brad",
             VotosGlobalesMaximos = 6,
             VotosGlobalesRealizados = 0,
-            ProyectosActivos = 4,
-            TiempoRestante = "45:00",
+            ProyectosActivos = Proyectos.Length,
+            TiempoRestante = "05:00",
             Categorias = new List<CategoriaResumenDto>
             {
-                new CategoriaResumenDto { Id = 1, Titulo = "Innovación Tecnológica", VotosRestantes = 3 },
-                new CategoriaResumenDto { Id = 2, Titulo = "Impacto Social", VotosRestantes = 3 }
+                new CategoriaResumenDto { Id = 1, Titulo = "Innovación Tecnológica", VotosRestantes = 3, Proyectos},
+                new CategoriaResumenDto { Id = 2, Titulo = "Impacto Social", VotosRestantes = 3, Proyectos}
             }
+
         };
 
         public DashboardResponseDto ObtenerDashboard() => _datos;
