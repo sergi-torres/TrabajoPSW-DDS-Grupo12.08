@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Sergi\\Desktop\\Repos\\TrabajoPSW-DDS\\Backend\\Votify.API\\Votify.API.csproj": {}
+    "C:\\Users\\bradv\\Desktop\\proyectos\\ProyectoVotifyPSW_DDS\\TrabajoPSW-DDS\\Backend\\Votify.API\\Votify.API.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Sergi\\Desktop\\Repos\\TrabajoPSW-DDS\\Backend\\Votify.API\\Votify.API.csproj": {
+    "C:\\Users\\bradv\\Desktop\\proyectos\\ProyectoVotifyPSW_DDS\\TrabajoPSW-DDS\\Backend\\Votify.API\\Votify.API.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Sergi\\Desktop\\Repos\\TrabajoPSW-DDS\\Backend\\Votify.API\\Votify.API.csproj",
+        "projectUniqueName": "C:\\Users\\bradv\\Desktop\\proyectos\\ProyectoVotifyPSW_DDS\\TrabajoPSW-DDS\\Backend\\Votify.API\\Votify.API.csproj",
         "projectName": "Votify.API",
-        "projectPath": "C:\\Users\\Sergi\\Desktop\\Repos\\TrabajoPSW-DDS\\Backend\\Votify.API\\Votify.API.csproj",
-        "packagesPath": "C:\\Users\\Sergi\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Sergi\\Desktop\\Repos\\TrabajoPSW-DDS\\Backend\\Votify.API\\obj\\",
+        "projectPath": "C:\\Users\\bradv\\Desktop\\proyectos\\ProyectoVotifyPSW_DDS\\TrabajoPSW-DDS\\Backend\\Votify.API\\Votify.API.csproj",
+        "packagesPath": "C:\\Users\\bradv\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\bradv\\Desktop\\proyectos\\ProyectoVotifyPSW_DDS\\TrabajoPSW-DDS\\Backend\\Votify.API\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\Sergi\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\bradv\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -69,14 +69,6 @@
               "suppressParent": "All",
               "target": "Package",
               "version": "[9.0.0, )"
-            },
-            "Npgsql.EntityFrameworkCore.PostgreSQL": {
-              "target": "Package",
-              "version": "[9.0.0, )"
-            },
-            "supabase-csharp": {
-              "target": "Package",
-              "version": "[1.2.9, )"
             }
           },
           "imports": [
@@ -98,7 +90,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.308/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.306/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
