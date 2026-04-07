@@ -1,0 +1,26 @@
+using Votify.API.Models.Domain;
+using Supabase;
+
+namespace Votify.API.Repositories
+{
+    public class CategoriaRepository : ICategoriaRepository
+    {
+        private readonly Supabase.Client _supabase;
+
+        public CategoriaRepository(Supabase.Client supabase)
+        {
+            _supabase = supabase;
+        }
+
+        public async Task<List<Categoria>> ObtenerTodasAsync()
+        {
+            var response = await _supabase
+                .From<Categoria>()
+                .Select("*")
+                .Order("orden", Supabase.Postgrest.Constants.Ordering.Ascending)
+                .Get();
+
+            return response.Models;
+        }
+    }
+}

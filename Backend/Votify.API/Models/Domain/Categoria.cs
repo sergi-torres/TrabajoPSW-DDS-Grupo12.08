@@ -17,5 +17,9 @@ namespace Votify.API.Models.Domain
 
         [Reference(typeof(PesoCategoriaRol))]
         public List<PesoCategoriaRol> PesosPorRol { get; set; } = new List<PesoCategoriaRol>();
+
+        public int VotosRestantes { get; set; } = 3; // valor por defeceto por ahora
+
+        public string Estado { get; set; } = "pendiente"; // pendiente o completado
     }
 }

@@ -25,6 +25,10 @@ builder.Services.AddScoped<Supabase.Client>(_ =>
 builder.Services.AddSingleton<Votify.API.Services.IVotoService, Votify.API.Services.VotoService>();
 builder.Services.AddScoped<Votify.API.Factories.IUsuarioFactory, Votify.API.Factories.UsuarioFactory>();
 builder.Services.AddScoped<Votify.API.Services.IAuthService, Votify.API.Services.AuthService>();
+builder.Services.AddScoped<Votify.API.Repositories.ICategoriaRepository, Votify.API.Repositories.CategoriaRepository>();
+builder.Services.AddScoped<Votify.API.Repositories.IProyectoRepository, Votify.API.Repositories.ProyectoRepository>();
+builder.Services.AddScoped<Votify.API.Repositories.IVotoRepository, Votify.API.Repositories.VotoRepository>();
+builder.Services.AddScoped<Votify.API.Factories.IVotoFactory, Votify.API.Factories.VotoPublicoFactory>();
 
 // Configurar CORS para permitir que el frontend de Vite (localhost:5173) acceda a la API
 builder.Services.AddCors(options =>
