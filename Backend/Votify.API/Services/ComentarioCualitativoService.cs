@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-
 using Votify.API.Models.Domain;
-
+using Votify.API.Models.DTOs;
+using Supabase.Postgrest.Attributes;
+using Supabase.Postgrest.Models;
 
 namespace Votify.API.Services;
 
@@ -17,17 +18,18 @@ public class ComentarioCualitativoService(Supabase.Client supabase)
     [HttpPost]
 
     // 1. Obtener el conteo de votos
-    public async Task<int> GetTotalVotos(int idProyecto)
-    {
-        // Usamos Get() con CountType.Exact para obtener solo la metadata del conteo
-        var response = await _supabase
-            .From<Voto>()
-            .Where(x => x.IdProyecto == idProyecto)
-            .Count(Constants.CountType.Exact)
-            .Get();
+public async Task<int> GetTotalVotos(int idProyecto)
+{
+    // 1. Hacemos la consulta normal (sin el .Count(...) problemático)
+    var response = await _supabase
+        .From<Voto>()
+        .Where(x => x.IdProyecto == idProyecto)
+        .Get();
 
-        return response.Count; // Accedemos a la propiedad Count del objeto de respuesta
-    }
+    // 2. 'Models' es una List<Voto> estándar de C#. 
+    // Siempre tiene la propiedad .Count y no necesita usings raros.
+    return response.Models.Count;
+}
 
     // 2. Obtener todos los comentarios de una vez
     public async Task<List<string>> GetComentariosProyecto(int idProyecto)
@@ -41,7 +43,7 @@ public class ComentarioCualitativoService(Supabase.Client supabase)
 
         // Aquí response.Models ya contiene los objetos Voto con la propiedad Comentario llena
         return response.Models
-                       .Select(v => v.Comentario)
+                       .Select(v => v.comentario)
                        .Where(c => !string.IsNullOrEmpty(c))
                        .ToList();
     }
