@@ -122,12 +122,11 @@ namespace Votify.API.Services
                     urlAudio: null // No hay audio en esta implementación
                 );
 
-                // Asignar IP y evaluador (para público, evaluador genérico)
+                // Asignar IP y evaluador (para público, sin ID de usuario)
                 if (voto is VotoPublico votoPublico)
                 {
                     votoPublico.IpDispositivo = "web"; // TODO: Obtener IP real
-                    // Se debe usar un evaluador válido para cumplir la FK idevaluador -> usuario.id
-                    votoPublico.IdEvaluador = 1; // Ajusta este valor si en tu tabla usuario tienes otro ID de usuario público válido
+                    votoPublico.IdEvaluador = null; // Los votos públicos no tienen evaluador asignado
                 }
 
                 await _votoRepository.AgregarVotoAsync(voto);

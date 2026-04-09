@@ -28,7 +28,7 @@ namespace Votify.API.Models.Domain
         public int IdProyecto { get; set; }
 
         [Column("idevaluador")]
-        public int IdEvaluador { get; set; }
+        public int? IdEvaluador { get; set; }
 
         [Column("idcriterio")]
         public int IdCriterio { get; set; }
