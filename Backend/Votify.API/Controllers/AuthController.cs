@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Votify.API.Models.DTOs;
 using Votify.API.Services;
 
