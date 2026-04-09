@@ -120,6 +120,8 @@ export default function DashboardPage() {
                                                         localStorage.setItem("eventoDescripcion", evento.descripcion);
                                                     }
                                                     //OTRAS PÁGINAS SEGÚN ROL AQUÍ =>
+
+                                                    
                                                 }
                                             }
                                         />
