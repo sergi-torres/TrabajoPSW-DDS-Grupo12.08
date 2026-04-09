@@ -16,17 +16,18 @@ namespace Votify.API.Models.Domain
         public string Descripcion { get; set; } = string.Empty;
 
         [Column("urlmultimedia")]
-        public string UrlMultimedia { get; set; } = string.Empty;
+        public string? UrlMultimedia { get; set; }
 
         [Column("idevento")]
-        public string IdEvento { get; set; } = string.Empty;
+        public int IdEvento { get; set; }
 
         [Column("idparticipante")]
-        public int IdParticipante { get; set; } = 0;
+        public int IdParticipante { get; set; }
 
         [Column("idcategoria")]
         public int IdCategoria { get; set; }
 
-        public string Estado { get; set; } = "disponible"; // disponible, votado
+        // Propiedad no mapeada (se asigna en Service)
+        public string Estado { get; set; } = "disponible"; // "disponible" o "votado"
     }
 }

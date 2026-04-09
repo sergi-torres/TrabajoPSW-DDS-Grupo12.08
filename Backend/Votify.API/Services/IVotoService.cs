@@ -9,7 +9,7 @@ namespace Votify.API.Services
         //? Tal vez en el futuro lo llame asi 
         //Task<Voto> ProcesarNuevoVoto(int usuarioId, int proyectoId, int categoriaId, int criterioId, float valorBase, string rol, string? comentario, string? urlAudio);
 
-        DashboardResponseDto ObtenerDashboard();
+        Task<DashboardResponseDto> ObtenerDashboardAsync();
         Task<DashboardResponseDto> ProcesarVotoAsync(VotoRequestDto request);
     }
 }

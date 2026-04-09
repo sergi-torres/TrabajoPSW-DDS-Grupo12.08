@@ -17,7 +17,6 @@ namespace Votify.API.Repositories
             var response = await _supabase
                 .From<Categoria>()
                 .Select("*")
-                .Order("orden", Supabase.Postgrest.Constants.Ordering.Ascending)
                 .Get();
 
             return response.Models;

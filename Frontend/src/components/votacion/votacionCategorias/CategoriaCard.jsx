@@ -6,10 +6,10 @@ const CategoriaCard = ({ categoria, alVotar }) => {
   const esCompletado = estado === "completado";
 
   return (
-    <div className="bg-white rounded-[32px] p-8 shadow-sm border border-gray-100 flex flex-col items-center text-center hover:shadow-md transition-all">
+    <div className="bg-white rounded-[32px] p-8 shadow-sm border border-gray-100 flex flex-col items-center text-center hover:shadow-md transition-all min-h-[320px]">
       
       {/* Indicador de estado (Círculo con check o punto) */}
-      <div className={`w-14 h-14 rounded-full flex items-center justify-center mb-6 ${
+      <div className={`w-14 h-14 rounded-full flex items-center justify-center mb-4 ${  // Cambié mb-6 a mb-4
         esCompletado ? 'bg-green-50 text-green-500' : 'bg-blue-50 text-blue-500'
       }`}>
         {esCompletado ? (
@@ -21,10 +21,12 @@ const CategoriaCard = ({ categoria, alVotar }) => {
         )}
       </div>
       
-      {/* Título de la categoría */}
-      <h3 className="text-xl font-bold text-gray-900 mb-2 leading-tight">
-        {titulo}
-      </h3>
+      {/* Contenedor del título con altura mínima para consistencia */}
+      <div className="min-h-[60px] flex items-center justify-center mb-2">  {/* Altura mínima para el título */}
+        <h3 className="text-xl font-bold text-gray-900 leading-tight">
+          {titulo}
+        </h3>
+      </div>
 
       {/* Frase de estado que pediste */}
       <p className={`text-xs font-bold uppercase tracking-wider mb-4 ${
@@ -34,7 +36,7 @@ const CategoriaCard = ({ categoria, alVotar }) => {
       </p>
 
       {/* Votos restantes en esta categoría */}
-      <div className="bg-gray-50 px-5 py-2 rounded-2xl mb-8">
+      <div className="bg-gray-50 px-5 py-2 rounded-2xl mb-6">  {/* Cambié mb-8 a mb-6 */}
         <p className="text-gray-500 text-sm font-medium">
           Te quedan <span className="text-gray-900 font-black">{votosRestantes}</span> votos
         </p>

@@ -32,17 +32,17 @@ namespace Votify.API.Controllers
         }
 
         [HttpGet("dashboard")]
-        public IActionResult ObtenerDashboard()
+        public async Task<IActionResult> ObtenerDashboard()
         {
             try
             {
-                var dashboard = _votoService.ObtenerDashboard();
+                var dashboard = await _votoService.ObtenerDashboardAsync();
                 return Ok(dashboard);
             }
             catch (Exception ex)
             {
-                // ex.InnerException contiene el error REAL de Supabase
-                return BadRequest(ex.InnerException?.Message ?? ex.Message);
+                // Retornar error con detalles
+                return BadRequest(new { error = ex.Message, inner = ex.InnerException?.Message, stack = ex.StackTrace });
             }
         }
     }
