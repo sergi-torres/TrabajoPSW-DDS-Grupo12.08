@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+﻿import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { AuthProvider } from './context/AuthContext'
 import LoginPage from './pages/LoginPage'
@@ -7,6 +7,7 @@ import './App.css'
 import CreateEvent from './pages/CreateEvent'
 import NotFound from './pages/NotFound'
 import ProtectedRoute from './components/auth/ProtectedRoute'
+import VotosPage from './pages/VotosPage'
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
             <Route element={<ProtectedRoute />}>
               <Route path="/create-event" element={<CreateEvent />} />
               <Route path="/eventos" element={<DashboardPage />} />
+              <Route path="/votos" element={<VotosPage />} />
             </Route>
 
             {/* Redireccion login default */}

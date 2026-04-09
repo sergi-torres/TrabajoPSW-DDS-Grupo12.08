@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect } from "react";
+﻿import { createContext, useState, useEffect } from "react";
 
 const AuthContext = createContext(null);
 
@@ -10,17 +10,22 @@ export function AuthProvider({ children }) {
         const stored = localStorage.getItem("userId");
         return stored ? parseInt(stored) : null;
     });
+    const [userName, setUserName] = useState(() => {
+        const stored = localStorage.getItem("userName");
+        return stored ? stored : null;
+    });
 
     const isAuthenticated = !!token;
 
     /**
-     * Guarda el token y el userId en el estado global y en localStorage.
+     * Guarda el token, el userId y el userName en el estado global y en localStorage.
      */
-    const login = (newToken, newUserId) => {
+    const login = (newToken, newUserId, newUserName) => {
         localStorage.setItem("token", newToken);
         localStorage.setItem("userId", newUserId);
-        setToken(newToken);
+        localStorage.setItem("userName", newUserName);
         setUserId(newUserId);
+        setUserName(newUserName);
     };
 
     /**
@@ -29,6 +34,7 @@ export function AuthProvider({ children }) {
     const logout = () => {
         localStorage.removeItem("token");
         localStorage.removeItem("userId");
+        localStorage.removeItem("userName");
         setToken(null);
         setUserId(null);
     };

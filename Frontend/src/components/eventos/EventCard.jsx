@@ -1,4 +1,4 @@
-import { Calendar, ArrowRight } from "lucide-react";
+﻿import { Calendar, ArrowRight } from "lucide-react";
 import { clsx } from "clsx";
 
 /**
@@ -69,11 +69,26 @@ export function EventCard({ nombre, descripcion, fechaIni, fechaFin, estado, rol
     const roleData = rolesConfig[rol] || rolesConfig.Publico;
     const estadoData = estadoConfig[estado] || estadoConfig.Configuracion;
 
+    const handleCardClick = () => {
+    // 1. Guardamos el objeto completo (convertido a string)
+    const roleToStore = { 
+        label: roleData.label,
+        bgClass: roleData.bgClass, 
+        textClass: roleData.textClass 
+    };
+    
+    localStorage.setItem("propsRol", JSON.stringify(roleToStore));
+
+    // 2. Ejecutamos la navegación o lógica original
+    if (onClick) onClick();
+    };
+
     return (
         <div
-            onClick={onClick}
+            onClick={handleCardClick}
             className="bg-card rounded-2xl p-6 border border-border shadow-base hover:shadow-hover hover:-translate-y-[2px] transition-all group cursor-pointer flex flex-col h-full"
         >
+
             {/* Header: Estado + Rol Badge */}
             <div className="flex justify-between items-start mb-4">
                 <span className={clsx("px-2.5 py-1 rounded-lg text-xs font-semibold", estadoData.bg, estadoData.color)}>
