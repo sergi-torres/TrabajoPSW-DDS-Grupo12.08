@@ -7,6 +7,8 @@ import './App.css'
 import CreateEvent from './pages/CreateEvent'
 import NotFound from './pages/NotFound'
 import ProtectedRoute from './components/auth/ProtectedRoute'
+import OrganizerDashboard from './pages/OrganizerDashboard'
+import "./components/organizator_dashboard/Dashboard.css"
 
 function App() {
   return (
@@ -17,13 +19,14 @@ function App() {
           <Routes>
             {/* Rutas Públicas */}
             <Route path="/login" element={<LoginPage />} />
-            
+
             {/* Rutas Protegidas (Requieren Login) */}
             <Route element={<ProtectedRoute />}>
               <Route path="/create-event" element={<CreateEvent />} />
               <Route path="/eventos" element={<DashboardPage />} />
-            </Route>
 
+            </Route>
+            <Route path="/organizador-dashboard" element={<OrganizerDashboard />} />
             {/* Redireccion login default */}
             <Route path="/" element={<Navigate to="/login" replace />} />
             {/* Fallback 404 para cualquier ruta no definida */}
