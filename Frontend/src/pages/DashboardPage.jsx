@@ -24,6 +24,7 @@ export default function DashboardPage() {
                 setLoading(true);
                 const mis = await getMisEventos(userId);
                 setMisEventos(mis);
+                localStorage.setItem("misEventosCache", JSON.stringify(mis));
             } catch (err) {
                 console.error("Error cargando eventos:", err);
                 setError(err.message);
@@ -120,7 +121,12 @@ export default function DashboardPage() {
                                                         localStorage.setItem("eventoDescripcion", evento.descripcion);
                                                     }
                                                     //OTRAS PÁGINAS SEGÚN ROL AQUÍ =>
-
+                                                    if(rol === "Jurado") {
+                                                        localStorage.setItem("eventoId", evento.id);
+                                                        localStorage.setItem("eventoNombre", evento.nombre);
+                                                        localStorage.setItem("eventoDescripcion", evento.descripcion);
+                                                        navigate("/dashboard-votacion-categorias");
+                                                    }
                                                     
                                                 }
                                             }

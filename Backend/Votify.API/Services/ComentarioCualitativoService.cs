@@ -22,11 +22,11 @@ public async Task<int> GetTotalVotos(int idProyecto)
 {
     // 1. Hacemos la consulta normal (sin el .Count(...) problemático)
     var response = await _supabase
-        .From<Voto>()
+        .From<VotoQuery>()
         .Where(x => x.IdProyecto == idProyecto)
         .Get();
 
-    // 2. 'Models' es una List<Voto> estándar de C#. 
+    // 2. 'Models' es una List<VotoQuery> estándar de C#. 
     // Siempre tiene la propiedad .Count y no necesita usings raros.
     return response.Models.Count;
 }
@@ -35,16 +35,17 @@ public async Task<int> GetTotalVotos(int idProyecto)
     public async Task<List<string>> GetComentariosProyecto(int idProyecto)
     {
         var response = await _supabase
-            .From<Voto>()
+            .From<VotoQuery>()
             .Where(x => x.IdProyecto == idProyecto)
             // Pasamos el nombre de la columna como un simple string
             .Select("comentario")
             .Get();
 
-        // Aquí response.Models ya contiene los objetos Voto con la propiedad Comentario llena
+        // Aquí response.Models ya contiene los objetos VotoQuery con la propiedad Comentario llena
         return response.Models
-                       .Select(v => v.comentario)
+                       .Select(v => v.Comentario)
                        .Where(c => !string.IsNullOrEmpty(c))
+                       .Select(c => c!)
                        .ToList();
     }
 

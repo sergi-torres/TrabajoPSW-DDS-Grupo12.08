@@ -1,0 +1,9 @@
+using Votify.API.Models.Domain;
+
+namespace Votify.API.Repositories
+{
+    public interface IVotoRepository
+    {
+        Task<Voto> AgregarVotoAsync(Voto voto);
+    }
+}

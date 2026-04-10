@@ -37,6 +37,7 @@ namespace Votify.API.Services
                         resultado.Add(new EventoResponseDto
                         {
                             Id = evento.Id,
+                            CodEvento = evento.CodEvento,
                             Nombre = evento.Nombre,
                             Descripcion = evento.Descripcion,
                             FechaIni = evento.FechaInicio,
@@ -52,6 +53,34 @@ namespace Votify.API.Services
             catch (Exception ex)
             {
                 throw new Exception("Error al obtener los eventos del usuario", ex);
+            }
+        }
+
+        public async Task<JoinEventoResponseDto> JoinEventoPorCodigoAsync(int codEvento)
+        {
+            try
+            {
+                var response = await _supabase
+                    .From<EventoLite>()
+                    .Filter("cod_evento", Supabase.Postgrest.Constants.Operator.Equals, codEvento.ToString())
+                    .Get();
+
+                var evento = response.Models.FirstOrDefault();
+                if (evento == null)
+                {
+                    throw new Exception("El PIN no corresponde a ningun evento.");
+                }
+
+                return new JoinEventoResponseDto
+                {
+                    Id = evento.Id,
+                    CodEvento = evento.CodEvento,
+                    Nombre = evento.Nombre
+                };
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error al validar el PIN del evento", ex);
             }
         }
     }

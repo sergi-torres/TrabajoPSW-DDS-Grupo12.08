@@ -8,8 +8,10 @@ import CreateEvent from './pages/CreateEvent'
 import NotFound from './pages/NotFound'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import VotosPage from './pages/VotosPage'
+import DashboardVotacionCategorias from './pages/DashboardVotacionCategorias'
 
 function App() {
+
   return (
     <>
       <Toaster position="bottom-right" richColors />
@@ -24,6 +26,7 @@ function App() {
               <Route path="/create-event" element={<CreateEvent />} />
               <Route path="/eventos" element={<DashboardPage />} />
               <Route path="/votos" element={<VotosPage />} />
+              <Route path="/dashboard-votacion-categorias" element={<DashboardVotacionCategorias />} />
             </Route>
 
             {/* Redireccion login default */}
@@ -36,6 +39,7 @@ function App() {
     </>
   )
 }
+
 
 export default App
 

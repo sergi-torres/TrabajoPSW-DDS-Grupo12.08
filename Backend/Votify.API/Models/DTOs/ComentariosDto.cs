@@ -1,12 +1,13 @@
-﻿using Supabase.Postgrest.Attributes;
+using Supabase.Postgrest.Attributes;
 using Supabase.Postgrest.Models;
 
-namespace Votify.API.Models.Domain
+namespace Votify.API.Models.DTOs
 {
+    // DTO concreto para consultar la tabla de votos (solo para BD)
     [Table("voto")]
-    public abstract class Voto : BaseModel
+    public class VotoQuery : BaseModel
     {
-        [PrimaryKey("id", false)]// Con false se autogenera el id
+        [PrimaryKey("id", false)]
         public int Id { get; set; }
 
         [Column("valor")]
@@ -22,7 +23,7 @@ namespace Votify.API.Models.Domain
         public string IpDispositivo { get; set; } = string.Empty;
 
         [Column("fechavoto")]
-        public DateTime FechaVoto { get; set; } = DateTime.UtcNow;
+        public DateTime FechaVoto { get; set; }
 
         [Column("idproyecto")]
         public int IdProyecto { get; set; }
@@ -35,9 +36,5 @@ namespace Votify.API.Models.Domain
 
         [Column("idcategoria")]
         public int IdCategoria { get; set; }
-    
-    public abstract float CalcularPuntuacionFinal(float peso); 
-    
-    
-    } 
+    }
 }

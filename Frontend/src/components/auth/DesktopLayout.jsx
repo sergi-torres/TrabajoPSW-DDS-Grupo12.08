@@ -1,11 +1,31 @@
+import { useState } from "react";
 import { Hash } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { AuthTabs } from "./AuthTabs";
 import logo from "../../assets/LogoSinTexto.png";
+import { joinEvento } from "../../api/eventosApi";
 
 /**
  * DesktopLayout.jsx
  */
 export function DesktopLayout() {
+    const navigate = useNavigate();
+    const [pin, setPin] = useState("");
+
+    const handleJoin = async () => {
+        if (pin.length === 0) return;
+
+        try {
+            const data = await joinEvento(pin);
+            localStorage.setItem("eventoId", data.id);
+            localStorage.setItem("eventoNombre", data.nombre || "Evento");
+            navigate("/dashboard-votacion-categorias");
+        } catch (error) {
+            console.error("Error validando PIN:", error);
+            alert(error.message);
+        }
+    };
+
     return (
         <div className="flex h-screen w-full overflow-hidden font-body">
 
@@ -78,11 +98,13 @@ export function DesktopLayout() {
                                 pattern="[0-9]*"
                                 maxLength={6}
                                 placeholder="000000"
-                                onChange={(e) => e.target.value = e.target.value.replace(/\D/g, '')}
+                                value={pin}
+                                onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
                                 className="flex-1 min-w-0 bg-muted border border-border rounded-xl px-4 py-3 font-mono font-bold text-lg focus:ring-2 focus:ring-[var(--color-pub)]/20 focus:border-[var(--color-pub)] outline-none transition-all placeholder:font-body placeholder:font-normal placeholder:text-muted-foreground text-foreground"
                             />
                             <button
                                 type="button"
+                                onClick={handleJoin}
                                 className="bg-[var(--color-pub)] hover:opacity-90 text-white font-heading font-bold py-3 px-6 rounded-xl transition-colors flex items-center shadow-md active:scale-95 shrink-0"
                             >
                                 Unirse
