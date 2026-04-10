@@ -45,6 +45,7 @@ public async Task<int> GetTotalVotos(int idProyecto)
         return response.Models
                        .Select(v => v.Comentario)
                        .Where(c => !string.IsNullOrEmpty(c))
+                       .Select(c => c!)
                        .ToList();
     }
 
