@@ -1,7 +1,6 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Votify.API.Models.DTOs;
 using Votify.API.Services;
-using System.Threading.Tasks;
 
 namespace Votify.API.Controllers
 {
@@ -21,12 +20,11 @@ namespace Votify.API.Controllers
         {
             try
             {
-                var session = await _authService.RegistrarAsync(request);
-                return Ok(new { token = session }); // El token sirve para autenticar las peticiones posteriores
+                var (token, userId) = await _authService.RegistrarAsync(request);
+                return Ok(new { token, userId });
             }
             catch (Exception ex)
             {
-                // ex.InnerException contiene el error REAL de Supabase
                 return BadRequest(ex.InnerException?.Message ?? ex.Message);
             }
         }
@@ -36,12 +34,11 @@ namespace Votify.API.Controllers
         {
             try
             {
-                var session = await _authService.LoginAsync(request);
-                return Ok(new { token = session });
+                var (token, userId) = await _authService.LoginAsync(request);
+                return Ok(new { token, userId });
             }
             catch (Exception ex)
             {
-                // ex.InnerException contiene el error real de Supabase
                 return BadRequest(ex.InnerException?.Message ?? ex.Message);
             }
         }

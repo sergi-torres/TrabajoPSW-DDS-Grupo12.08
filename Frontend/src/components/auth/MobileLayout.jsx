@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 import { LoginDrawer } from "./LoginDrawer";
 import logo from "../../assets/LogoSinTexto.png";
 import { useNavigate } from "react-router-dom";
+import { joinEvento } from "../../api/eventosApi";
 
 /**
  * MobileLayout.jsx
@@ -21,25 +22,11 @@ export function MobileLayout() {
 
         if (pin.length > 0) {
             try {
-                // Aquí hay que hacer una petición al Votify.API para validar si el PIN existe
-                const response = await fetch(`http://localhost:5245/api/Eventos/join?pin=${pin}`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ pin })
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    //a) Navegar a la sala de espera del evento (Público)
-                    navigate(`/votacion/${data.id}`);
-                } else {
-                    //b) Mostrar error "El PIN no es válido o el evento ha terminado"
-                    alert("El PIN no es válido o el evento ha terminado");
-                }
+                const data = await joinEvento(pin);
+                navigate(`/votacion/${data.id}`);
             } catch (error) {
                 console.error("Error validando PIN:", error);
-                alert("Error de conexión con el servidor.");
+                alert(error.message);
             }
         }
     };
@@ -67,10 +54,12 @@ export function MobileLayout() {
                         <form onSubmit={handleJoin} className="space-y-4">
                             <input
                                 type="text"
-                                placeholder="000 000"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
+                                placeholder="000000"
                                 maxLength={6}
                                 value={pin}
-                                onChange={(e) => setPin(e.target.value)}
+                                onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
                                 className="w-full text-center text-4xl font-body font-black tracking-widest py-6 px-4 rounded-xl bg-muted border-2 border-border focus:border-[var(--color-pub)] focus:ring-4 focus:ring-[var(--color-pub)]/20 outline-none transition-all placeholder:text-muted-foreground text-foreground"
                             />
 

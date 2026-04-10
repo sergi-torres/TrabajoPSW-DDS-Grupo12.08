@@ -1,70 +1,49 @@
-### ============================================
-### CAMBIAR EL PUERTO SI ES NECESARIO
+﻿### ============================================
+### CAMBIAR EL PUERTO SI ES NECESARIO (5245)
 ### ============================================
 @baseUrl = http://localhost:5245/api
-# En la entrega, en Supabase, Authentication → Providers → Email → Enable Email Confirmation: false
 
 ### ============================================
-### 1. REGISTRAR un Organizador
-### ============================================
-POST {{baseUrl}}/Auth/register
-Content-Type: application/json
-
-{
-    "email": "organizadorr@test.com",
-    "password": "123456",
-    "nombreCompleto": "Marioo",
-    "nombreUsuario": "marioo",
-    "rol": "Organizador"
-}
-
-### ============================================
-### 2. REGISTRAR un Jurado
+### 1. REGISTRAR Usuarios de prueba
 ### ============================================
 POST {{baseUrl}}/Auth/register
 Content-Type: application/json
 
 {
-    "email": "jurado@test.com",
-    "password": "123456",
-    "nombreCompleto": "Ana García",
-    "nombreUsuario": "anaaaa",
-    "rol": "Jurado"
+    "email": "jorge@test.com",
+    "password": "password123",
+    "nombreCompleto": "Jorge Prueba",
+    "nombreUsuario": "jorge123"
 }
 
 ### ============================================
-### 3. REGISTRAR un Participante
-### ============================================
-POST {{baseUrl}}/Auth/register
-Content-Type: application/json
-
-{
-    "email": "participante@test.com",
-    "password": "123456",
-    "nombreCompleto": "Carlos López",
-    "nombreUsuario": "carlos",
-    "rol": "Participante"
-}
-
-### ============================================
-### 4. LOGIN con un usuario registrado
+### 2. LOGIN con usuario registrado
 ### ============================================
 POST {{baseUrl}}/Auth/login
 Content-Type: application/json
 
 {
-    "email": "organizador@test.com",
-    "password": "123456"
+    "email": "jorge@gmail.com",
+    "password": "jorgeee"
 }
 
 ### ============================================
-### 5. Probar conexión con Supabase
+### 3. Obtener Mis Eventos
+### Asegúrate de cambiar el userId por el que te devuelva el login
+### ============================================
+GET {{baseUrl}}/Eventos/mis-eventos?userId=16
+
+
+### ============================================
+### 4. Probar conexión con Supabase (Test)
 ### ============================================
 GET {{baseUrl}}/test-connection
 
 ### ============================================
-### 6. LOGIN con credenciales incorrectas (debería fallar)
+### 5. ERRORES ESPERADOS (Pruebas Negativas)
 ### ============================================
+
+# Login con credenciales incorrectas
 POST {{baseUrl}}/Auth/login
 Content-Type: application/json
 
@@ -73,15 +52,76 @@ Content-Type: application/json
     "password": "wrongpassword"
 }
 
-### ============================================
-### 7. REGISTRO con datos inválidos (sin email, debería fallar)
-### ============================================
+# Registro sin email (debe fallar la validación)
 POST {{baseUrl}}/Auth/register
 Content-Type: application/json
 
 {
     "email": "",
     "password": "123456",
-    "nombreCompleto": "Test",
-    "rol": "Organizador"
+    "nombreCompleto": "Test"
+}
+
+### ============================================
+### 8. CREAR un Evento Válido (Hackathon)
+### ============================================
+POST {{baseUrl}}/Event
+Content-Type: application/json
+
+{
+  "nombre": "Hackathon Innovación 2026",
+  "descripcion": "48 horas de puro código para crear soluciones del futuro.",
+  "fechaIni": "2026-05-10T10:00:00",
+  "fechaFin": "2026-05-12T10:00:00",
+  "tipoEvento": "Hackaton",
+  "idOrganizador": 1,
+  "categorias": [
+    {
+      "nombre": "Mejor Arquitectura Backend",
+      "pesos": [
+        {
+          "rolVotante": "Jurado",
+          "peso": 70
+        },
+        {
+          "rolVotante": "Publico",
+          "peso": 30
+        }
+      ]
+    }
+  ],
+  "baremos": [
+    {
+      "nombre": "Evaluación Técnica",
+      "criterios": [
+        {
+          "nombre": "Calidad del Código",
+          "peso": 50,
+          "tipoCriterio": "Numerico"
+        },
+        {
+          "nombre": "Originalidad",
+          "peso": 50,
+          "tipoCriterio": "Numerico"
+        }
+      ]
+    }
+  ]
+}
+
+### ============================================
+### 9. CREAR un Evento INVÁLIDO (Debería dar error 400)
+### ============================================
+POST {{baseUrl}}/Event
+Content-Type: application/json
+
+{
+  "nombre": "Ev", 
+  "descripcion": "Este evento va a fallar por todos lados",
+  "fechaIni": "2026-10-10T10:00:00",
+  "fechaFin": "2026-10-08T10:00:00", 
+  "tipoEvento": "Fiesta", 
+  "idOrganizador": 1,
+  "categorias": [],
+  "baremos": []
 }

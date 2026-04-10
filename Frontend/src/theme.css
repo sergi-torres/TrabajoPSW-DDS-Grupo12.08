@@ -38,6 +38,15 @@
     --sidebar-border: oklch(0.922 0 0);
     --sidebar-ring: oklch(0.708 0 0);
 
+    /* Motion y Animaciones (Guía 2.5) */
+    --duration-fast: 150ms;
+    --duration-normal: 250ms;
+    --duration-slow: 400ms;
+    --easing-default: cubic-bezier(0.4, 0, 0.2, 1);
+    --easing-in: cubic-bezier(0.4, 0, 1, 1);
+    --easing-out: cubic-bezier(0, 0, 0.2, 1);
+    --easing-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
     /* Variables específicas de Votify integradas en la nueva paleta */
     --color-org: #3B82F6;
     --color-part: #8B5CF6;
@@ -45,6 +54,18 @@
     --color-pub: #10B981;
     --color-state-success: #10B981;
     --color-state-success-bg: #ECFDF5;
+
+    /* Semantic colors for UI components */
+    --success: #10B981;
+    --success-foreground: #ffffff;
+    --error: #EF4444;
+    --error-foreground: #ffffff;
+    --error-bg: #FEF2F2;
+    --warning: #F59E0B;
+    --warning-foreground: #ffffff;
+    --info: #3B82F6;
+    --info-foreground: #ffffff;
+    --info-bg: #EFF6FF;
 }
 
 @theme {
@@ -87,6 +108,18 @@
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-ring: var(--sidebar-ring);
 
+    /* Semantic colors */
+    --color-success: var(--success);
+    --color-success-foreground: var(--success-foreground);
+    --color-error: var(--error);
+    --color-error-foreground: var(--error-foreground);
+    --color-error-bg: var(--error-bg);
+    --color-warning: var(--warning);
+    --color-warning-foreground: var(--warning-foreground);
+    --color-info: var(--info);
+    --color-info-foreground: var(--info-foreground);
+    --color-info-bg: var(--info-bg);
+
     /* Mapping the legacy project tokens to ensure UI components don't break entirely while we migrate to the new standard */
     --color-app: var(--background);
     --color-elevated: var(--muted);
@@ -94,6 +127,12 @@
     --color-border-focus: var(--ring);
     --color-tertiary: var(--muted-foreground);
     --color-inverse: var(--primary-foreground);
+
+    /* Role Colors mapped for utility generation */
+    --color-org: var(--color-org);
+    --color-part: var(--color-part);
+    --color-jur: var(--color-jur);
+    --color-pub: var(--color-pub);
 
     /* Fonts */
     --font-heading: 'Poppins', sans-serif;

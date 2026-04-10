@@ -1,4 +1,4 @@
-import { MobileLayout } from "../components/auth/MobileLayout";
+﻿import { MobileLayout } from "../components/auth/MobileLayout";
 import { DesktopLayout } from "../components/auth/DesktopLayout";
 
 /**
@@ -13,12 +13,12 @@ export default function LoginPage() {
     return (
         <div className="min-h-screen bg-app font-body text-primary">
             {/* Vista Móvil */}
-            <div className="md:hidden">
+            <div className="lg:hidden">
                 <MobileLayout />
             </div>
 
             {/* Vista Escritorio */}
-            <div className="hidden md:block">
+            <div className="hidden lg:block">
                 <DesktopLayout />
             </div>
         </div>

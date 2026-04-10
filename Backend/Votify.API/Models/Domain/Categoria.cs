@@ -15,6 +15,9 @@ namespace Votify.API.Models.Domain
         [Column("idevento")]
         public int IdEvento { get; set; }
 
+        [Reference(typeof(PesoCategoriaRol))]
+        public List<PesoCategoriaRol> PesosPorRol { get; set; } = new List<PesoCategoriaRol>();
+
         // Propiedades no mapeadas (se asignan valores en Service)
         public int VotosRestantes { get; set; } = 3;
         public string Estado { get; set; } = "pendiente"; // "pendiente" o "completado"

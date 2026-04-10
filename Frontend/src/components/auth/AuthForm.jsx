@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Mail, Lock, Eye, EyeOff, LogIn, UserPlus, User, AtSign } from "lucide-react";
 import { clsx } from "clsx";
-import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth";
 
 /**
  * AuthForm.jsx
@@ -9,9 +9,11 @@ import { useNavigate } from "react-router-dom";
  * Componente "tonto" (Dumb Component) que renderiza el formulario real.
  * Si mode="login", muestra [Email, Password]. 
  * Si mode="register", muestra [NombreCompleto, Username, Email, Password].
+ * 
+ * Toda la lógica de red y estado global vive en useAuth().
  */
 export function AuthForm({ mode = "login", isMobile = false }) {
-    const navigate = useNavigate();
+    const { handleLogin, handleRegister } = useAuth();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [nombreCompleto, setNombreCompleto] = useState("");
@@ -21,61 +23,10 @@ export function AuthForm({ mode = "login", isMobile = false }) {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        try {
-            if (mode === "login") {
-                const response = await fetch("http://localhost:5245/api/Auth/login", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ email, password })
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    localStorage.setItem("token", data.token);
-
-                    // TODO: Leer el ROL del JWT decodificado o del Backend. 
-                    // Si el usuario tiene múltiples roles (ej. es Org y Parte de un jurado), 
-                    // aquí deberías enviarlo a una pantalla de "Selección de Rol" (/select-role).
-                    // Si solo tiene uno, lo envías directo a su dashboard correspondiente.
-                    navigate(`/seleccionar-rol`);
-                } else {
-                    // Si la respuesta no es OK, leemos el mensaje de error del backend (BadRequest)
-                    const errorText = await response.text();
-                    alert(`Error de Login: ${errorText || "Credenciales incorrectas"}`);
-                }
-            } else {
-                // ATENCIÓN: El API Votify exige el campo 'Rol' para el patrón Factory (UsuarioFactory.cs)
-                // Opciones válidas: "Organizador", "Jurado", "Participante".
-                // De momento enviamos "Organizador" por defecto para que no falle.
-                const response = await fetch("http://localhost:5245/api/Auth/register", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        nombreCompleto,
-                        nombreUsuario,
-                        email,
-                        password,
-                        rol: "Organizador"
-                    })
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    localStorage.setItem("token", data.token);
-                    alert("Registro exitoso");
-
-                    // TODO: Al registrarse, un usuario todavía NO tiene un rol asignado 
-                    // (ni creador de eventos, ni jurado). Debe ir a una pantalla 
-                    // donde cree su primer evento (volviéndose Org) o introduzca un código PIN de invitación para unirse a uno (volviéndose Participante/Jurado).
-                    navigate(`/seleccionar-rol`);
-                } else {
-                    const errorText = await response.text();
-                    alert(`Error al registrar: ${errorText}`);
-                }
-            }
-        } catch (error) {
-            console.error("Error de red conectando con la API:", error);
-            alert("No se pudo conectar con el servidor. Revisa si la API está encendida.");
+        if (mode === "login") {
+            await handleLogin(email, password);
+        } else {
+            await handleRegister({ nombreCompleto, nombreUsuario, email, password });
         }
     };
 

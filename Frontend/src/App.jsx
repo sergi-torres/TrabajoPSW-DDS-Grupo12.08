@@ -1,28 +1,42 @@
-import DashboardVotacionCategorias from './pages/DashboardVotacionCategorias';
-import { Toaster } from 'sonner';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+﻿import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { Toaster } from 'sonner'
+import { AuthProvider } from './context/AuthContext'
 import LoginPage from './pages/LoginPage'
+import DashboardPage from './pages/DashboardPage'
 import './App.css'
+import CreateEvent from './pages/CreateEvent'
+import NotFound from './pages/NotFound'
+import ProtectedRoute from './components/auth/ProtectedRoute'
+import VotosPage from './pages/VotosPage'
+import DashboardVotacionCategorias from './pages/DashboardVotacionCategorias'
 
 function App() {
 
   return (
     <>
-      <Toaster position="top-right" richColors />
-      <DashboardVotacionCategorias />
+      <Toaster position="bottom-right" richColors />
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            {/* Rutas Públicas */}
+            <Route path="/login" element={<LoginPage />} />
+            
+            {/* Rutas Protegidas (Requieren Login) */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/create-event" element={<CreateEvent />} />
+              <Route path="/eventos" element={<DashboardPage />} />
+              <Route path="/votos" element={<VotosPage />} />
+              <Route path="/dashboard-votacion-categorias" element={<DashboardVotacionCategorias />} />
+            </Route>
+
+            {/* Redireccion login default */}
+            <Route path="/" element={<Navigate to="/login" replace />} />
+            {/* Fallback 404 para cualquier ruta no definida */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
     </>
-  );
-
-  //!Lo de aajo no se ejecutará
-
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        {/* Default redirect to login for now */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
-      </Routes>
-    </BrowserRouter>
   )
 }
 
