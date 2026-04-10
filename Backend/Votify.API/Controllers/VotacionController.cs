@@ -32,11 +32,11 @@ namespace Votify.API.Controllers
         }
 
         [HttpGet("dashboard")]
-        public async Task<IActionResult> ObtenerDashboard()
+        public async Task<IActionResult> ObtenerDashboard([FromQuery] int eventoId)
         {
             try
             {
-                var dashboard = await _votoService.ObtenerDashboardAsync();
+                var dashboard = await _votoService.ObtenerDashboardAsync(eventoId);
                 return Ok(dashboard);
             }
             catch (Exception ex)

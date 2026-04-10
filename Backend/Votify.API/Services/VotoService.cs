@@ -12,13 +12,11 @@ namespace Votify.API.Services
         private readonly IVotoRepository _votoRepository;
         private readonly IVotoFactory _votoFactory;
 
-        // Cache para categorías y proyectos (se obtienen una sola vez por sesión)
-        private static List<Categoria>? _categoriasCache;
-        private static List<Proyecto>? _proyectosCache;
-        private static DateTime _cacheTimestamp = DateTime.MinValue;
-        private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(30); // Cache por 30 minutos
-
-        // Lista de votos realizados en esta sesión (Categoria + Proyecto)
+        // Cache por evento durante la sesión de votación (categorías y proyectos no cambian durante votación)
+        private static readonly Dictionary<int, (List<Categoria> categorias, List<Proyecto> proyectos, DateTime timestamp)> _eventosCache = new();
+        // Cache por 4 horas, esto dependerá del limite que querramos dejar para todas las votaciones 
+        private static readonly TimeSpan CacheDuration = TimeSpan.FromHours(4); 
+        
         private static readonly List<(int CategoriaId, int ProyectoId)> VotosRealizados = new();
 
         public VotoService(ICategoriaRepository categoriaRepository, IProyectoRepository proyectoRepository, IVotoRepository votoRepository, IVotoFactory votoFactory)
@@ -29,39 +27,59 @@ namespace Votify.API.Services
             _votoFactory = votoFactory;
         }
 
-        private async Task<(List<Categoria> categorias, List<Proyecto> proyectos)> ObtenerDatosCacheAsync()
+        private async Task<(List<Categoria> categorias, List<Proyecto> proyectos)> ObtenerDatosEventoCacheAsync(int eventoId)
         {
-            // Si el cache está expirado o no existe, refrescar desde BD
-            if (_categoriasCache == null || _proyectosCache == null || 
-                DateTime.Now - _cacheTimestamp > CacheDuration)
+            Console.WriteLine($"[DEBUG] ObtenerDatosEventoCacheAsync llamado con eventoId: {eventoId}");
+            
+            // Si el evento no está en cache o está expirado, cargar desde BD
+            if (!_eventosCache.ContainsKey(eventoId) || 
+                DateTime.Now - _eventosCache[eventoId].timestamp > CacheDuration)
             {
-                _categoriasCache = await _categoriaRepository.ObtenerTodasAsync();
-                _proyectosCache = await _proyectoRepository.ObtenerTodosAsync();
+                Console.WriteLine($"[DEBUG] Cache NO encontrado para evento {eventoId}, cargando desde BD...");
                 
-                // Inicializar propiedades no mapeadas para cada categoría
-                foreach (var cat in _categoriasCache)
+                var categorias = await _categoriaRepository.ObtenerPorEventoIdAsync(eventoId);
+                Console.WriteLine($"[DEBUG] Se encontraron {categorias.Count} categorías para evento {eventoId}");
+                
+                var proyectos = new List<Proyecto>();
+
+                
+                foreach (var categoria in categorias)
                 {
-                    cat.VotosRestantes = 3;
-                    cat.Estado = "pendiente";
+                    categoria.VotosRestantes = 3;//por defecto , será una variable en el futuro
+                    categoria.Estado = "pendiente";
+                    var proyectosCategoria = await _proyectoRepository.ObtenerPorCategoriaIdAsync(categoria.Id);
+                    Console.WriteLine($"[DEBUG] Categoría {categoria.Id}: {proyectosCategoria.Count} proyectos");
+                    proyectos.AddRange(proyectosCategoria);
                 }
                 
-                _cacheTimestamp = DateTime.Now;
+                Console.WriteLine($"[DEBUG] Total de proyectos cargados: {proyectos.Count}");
+                _eventosCache[eventoId] = (categorias, proyectos, DateTime.Now);
+                Console.WriteLine($"[CACHE] Datos del evento {eventoId} cargados en cache");
+            }
+            else
+            {
+                Console.WriteLine($"[CACHE] Usando datos cacheados del evento {eventoId}");
             }
 
-            return (_categoriasCache, _proyectosCache);
+            return (_eventosCache[eventoId].categorias, _eventosCache[eventoId].proyectos);
         }
 
-        public async Task<DashboardResponseDto> ObtenerDashboardAsync()
+        public async Task<DashboardResponseDto> ObtenerDashboardAsync(int eventoId)
         {
             try
             {
-                var (categorias, todosProyectos) = await ObtenerDatosCacheAsync();
+                Console.WriteLine($"[DEBUG] ObtenerDashboardAsync llamado con eventoId: {eventoId}");
+                
+                // Obtener datos del evento (con cache inteligente)
+                var (categoriasDelEvento, todosProyectos) = await ObtenerDatosEventoCacheAsync(eventoId);
+
+                Console.WriteLine($"[DEBUG] Después de cache: {categoriasDelEvento.Count} categorías, {todosProyectos.Count} proyectos");
 
                 var categoriasResumen = new List<CategoriaResumenDto>();
 
-                foreach (var cat in categorias)
+                foreach (var cat in categoriasDelEvento)
                 {
-                    // Filtrar proyectos por categoría, en un futuro sera en el repo
+                    // Filtrar proyectos de esta categoría desde el cache
                     var proyectosCategoria = todosProyectos.Where(p => p.IdCategoria == cat.Id).ToList();
 
                     // Convertir proyectos a DTO y marcar estado basado en votos de sesión
@@ -87,9 +105,11 @@ namespace Votify.API.Services
                     });
                 }
 
+                Console.WriteLine($"[DEBUG] Retornando {categoriasResumen.Count} categorías en resumen");
+
                 return new DashboardResponseDto
                 {
-                    VotosGlobalesMaximos = categorias.Count * 3, // El 3 es default, en el sprint 2 será una varible
+                    VotosGlobalesMaximos = categoriasDelEvento.Count * 3, // El 3 es default, en el sprint 2 será una varible
                     VotosGlobalesRealizados = VotosRealizados.Count,
                     ProyectosActivos = categoriasResumen.Sum(c => c.Proyectos.Count),
                     TiempoRestante = "05:00", // TODO: Calcular tiempo real, su funcion no entra en este sprint1
@@ -105,8 +125,8 @@ namespace Votify.API.Services
 
         public async Task<DashboardResponseDto> ProcesarVotoAsync(VotoRequestDto request)
         {
-            // Obtener dashboard actual
-            var dashboard = await ObtenerDashboardAsync();
+            // Obtener dashboard actual para el evento específico
+            var dashboard = await ObtenerDashboardAsync(request.EventoId);
 
             var categoria = dashboard.Categorias.FirstOrDefault(c => c.Id == request.CategoriaId);
 
@@ -137,7 +157,7 @@ namespace Votify.API.Services
                 Console.WriteLine($"[VOTO REGISTRADO] Cat: {categoria.Titulo} | Proyecto: {request.ProyectoId} | Total: {VotosRealizados.Count}");
             }
 
-            return await ObtenerDashboardAsync();
+            return await ObtenerDashboardAsync(request.EventoId);
         }
     }
 }

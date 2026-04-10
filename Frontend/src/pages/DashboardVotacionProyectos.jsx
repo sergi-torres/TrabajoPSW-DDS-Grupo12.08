@@ -13,7 +13,10 @@ const DashboardVotacionProyectos = ({ categoria, alVolver }) => {
   const handleConfirmar = async () => {
     if (!seleccionado) return;
 
+    const eventoId = parseInt(localStorage.getItem('eventoId'));
+
     const votoDto = {
+      eventoId: eventoId,
       categoriaId: categoria.id,
       proyectoId: seleccionado.id,
       comentario: comentario

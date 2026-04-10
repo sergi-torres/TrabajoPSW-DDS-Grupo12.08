@@ -120,7 +120,12 @@ export default function DashboardPage() {
                                                         localStorage.setItem("eventoDescripcion", evento.descripcion);
                                                     }
                                                     //OTRAS PÁGINAS SEGÚN ROL AQUÍ =>
-
+                                                    if(rol === "Jurado") {
+                                                        localStorage.setItem("eventoId", evento.id);
+                                                        localStorage.setItem("eventoNombre", evento.nombre);
+                                                        localStorage.setItem("eventoDescripcion", evento.descripcion);
+                                                        navigate("/dashboard-votacion-categorias");
+                                                    }
                                                     
                                                 }
                                             }

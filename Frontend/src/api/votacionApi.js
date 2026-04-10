@@ -2,9 +2,9 @@
 
 const API_URL = 'http://localhost:5245/api/votacion';
 
-export const getDashboardData = async () => {
+export const getDashboardData = async (eventoId) => {
 
-  const response = await fetch(`${API_URL}/dashboard`);
+  const response = await fetch(`${API_URL}/dashboard?eventoId=${eventoId}`);
 
   if (!response.ok) {
     throw new Error('Error al cargar el dashboard');

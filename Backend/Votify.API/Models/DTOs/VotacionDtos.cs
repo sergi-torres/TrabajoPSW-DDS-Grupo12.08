@@ -25,6 +25,9 @@ namespace Votify.API.Models.DTOs
     public class VotoRequestDto
     {
         [Required]
+        public int EventoId { get; set; }
+        
+        [Required]
         public int CategoriaId { get; set; }
         
         [Required]

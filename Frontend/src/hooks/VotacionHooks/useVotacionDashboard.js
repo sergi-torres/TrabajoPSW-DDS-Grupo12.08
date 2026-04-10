@@ -9,7 +9,11 @@ export const useVotacionDashboard = () => {
   const cargarDashboard = useCallback(async () => {
     try {
       setCargando(true);
-      const result = await getDashboardData();
+      const eventoId = localStorage.getItem('eventoId');
+      if (!eventoId) {
+        throw new Error('evento ID no encontrado');
+      }
+      const result = await getDashboardData(eventoId);
       setDatos(result);
       setError(null);
     } catch (err) {

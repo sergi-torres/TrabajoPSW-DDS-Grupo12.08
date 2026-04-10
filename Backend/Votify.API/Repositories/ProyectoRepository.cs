@@ -23,5 +23,16 @@ namespace Votify.API.Repositories
 
             return response.Models;
         }
+
+        public async Task<List<Proyecto>> ObtenerPorCategoriaIdAsync(int categoriaId)
+        {
+            var response = await _supabase
+                .From<Proyecto>()
+                .Where(p => p.IdCategoria == categoriaId)
+                .Select("*")
+                .Get();
+
+            return response.Models;
+        }
     }
 }
