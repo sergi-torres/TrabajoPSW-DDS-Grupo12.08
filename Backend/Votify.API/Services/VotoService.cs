@@ -29,16 +29,11 @@ namespace Votify.API.Services
 
         private async Task<(List<Categoria> categorias, List<Proyecto> proyectos)> ObtenerDatosEventoCacheAsync(int eventoId)
         {
-            Console.WriteLine($"[DEBUG] ObtenerDatosEventoCacheAsync llamado con eventoId: {eventoId}");
-            
             // Si el evento no está en cache o está expirado, cargar desde BD
             if (!_eventosCache.ContainsKey(eventoId) || 
                 DateTime.Now - _eventosCache[eventoId].timestamp > CacheDuration)
             {
-                Console.WriteLine($"[DEBUG] Cache NO encontrado para evento {eventoId}, cargando desde BD...");
-                
                 var categorias = await _categoriaRepository.ObtenerPorEventoIdAsync(eventoId);
-                Console.WriteLine($"[DEBUG] Se encontraron {categorias.Count} categorías para evento {eventoId}");
                 
                 var proyectos = new List<Proyecto>();
 
@@ -48,17 +43,10 @@ namespace Votify.API.Services
                     categoria.VotosRestantes = 3;//por defecto , será una variable en el futuro
                     categoria.Estado = "pendiente";
                     var proyectosCategoria = await _proyectoRepository.ObtenerPorCategoriaIdAsync(categoria.Id);
-                    Console.WriteLine($"[DEBUG] Categoría {categoria.Id}: {proyectosCategoria.Count} proyectos");
                     proyectos.AddRange(proyectosCategoria);
                 }
                 
-                Console.WriteLine($"[DEBUG] Total de proyectos cargados: {proyectos.Count}");
                 _eventosCache[eventoId] = (categorias, proyectos, DateTime.Now);
-                Console.WriteLine($"[CACHE] Datos del evento {eventoId} cargados en cache");
-            }
-            else
-            {
-                Console.WriteLine($"[CACHE] Usando datos cacheados del evento {eventoId}");
             }
 
             return (_eventosCache[eventoId].categorias, _eventosCache[eventoId].proyectos);
@@ -68,12 +56,8 @@ namespace Votify.API.Services
         {
             try
             {
-                Console.WriteLine($"[DEBUG] ObtenerDashboardAsync llamado con eventoId: {eventoId}");
-                
                 // Obtener datos del evento (con cache inteligente)
                 var (categoriasDelEvento, todosProyectos) = await ObtenerDatosEventoCacheAsync(eventoId);
-
-                Console.WriteLine($"[DEBUG] Después de cache: {categoriasDelEvento.Count} categorías, {todosProyectos.Count} proyectos");
 
                 var categoriasResumen = new List<CategoriaResumenDto>();
 
@@ -98,14 +82,12 @@ namespace Votify.API.Services
                     categoriasResumen.Add(new CategoriaResumenDto
                     {
                         Id = cat.Id,
-                        Titulo = cat.Nombre, // Mapear 'nombre' de BD a 'titulo' del DTO
+                        Titulo = cat.Nombre, 
                         VotosRestantes = Math.Max(0, votosRestantes),
                         Estado = estadoCategoria,
                         Proyectos = proyectosDto
                     });
                 }
-
-                Console.WriteLine($"[DEBUG] Retornando {categoriasResumen.Count} categorías en resumen");
 
                 return new DashboardResponseDto
                 {
@@ -153,8 +135,6 @@ namespace Votify.API.Services
 
                 // Actualizar estado en memoria
                 VotosRealizados.Add((request.CategoriaId, request.ProyectoId));
-
-                Console.WriteLine($"[VOTO REGISTRADO] Cat: {categoria.Titulo} | Proyecto: {request.ProyectoId} | Total: {VotosRealizados.Count}");
             }
 
             return await ObtenerDashboardAsync(request.EventoId);

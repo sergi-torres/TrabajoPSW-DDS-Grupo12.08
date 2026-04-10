@@ -14,7 +14,7 @@ namespace Votify.API.Repositories
 
         public async Task<Voto> AgregarVotoAsync(Voto voto)
         {
-            // Usar VotoPublico como tipo concreto para Supabase
+            // Usar VotoPublico como tipo concreto para Supabase por ahora
             var votoPublico = (VotoPublico)voto;
             var response = await _supabase
                 .From<VotoPublico>()

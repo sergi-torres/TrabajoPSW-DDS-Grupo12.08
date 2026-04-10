@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using Votify.API.Models.DTOs;
-using Votify.API.Repositories;
 using Votify.API.Services;
 
 namespace Votify.API.Controllers
@@ -11,14 +10,10 @@ namespace Votify.API.Controllers
     public class VotacionController : ControllerBase
     {
         private readonly IVotoService _votoService;
-        private readonly ICategoriaRepository _categoriaRepository;
-        private readonly IProyectoRepository _proyectoRepository;
 
-        public VotacionController(IVotoService votoService, ICategoriaRepository categoriaRepository, IProyectoRepository proyectoRepository)
+        public VotacionController(IVotoService votoService)
         {
             _votoService = votoService;
-            _categoriaRepository = categoriaRepository;
-            _proyectoRepository = proyectoRepository;
         }
 
         [HttpPost("votar")]
@@ -34,20 +29,6 @@ namespace Votify.API.Controllers
                 // ex.InnerException contiene el error REAL de Supabase
                 return BadRequest(ex.InnerException?.Message ?? ex.Message);
             }
-        }
-
-        [HttpGet("debug-bd")]
-        public async Task<IActionResult> DebugBD()
-        {
-            var categorias = await _categoriaRepository.ObtenerTodasAsync();
-            var proyectos = await _proyectoRepository.ObtenerTodosAsync();
-            return Ok(new
-            {
-                totalCategorias = categorias.Count,
-                totalProyectos = proyectos.Count,
-                categorias = categorias.Select(c => new { c.Id, c.Nombre, c.IdEvento }),
-                proyectos = proyectos.Select(p => new { p.Id, p.Nombre, p.IdCategoria })
-            });
         }
 
         [HttpGet("dashboard")]

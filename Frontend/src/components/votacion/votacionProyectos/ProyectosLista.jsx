@@ -9,10 +9,8 @@ const ProyectosLista = ({ proyectos = [], seleccionado, alSeleccionar }) => {
           onClick={() => p.estado !== 'votado' && alSeleccionar(p)}
           className={`cursor-pointer rounded-xl overflow-hidden border transition-all ${seleccionado?.id === p.id ? 'border-blue-500 ring-2 ring-blue-100' : 'border-gray-100'}`}
         >
-          {/* Se eliminó la imagen permanentemente como se solicitó */}
           <div className="p-5">
             <h3 className="text-xl font-bold mb-3">{p.nombre}</h3>
-            {/* Soporta p.descripcion (DTO nuevo) y p.desc (Legacy dummy data local) */}
             <p className="text-gray-500 text-sm h-12 line-clamp-2">{p.descripcion || p.desc}</p>
           </div>
 
