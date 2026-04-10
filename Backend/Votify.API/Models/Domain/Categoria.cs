@@ -15,7 +15,7 @@ namespace Votify.API.Models.Domain
         [Column("idevento")]
         public int IdEvento { get; set; }
 
-        [Reference(typeof(PesoCategoriaRol))]
+        // Sin [Reference]: evita que Supabase haga JOIN automático al consultar categorías
         public List<PesoCategoriaRol> PesosPorRol { get; set; } = new List<PesoCategoriaRol>();
 
         // Propiedades no mapeadas (se asignan valores en Service)
