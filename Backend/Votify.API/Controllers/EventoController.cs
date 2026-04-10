@@ -27,5 +27,19 @@ namespace Votify.API.Controllers
                 return BadRequest(ex.InnerException?.Message ?? ex.Message);
             }
         }
+
+        [HttpPost("join")]
+        public async Task<IActionResult> JoinEventoAsync([FromQuery] int pin)
+        {
+            try
+            {
+                var evento = await _eventoService.JoinEventoPorCodigoAsync(pin);
+                return Ok(evento);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.InnerException?.Message ?? ex.Message);
+            }
+        }
     }
 }
