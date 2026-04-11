@@ -154,13 +154,11 @@ namespace Votify.API.Services
                 var evento = eventoResponse.Models.FirstOrDefault()
                     ?? throw new Exception("Evento no encontrado.");
 
-                var nuevaFechaFin = evento.FechaFin.AddMinutes(minutosExtra);
+                evento.FechaFin = evento.FechaFin.AddMinutes(minutosExtra);
 
                 await _supabase
                     .From<EventoLite>()
-                    .Filter("id", Supabase.Postgrest.Constants.Operator.Equals, eventoId.ToString())
-                    .Set(e => e.FechaFin, nuevaFechaFin)
-                    .Update();
+                    .Update(evento);
             }
             catch (Exception ex)
             {
@@ -172,11 +170,19 @@ namespace Votify.API.Services
         {
             try
             {
-                await _supabase
+                var eventoResponse = await _supabase
                     .From<EventoLite>()
                     .Filter("id", Supabase.Postgrest.Constants.Operator.Equals, eventoId.ToString())
-                    .Set(e => e.Estado, "Cerrado")
-                    .Update();
+                    .Get();
+
+                var evento = eventoResponse.Models.FirstOrDefault()
+                    ?? throw new Exception("Evento no encontrado.");
+
+                evento.Estado = "Cerrado";
+
+                await _supabase
+                    .From<EventoLite>()
+                    .Update(evento);
             }
             catch (Exception ex)
             {
