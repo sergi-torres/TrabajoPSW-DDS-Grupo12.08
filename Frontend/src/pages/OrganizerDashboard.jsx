@@ -1,5 +1,6 @@
 // src/pages/OrganizerDashboard.jsx
 import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import LiveHeader from "../components/organizator_dashboard/LiveHeader";
 import StatsCard from "../components/organizator_dashboard/StatsCard";
 import RankingList from "../components/organizator_dashboard/RankingList";
@@ -11,9 +12,10 @@ export default function OrganizerDashboard() {
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { eventoId: paramEventoId } = useParams();
 
-  // Obtener el eventoId desde localStorage (se guarda al hacer click en un evento)
-  const eventoId = localStorage.getItem("eventoId");
+  // Obtener el eventoId: primero de la URL, luego de localStorage
+  const eventoId = paramEventoId || localStorage.getItem("eventoId");
 
   const showToast = (message, type = "success") => {
     setToast({ message, type });

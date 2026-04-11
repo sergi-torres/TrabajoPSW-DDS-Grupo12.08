@@ -31,6 +31,7 @@ function App() {
               <Route path="/dashboard-votacion-categorias" element={<DashboardVotacionCategorias />} />
             </Route>
 
+            <Route path="/organizador-dashboard/:eventoId" element={<OrganizerDashboard />} />
             <Route path="/organizador-dashboard" element={<OrganizerDashboard />} />
             {/* Redireccion login default */}
             <Route path="/" element={<Navigate to="/login" replace />} />
