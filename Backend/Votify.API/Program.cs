@@ -32,6 +32,7 @@ builder.Services.AddScoped<Votify.API.Repositories.IVotoRepository, Votify.API.R
 builder.Services.AddScoped<Votify.API.Factories.IVotoFactory, Votify.API.Factories.VotoPublicoFactory>();
 builder.Services.AddScoped<Votify.API.Services.IAuthService, Votify.API.Services.AuthService>();
 builder.Services.AddScoped<Votify.API.Services.IEventoService, Votify.API.Services.EventoService>();
+builder.Services.AddScoped<Votify.API.Services.IOrgDashboardService, Votify.API.Services.OrgDashboardService>();
 
 // Configurar CORS para permitir que el frontend de Vite (localhost:5173) acceda a la API
 builder.Services.AddCors(options =>
