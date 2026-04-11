@@ -9,8 +9,11 @@ import NotFound from './pages/NotFound'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import OrganizerDashboard from './pages/OrganizerDashboard'
 import "./components/organizator_dashboard/Dashboard.css"
+import VotosPage from './pages/VotosPage'
+import DashboardVotacionCategorias from './pages/DashboardVotacionCategorias'
 
 function App() {
+
   return (
     <>
       <Toaster position="bottom-right" richColors />
@@ -24,8 +27,10 @@ function App() {
             <Route element={<ProtectedRoute />}>
               <Route path="/create-event" element={<CreateEvent />} />
               <Route path="/eventos" element={<DashboardPage />} />
-
+              <Route path="/votos" element={<VotosPage />} />
+              <Route path="/dashboard-votacion-categorias" element={<DashboardVotacionCategorias />} />
             </Route>
+
             <Route path="/organizador-dashboard" element={<OrganizerDashboard />} />
             {/* Redireccion login default */}
             <Route path="/" element={<Navigate to="/login" replace />} />
@@ -38,5 +43,5 @@ function App() {
   )
 }
 
-export default App
 
+export default App

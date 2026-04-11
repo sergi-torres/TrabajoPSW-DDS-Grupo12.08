@@ -1,4 +1,4 @@
-/**
+﻿/**
  * authApi.js
  * 
  * Capa de red para autenticación.
@@ -15,6 +15,9 @@ const API_URL = "http://localhost:5245/api/Auth";
  * @throws {Error} Si las credenciales son incorrectas o el servidor no responde
  */
 export async function loginUser(email, password) {
+
+    localStorage.setItem("email", email);
+
     const response = await fetch(`${API_URL}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -54,3 +57,10 @@ export async function registerUser({ nombreCompleto, nombreUsuario, email, passw
 
     return response.json();
 }
+
+export const authApi = {
+    login: loginUser,
+    register: registerUser
+};
+
+

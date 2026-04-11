@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useContext } from "react";
+﻿import { useState, useEffect, useMemo, useContext } from "react";
 import { Plus, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { DesktopHeader } from "../components/eventos/DesktopHeader";
@@ -24,6 +24,7 @@ export default function DashboardPage() {
                 setLoading(true);
                 const mis = await getMisEventos(userId);
                 setMisEventos(mis);
+                localStorage.setItem("misEventosCache", JSON.stringify(mis));
             } catch (err) {
                 console.error("Error cargando eventos:", err);
                 setError(err.message);
@@ -105,7 +106,30 @@ export default function DashboardPage() {
                                         <EventCard
                                             key={evento.id}
                                             {...evento}
-                                            onClick={() => console.log("TODO: Navegar a evento", evento.id)}
+                                            onClick={
+                                                () => {
+                                                    console.log("TODO: Navegar a evento", evento.id, evento.nombre);
+                                                    //Ir a la página de Votaciones si soy un participante
+                                                    const rol = JSON.parse(localStorage.getItem("propsRol")).label;
+                                                    console.log("ROL EN EVENTO", rol);
+
+                                                    if (rol === "Participante") {
+                                                        localStorage.setItem("eventoId", evento.id);
+                                                        localStorage.setItem("eventoNombre", evento.nombre);
+                                                        navigate("/votos");
+
+                                                        localStorage.setItem("eventoDescripcion", evento.descripcion);
+                                                    }
+                                                    //OTRAS PÁGINAS SEGÚN ROL AQUÍ =>
+                                                    if(rol === "Jurado") {
+                                                        localStorage.setItem("eventoId", evento.id);
+                                                        localStorage.setItem("eventoNombre", evento.nombre);
+                                                        localStorage.setItem("eventoDescripcion", evento.descripcion);
+                                                        navigate("/dashboard-votacion-categorias");
+                                                    }
+                                                    
+                                                }
+                                            }
                                         />
                                     ))}
                                 </div>

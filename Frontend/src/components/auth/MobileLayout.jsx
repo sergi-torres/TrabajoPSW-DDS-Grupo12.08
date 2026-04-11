@@ -23,7 +23,9 @@ export function MobileLayout() {
         if (pin.length > 0) {
             try {
                 const data = await joinEvento(pin);
-                navigate(`/votacion/${data.id}`);
+                localStorage.setItem("eventoId", data.id);
+                localStorage.setItem("eventoNombre", data.nombre || "Evento");
+                navigate("/dashboard-votacion-categorias");
             } catch (error) {
                 console.error("Error validando PIN:", error);
                 alert(error.message);

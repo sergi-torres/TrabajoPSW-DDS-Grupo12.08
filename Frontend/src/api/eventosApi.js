@@ -13,6 +13,23 @@ const API_URL = "http://localhost:5245/api/Eventos";
  * @throws {Error} Si el PIN no es válido o el evento ha terminado
  */
 export async function joinEvento(pin) {
+    const cacheRaw = localStorage.getItem("misEventosCache");
+    if (cacheRaw) {
+        try {
+            const cache = JSON.parse(cacheRaw);
+            const match = cache.find((e) => String(e.codEvento) === String(pin));
+            if (match) {
+                return {
+                    id: match.id,
+                    codEvento: match.codEvento,
+                    nombre: match.nombre,
+                };
+            }
+        } catch {
+            // Ignorar cache invalido y seguir con backend
+        }
+    }
+
     const response = await fetch(`${API_URL}/join?pin=${pin}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
