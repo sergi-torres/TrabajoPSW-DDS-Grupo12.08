@@ -1,4 +1,4 @@
-using Votify.API.Factories;
+﻿using Votify.API.Factories;
 using Votify.API.Models.Domain;
 using Votify.API.Models.DTOs;
 using Votify.API.Repositories;
@@ -11,33 +11,35 @@ namespace Votify.API.Services
         private readonly IProyectoRepository _proyectoRepository;
         private readonly IVotoRepository _votoRepository;
         private readonly IVotoFactory _votoFactory;
+        private readonly IComentarioCualitativoService _comentarioService;
 
         // Cache por evento durante la sesión de votación (categorías y proyectos no cambian durante votación)
         private static readonly Dictionary<int, (List<Categoria> categorias, List<Proyecto> proyectos, DateTime timestamp)> _eventosCache = new();
         // Cache por 4 horas, esto dependerá del limite que querramos dejar para todas las votaciones 
-        private static readonly TimeSpan CacheDuration = TimeSpan.FromHours(4); 
-        
+        private static readonly TimeSpan CacheDuration = TimeSpan.FromHours(4);
+
         private static readonly List<(int CategoriaId, int ProyectoId)> VotosRealizados = new();
 
-        public VotoService(ICategoriaRepository categoriaRepository, IProyectoRepository proyectoRepository, IVotoRepository votoRepository, IVotoFactory votoFactory)
+        public VotoService(ICategoriaRepository categoriaRepository, IProyectoRepository proyectoRepository, IVotoRepository votoRepository, IVotoFactory votoFactory, IComentarioCualitativoService comentarioService)
         {
             _categoriaRepository = categoriaRepository;
             _proyectoRepository = proyectoRepository;
             _votoRepository = votoRepository;
             _votoFactory = votoFactory;
+            _comentarioService = comentarioService;
         }
 
         private async Task<(List<Categoria> categorias, List<Proyecto> proyectos)> ObtenerDatosEventoCacheAsync(int eventoId)
         {
             // Si el evento no está en cache o está expirado, cargar desde BD
-            if (!_eventosCache.ContainsKey(eventoId) || 
+            if (!_eventosCache.ContainsKey(eventoId) ||
                 DateTime.Now - _eventosCache[eventoId].timestamp > CacheDuration)
             {
                 var categorias = await _categoriaRepository.ObtenerPorEventoIdAsync(eventoId);
-                
+
                 var proyectos = new List<Proyecto>();
 
-                
+
                 foreach (var categoria in categorias)
                 {
                     categoria.VotosRestantes = 3;//por defecto , será una variable en el futuro
@@ -45,7 +47,7 @@ namespace Votify.API.Services
                     var proyectosCategoria = await _proyectoRepository.ObtenerPorCategoriaIdAsync(categoria.Id);
                     proyectos.AddRange(proyectosCategoria);
                 }
-                
+
                 _eventosCache[eventoId] = (categorias, proyectos, DateTime.Now);
             }
 
@@ -82,7 +84,7 @@ namespace Votify.API.Services
                     categoriasResumen.Add(new CategoriaResumenDto
                     {
                         Id = cat.Id,
-                        Titulo = cat.Nombre, 
+                        Titulo = cat.Nombre,
                         VotosRestantes = Math.Max(0, votosRestantes),
                         Estado = estadoCategoria,
                         Proyectos = proyectosDto
@@ -131,7 +133,18 @@ namespace Votify.API.Services
                     votoPublico.IdEvaluador = null; // Los votos públicos no tienen evaluador asignado
                 }
 
-                await _votoRepository.AgregarVotoAsync(voto);
+                var votoCreado = await _votoRepository.AgregarVotoAsync(voto);
+
+
+                // CREAR COMENTARIO
+                if (!string.IsNullOrWhiteSpace(request.Comentario))
+                {
+                    await _comentarioService.CreateComentarioAsync(
+                        votoCreado.Id,
+                        request.Comentario
+                    );
+                }
+
 
                 // Actualizar estado en memoria
                 VotosRealizados.Add((request.CategoriaId, request.ProyectoId));

@@ -1,5 +1,4 @@
-using Votify.API.Models.Domain;
-using Supabase;
+﻿using Votify.API.Models.Domain;
 
 namespace Votify.API.Repositories
 {
