@@ -8,7 +8,7 @@ public class VotoJurado : Voto
 
     public override float CalcularPuntuacionFinal(float peso) 
     {
-        return Valor * peso;
+        return (Valor ?? 0f) * peso;
     }
 
 

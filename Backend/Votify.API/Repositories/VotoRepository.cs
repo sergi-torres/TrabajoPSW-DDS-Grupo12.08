@@ -1,4 +1,4 @@
-﻿using Votify.API.Models.Domain;
+using Votify.API.Models.Domain;
 
 namespace Votify.API.Repositories
 {
@@ -23,6 +23,20 @@ namespace Votify.API.Repositories
             return response.Models.First();
         }
 
+        public async Task<VotoPublico> AgregarVotoAsync(VotoPublico voto)
+        {
+            var response = await _supabase
+                .From<VotoPublico>()
+                .Insert(voto);
+
+            var insertado = response.Models.FirstOrDefault();
+
+            if (insertado == null)
+                throw new Exception("No se pudo insertar el voto");
+
+            return insertado;
+        }
+
         public async Task<List<VotoPublico>> ObtenerPorProyectoIdAsync(int proyectoId)
         {
             var response = await _supabase
@@ -32,5 +46,6 @@ namespace Votify.API.Repositories
 
             return response.Models;
         }
+
     }
 }
