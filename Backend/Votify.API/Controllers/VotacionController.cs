@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Votify.API.Models.DTOs;
 using Votify.API.Services;
 
@@ -21,27 +21,27 @@ namespace Votify.API.Controllers
         {
             try
             {
-                var dashboard = await _votoService.ProcesarVotoAsync(request);
+                // IdUsuario viene del frontend (localStorage) - null = PIN flow, valor = Jurado flow
+                var dashboard = await _votoService.ProcesarVotoAsync(request, request.IdUsuario, request.SessionId);
                 return Ok(dashboard);
             }
             catch (Exception ex)
             {
-                // ex.InnerException contiene el error REAL de Supabase
                 return BadRequest(ex.InnerException?.Message ?? ex.Message);
             }
         }
 
         [HttpGet("dashboard")]
-        public async Task<IActionResult> ObtenerDashboard([FromQuery] int eventoId)
+        public async Task<IActionResult> ObtenerDashboard([FromQuery] int eventoId, [FromQuery] int? idUsuario = null, [FromQuery] string? sessionId = null)
         {
             try
             {
-                var dashboard = await _votoService.ObtenerDashboardAsync(eventoId);
+                // idUsuario from query param (localStorage) - null = PIN flow, valor = Jurado flow
+                var dashboard = await _votoService.ObtenerDashboardAsync(eventoId, idUsuario, sessionId);
                 return Ok(dashboard);
             }
             catch (Exception ex)
             {
-                // Retornar error con detalles
                 return BadRequest(new { error = ex.Message, inner = ex.InnerException?.Message, stack = ex.StackTrace });
             }
         }

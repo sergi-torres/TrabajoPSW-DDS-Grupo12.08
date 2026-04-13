@@ -14,12 +14,17 @@ const DashboardVotacionProyectos = ({ categoria, alVolver }) => {
     if (!seleccionado) return;
 
     const eventoId = parseInt(localStorage.getItem('eventoId'));
+    const userIdRaw = localStorage.getItem('userId');
+    const idUsuario = userIdRaw ? parseInt(userIdRaw) : null;
+    const sessionId = localStorage.getItem('votacionSessionId');
 
     const votoDto = {
       eventoId: eventoId,
       categoriaId: categoria.id,
       proyectoId: seleccionado.id,
-      comentario: comentario
+      comentario: comentario,
+      idUsuario: Number.isNaN(idUsuario) ? null : idUsuario,
+      sessionId: sessionId || null
     };
 
     const exito = await enviarVoto(votoDto);

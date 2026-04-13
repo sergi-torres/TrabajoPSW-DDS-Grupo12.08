@@ -29,7 +29,8 @@ builder.Services.AddScoped<Votify.API.Services.IAuthService, Votify.API.Services
 builder.Services.AddScoped<Votify.API.Repositories.ICategoriaRepository, Votify.API.Repositories.CategoriaRepository>();
 builder.Services.AddScoped<Votify.API.Repositories.IProyectoRepository, Votify.API.Repositories.ProyectoRepository>();
 builder.Services.AddScoped<Votify.API.Repositories.IVotoRepository, Votify.API.Repositories.VotoRepository>();
-builder.Services.AddScoped<Votify.API.Factories.IVotoFactory, Votify.API.Factories.VotoPublicoFactory>();
+builder.Services.AddScoped<Votify.API.Factories.VotoPublicoFactory>();
+builder.Services.AddScoped<Votify.API.Factories.VotoJuradoFactory>();
 builder.Services.AddScoped<Votify.API.Services.IAuthService, Votify.API.Services.AuthService>();
 builder.Services.AddScoped<Votify.API.Services.IEventoService, Votify.API.Services.EventoService>();
 

@@ -23,6 +23,13 @@ export function MobileLayout() {
         if (pin.length > 0) {
             try {
                 const data = await joinEvento(pin);
+
+                // PIN flow: siempre sesión pública nueva, sin identidad de jurado
+                localStorage.removeItem("token");
+                localStorage.removeItem("userId");
+                localStorage.removeItem("userName");
+                localStorage.setItem("votacionSessionId", crypto.randomUUID());
+
                 localStorage.setItem("eventoId", data.id);
                 localStorage.setItem("eventoNombre", data.nombre || "Evento");
                 navigate("/dashboard-votacion-categorias");
