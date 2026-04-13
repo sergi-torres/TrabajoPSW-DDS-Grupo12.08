@@ -1,4 +1,4 @@
-﻿using Supabase.Postgrest.Attributes;
+using Supabase.Postgrest.Attributes;
 
 namespace Votify.API.Models.Domain
 {
@@ -10,7 +10,7 @@ namespace Votify.API.Models.Domain
         public int Id { get; set; }
 
         [Column("valor")]
-        public float Valor { get; set; }
+        public float? Valor { get; set; }
 
         [Column("comentario")]
         public string? Comentario { get; set; }

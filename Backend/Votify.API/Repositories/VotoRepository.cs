@@ -1,4 +1,4 @@
-﻿using Votify.API.Models.Domain;
+using Votify.API.Models.Domain;
 
 namespace Votify.API.Repositories
 {
@@ -39,7 +39,12 @@ namespace Votify.API.Repositories
 
         public async Task<List<VotoPublico>> ObtenerPorProyectoIdAsync(int proyectoId)
         {
-            throw new NotImplementedException(); //Sprint 2: Implementar este método para obtener votos por proyecto
+            var response = await _supabase
+                .From<VotoPublico>()
+                .Filter("idproyecto", Supabase.Postgrest.Constants.Operator.Equals, proyectoId.ToString())
+                .Get();
+
+            return response.Models;
         }
 
     }

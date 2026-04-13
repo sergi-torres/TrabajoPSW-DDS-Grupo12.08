@@ -222,8 +222,11 @@ namespace Votify.API.Services
                 var votosPublico = votosDelProyecto.Where(v => v.IdEvaluador == null || !idsJurados.Contains(v.IdEvaluador ?? 0)).ToList();
 
                 // Puntuación media (0-100)
-                float juryScore = votosJurado.Count > 0 ? votosJurado.Average(v => v.Valor) * 10f : 0f;
-                float publicScore = votosPublico.Count > 0 ? votosPublico.Average(v => v.Valor) * 10f : 0f;
+                var juryVotes = votosJurado.Where(v => v.Valor.HasValue).ToList();
+                var publicVotes = votosPublico.Where(v => v.Valor.HasValue).ToList();
+
+                float juryScore = juryVotes.Count > 0 ? juryVotes.Average(v => v.Valor!.Value) * 10f : 0f;
+                float publicScore = publicVotes.Count > 0 ? publicVotes.Average(v => v.Valor!.Value) * 10f : 0f;
 
                 // Peso jurado/público de la categoría
                 var pesoJurado = pesos.FirstOrDefault(p => p.IdCategoria == proyecto.IdCategoria && p.RolVotante == "Jurado")?.Peso ?? 0.7f;
