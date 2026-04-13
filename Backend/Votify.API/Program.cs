@@ -1,4 +1,4 @@
-using DotNetEnv;
+﻿using DotNetEnv;
 
 // Cargar las variables del .env situado en la raíz del repositorio
 Env.Load(Path.Combine(Directory.GetCurrentDirectory(), "..", "..", ".env"));
@@ -32,6 +32,9 @@ builder.Services.AddScoped<Votify.API.Repositories.IVotoRepository, Votify.API.R
 builder.Services.AddScoped<Votify.API.Factories.IVotoFactory, Votify.API.Factories.VotoPublicoFactory>();
 builder.Services.AddScoped<Votify.API.Services.IAuthService, Votify.API.Services.AuthService>();
 builder.Services.AddScoped<Votify.API.Services.IEventoService, Votify.API.Services.EventoService>();
+builder.Services.AddScoped<Votify.API.Services.IComentarioCualitativoService, Votify.API.Services.ComentarioCualitativoService>();
+builder.Services.AddScoped<Votify.API.Services.IVotoService, Votify.API.Services.VotoService>();
+builder.Services.AddScoped<Votify.API.Services.IComentarioCualitativoService, Votify.API.Services.ComentarioCualitativoService>();
 
 // Configurar CORS para permitir que el frontend de Vite (localhost:5173) acceda a la API
 builder.Services.AddCors(options =>

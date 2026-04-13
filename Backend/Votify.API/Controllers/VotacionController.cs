@@ -1,4 +1,5 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+
 using Votify.API.Models.DTOs;
 using Votify.API.Services;
 
@@ -10,10 +11,15 @@ namespace Votify.API.Controllers
     public class VotacionController : ControllerBase
     {
         private readonly IVotoService _votoService;
+        private readonly IComentarioCualitativoService _comentarioService;
 
-        public VotacionController(IVotoService votoService)
+
+        public VotacionController(
+        IVotoService votoService,
+        IComentarioCualitativoService comentarioService)
         {
             _votoService = votoService;
+            _comentarioService = comentarioService;
         }
 
         [HttpPost("votar")]
@@ -21,15 +27,25 @@ namespace Votify.API.Controllers
         {
             try
             {
-                var dashboard = await _votoService.ProcesarVotoAsync(request);
-                return Ok(dashboard);
+                var result = await _votoService.ProcesarVotoAsync(request);
+
+                if (!string.IsNullOrWhiteSpace(request.Comentario))
+                {
+                    await _comentarioService.CreateComentarioAsync(
+                        request.ProyectoId,
+                        request.Comentario
+                    );
+                }
+
+                return Ok(result);
             }
             catch (Exception ex)
             {
-                // ex.InnerException contiene el error REAL de Supabase
                 return BadRequest(ex.InnerException?.Message ?? ex.Message);
             }
         }
+
+
 
         [HttpGet("dashboard")]
         public async Task<IActionResult> ObtenerDashboard([FromQuery] int eventoId)

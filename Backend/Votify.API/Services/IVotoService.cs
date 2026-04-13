@@ -1,5 +1,4 @@
-using Votify.API.Models.Domain;
-using Votify.API.Models.DTOs;
+﻿using Votify.API.Models.DTOs;
 
 namespace Votify.API.Services
 {
