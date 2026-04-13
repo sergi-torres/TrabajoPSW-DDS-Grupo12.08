@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import { ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import StatsBar from '../components/votacion/votacionCategorias/StatsBar';
 import CategoriaCard from '../components/votacion/votacionCategorias/CategoriaCard';
 import DashboardVotacionProyectos from './DashboardVotacionProyectos';
 import { useVotacionDashboard } from '../hooks/VotacionHooks/useVotacionDashboard';
 
 const DashboardVotacionCategorias = () => {
-  const { datos, cargando, cargarDashboard, env } = useVotacionDashboard();
+  const navigate = useNavigate();
+  const { datos, cargando, cargarDashboard } = useVotacionDashboard();
   const [vistaActual, setVistaActual] = useState('categorias');
   const [categoriaElegida, setCategoriaElegida] = useState(null);
 
@@ -30,6 +33,14 @@ const DashboardVotacionCategorias = () => {
 
   return (
     <div className="p-12 bg-[#FDFDFD] min-h-screen font-sans">
+      <button
+        onClick={() => navigate('/eventos')}
+        className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors mb-6 font-medium"
+      >
+        <ArrowLeft className="w-5 h-5" />
+        Volver a eventos
+      </button>
+
       <header className="mb-12">
         <h1 className="text-5xl font-black text-gray-900 tracking-tight">Votación de proyectos</h1>
         <p className="text-gray-500 mt-4 text-lg max-w-3xl leading-relaxed font-medium">

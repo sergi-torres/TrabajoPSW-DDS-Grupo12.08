@@ -48,4 +48,10 @@ Frontend/.env.development.local
 Frontend/.env.test.local
 Frontend/.env.production.local
 
-node_modules/
+node_modules
+
+# Gemini
+.gemini/
+GEMINI.md
+
+# Gemini CLI Conductor

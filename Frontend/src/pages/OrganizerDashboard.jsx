@@ -1,6 +1,7 @@
-// src/pages/OrganizerDashboard.jsx
+﻿// src/pages/OrganizerDashboard.jsx
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 import LiveHeader from "../components/organizator_dashboard/LiveHeader";
 import StatsCard from "../components/organizator_dashboard/StatsCard";
 import RankingList from "../components/organizator_dashboard/RankingList";
@@ -8,6 +9,7 @@ import ProjectFeed from "../components/organizator_dashboard/ProjectFeed";
 import { getDashboard, extenderTiempo, cerrarVotacion } from "../api/orgDashboardApi";
 
 export default function OrganizerDashboard() {
+  const navigate = useNavigate();
   const [toast, setToast] = useState(null);
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -134,6 +136,27 @@ export default function OrganizerDashboard() {
 
   return (
     <div className="organizer-dashboard">
+      <button
+        onClick={() => navigate('/eventos')}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "0.5rem",
+          background: "none",
+          border: "none",
+          color: "var(--muted-foreground)",
+          cursor: "pointer",
+          fontWeight: 500,
+          padding: 0,
+          width: "fit-content"
+        }}
+        onMouseOver={(e) => e.currentTarget.style.color = "var(--foreground)"}
+        onMouseOut={(e) => e.currentTarget.style.color = "var(--muted-foreground)"}
+      >
+        <ArrowLeft size={20} />
+        Volver a eventos
+      </button>
+
       {/* Toast notification */}
       {toast && (
         <div className={`toast toast--${toast.type}`} role="alert" aria-live="polite">
