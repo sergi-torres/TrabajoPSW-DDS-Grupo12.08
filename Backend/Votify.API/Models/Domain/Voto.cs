@@ -31,7 +31,7 @@ namespace Votify.API.Models.Domain
         public int? IdEvaluador { get; set; }
 
         [Column("idcriterio")]
-        public int IdCriterio { get; set; }
+        public int? IdCriterio { get; set; }
 
         [Column("idcategoria")]
         public int IdCategoria { get; set; }
