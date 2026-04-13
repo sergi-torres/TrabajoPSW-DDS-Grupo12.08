@@ -1,15 +1,17 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { Hash } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AuthTabs } from "./AuthTabs";
 import logo from "../../assets/LogoSinTexto.png";
 import { joinEvento } from "../../api/eventosApi";
+import { AuthContext } from "../../context/AuthContext";
 
 /**
  * DesktopLayout.jsx
  */
 export function DesktopLayout() {
     const navigate = useNavigate();
+    const { loginPublic } = useContext(AuthContext);
     const [pin, setPin] = useState("");
 
     const handleJoin = async () => {
@@ -17,8 +19,7 @@ export function DesktopLayout() {
 
         try {
             const data = await joinEvento(pin);
-            localStorage.setItem("eventoId", data.id);
-            localStorage.setItem("eventoNombre", data.nombre || "Evento");
+            loginPublic(data.id, data.nombre || "Evento");
             navigate("/dashboard-votacion-categorias");
         } catch (error) {
             console.error("Error validando PIN:", error);

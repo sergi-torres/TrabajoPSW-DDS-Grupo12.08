@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { ArrowRight } from "lucide-react";
 import { LoginDrawer } from "./LoginDrawer";
 import logo from "../../assets/LogoSinTexto.png";
 import { useNavigate } from "react-router-dom";
 import { joinEvento } from "../../api/eventosApi";
+import { AuthContext } from "../../context/AuthContext";
 
 /**
  * MobileLayout.jsx
@@ -15,6 +16,7 @@ import { joinEvento } from "../../api/eventosApi";
 
 export function MobileLayout() {
     const navigate = useNavigate();
+    const { loginPublic } = useContext(AuthContext);
     const [pin, setPin] = useState("");
 
     const handleJoin = async (e) => {
@@ -23,8 +25,7 @@ export function MobileLayout() {
         if (pin.length > 0) {
             try {
                 const data = await joinEvento(pin);
-                localStorage.setItem("eventoId", data.id);
-                localStorage.setItem("eventoNombre", data.nombre || "Evento");
+                loginPublic(data.id, data.nombre || "Evento");
                 navigate("/dashboard-votacion-categorias");
             } catch (error) {
                 console.error("Error validando PIN:", error);

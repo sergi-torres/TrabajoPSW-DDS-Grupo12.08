@@ -2,48 +2,57 @@ import { Check } from "lucide-react";
 
 const StepIndicator = ({ steps, currentStep }) => {
     return (
-        <div className="flex items-center justify-center gap-0">
-            {steps.map((step, index) => {
-                const isCompleted = currentStep > step.number;
-                const isActive = currentStep === step.number;
+        <div className="w-full max-w-2xl mx-auto px-4">
+            <div className="relative flex items-center justify-between">
+                {/* Background Line */}
+                <div className="absolute top-6 left-0 w-full h-[2px] bg-muted -translate-y-1/2 z-0" />
+                
+                {/* Progress Line */}
+                <div 
+                    className="absolute top-6 left-0 h-[2px] bg-org -translate-y-1/2 z-0 transition-all duration-500"
+                    style={{ 
+                        width: `${((currentStep - 1) / (steps.length - 1)) * 100}%` 
+                    }}
+                />
 
-                return (
-                    <div key={step.number} className="flex items-center">
-                        <div className="flex flex-col items-center min-w-[140px]">
+                {steps.map((step) => {
+                    const isCompleted = currentStep > step.number;
+                    const isActive = currentStep === step.number;
+
+                    return (
+                        <div key={step.number} className="relative z-10 flex flex-col items-center">
                             <div
                                 className={`
-                  w-12 h-12 rounded-full flex items-center justify-center text-lg font-heading font-semibold
-                  transition-all duration-[var(--duration-normal)]
-                  ${isCompleted
+                                    w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-base sm:text-lg font-heading font-bold
+                                    transition-all duration-300 shadow-sm
+                                    ${isCompleted
                                         ? "bg-org text-white"
                                         : isActive
-                                            ? "border-2 border-org text-org bg-background"
-                                            : "border-2 border-muted text-muted-foreground bg-background"
+                                            ? "border-2 border-org text-org bg-white shadow-md scale-110"
+                                            : "border-2 border-muted text-muted-foreground bg-white"
                                     }
-                `}
+                                `}
                             >
-                                {isCompleted ? <Check className="w-6 h-6" strokeWidth={2.5} /> : step.number}
+                                {isCompleted ? <Check className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={3} /> : step.number}
                             </div>
-              <span
-                                className={`
-                  mt-2 text-xs font-heading font-semibold uppercase tracking-wider
-                  ${isActive || isCompleted ? "text-org" : "text-muted-foreground"}
-                `}
-                            >
-                                {step.label}
-                            </span>
+                            
+                            <div className="absolute top-12 sm:top-14 w-max max-w-[80px] sm:max-w-[120px] text-center">
+                                <span
+                                    className={`
+                                        block text-[10px] sm:text-xs font-heading font-bold uppercase tracking-wider mt-1
+                                        ${isActive || isCompleted ? "text-org" : "text-muted-foreground"}
+                                        ${isActive ? "opacity-100" : "opacity-70"}
+                                    `}
+                                >
+                                    {step.label}
+                                </span>
+                            </div>
                         </div>
-                        {index < steps.length - 1 && (
-                            <div
-                                className={`
-                  h-[2px] w-16 mx-2 -mt-6 transition-colors duration-[var(--duration-normal)]
-                  ${currentStep > step.number + 1 || (currentStep > step.number) ? "bg-org" : "bg-muted"}
-                `}
-                            />
-                        )}
-                    </div>
-                );
-            })}
+                    );
+                })}
+            </div>
+            {/* Spacer for the absolute labels */}
+            <div className="h-12 sm:h-16" />
         </div>
     );
 };
