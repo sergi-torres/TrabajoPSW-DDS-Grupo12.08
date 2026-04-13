@@ -1,11 +1,11 @@
 ﻿using Supabase.Postgrest.Attributes;
-using Supabase.Postgrest.Models;
 
 namespace Votify.API.Models.Domain
 {
     [Table("voto")]
     public abstract class Voto : BaseModel
     {
+
         [PrimaryKey("id", false)]// Con false se autogenera el id
         public int Id { get; set; }
 
@@ -35,9 +35,9 @@ namespace Votify.API.Models.Domain
 
         [Column("idcategoria")]
         public int IdCategoria { get; set; }
-    
-    public abstract float CalcularPuntuacionFinal(float peso); 
-    
-    
-    } 
+
+        public abstract float CalcularPuntuacionFinal(float peso);
+
+
+    }
 }

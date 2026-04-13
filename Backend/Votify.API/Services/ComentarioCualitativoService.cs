@@ -1,69 +1,59 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Votify.API.Models.Domain;
-using Votify.API.Models.DTOs;
-using Supabase.Postgrest.Attributes;
-using Supabase.Postgrest.Models;
+﻿using Votify.API.Models.Domain;
 
 namespace Votify.API.Services;
 
-public class ComentarioCualitativoService(Supabase.Client supabase)
+public class ComentarioCualitativoService : IComentarioCualitativoService
 {
-    public int Id { get; set; }
-    public int IdCriterio { get; set; }
-    public required string Comentario { get; set; }
+    private readonly Supabase.Client _supabase;
 
+    public ComentarioCualitativoService(Supabase.Client supabase)
+    {
+        _supabase = supabase;
+    }
 
-    private readonly Supabase.Client _supabase = supabase;
-
-    [HttpPost]
-
-    // 1. Obtener el conteo de votos
-public async Task<int> GetTotalVotos(int idProyecto)
-{
-    // 1. Hacemos la consulta normal (sin el .Count(...) problemático)
-    var response = await _supabase
-        .From<VotoQuery>()
-        .Where(x => x.IdProyecto == idProyecto)
-        .Get();
-
-    // 2. 'Models' es una List<VotoQuery> estándar de C#. 
-    // Siempre tiene la propiedad .Count y no necesita usings raros.
-    return response.Models.Count;
-}
-
-    // 2. Obtener todos los comentarios de una vez
-    public async Task<List<string>> GetComentariosProyecto(int idProyecto)
+    public async Task<List<ComentarioCualitativo>> GetComentariosPorVotacion(long idVotacion)
     {
         var response = await _supabase
-            .From<VotoQuery>()
-            .Where(x => x.IdProyecto == idProyecto)
-            // Pasamos el nombre de la columna como un simple string
-            .Select("comentario")
+            .From<ComentarioCualitativo>()
+            .Where(x => x.IdVotacion == idVotacion)
             .Get();
 
-        // Aquí response.Models ya contiene los objetos VotoQuery con la propiedad Comentario llena
-        return response.Models
-                       .Select(v => v.Comentario)
-                       .Where(c => !string.IsNullOrEmpty(c))
-                       .Select(c => c!)
-                       .ToList();
+        return response.Models;
     }
 
-
-
-    public string GuardarComentario(int id, int idCriterio, string comentario, string votoId)
+    public async Task<ComentarioCualitativo?> CreateComentarioAsync(ComentarioCualitativo comentario)
     {
-        this.Id = id;
-        this.IdCriterio = idCriterio;
-        this.Comentario = comentario;
 
-        return ObtenerComentario();
 
+        var response = await _supabase
+            .From<ComentarioCualitativo>()
+            .Insert(comentario);
+
+        if (!response.Models.Any())
+            throw new Exception("No se pudo insertar el comentario");
+
+        return response.Models.FirstOrDefault();
     }
 
-    public string ObtenerComentario()
+    public async Task<ComentarioCualitativo?> CreateComentarioAsync(
+    long idVotacion,
+    string comentarioTexto)
     {
-        return "Id: " + this.Id + ", IdCriterio: " + this.IdCriterio + ", Texto: " + this.Comentario;
+        var comentario = new ComentarioCualitativo
+        {
+            IdVotacion = idVotacion,
+            Comentario = comentarioTexto,
+            Fecha = DateTime.UtcNow
+        };
+
+        var response = await _supabase
+            .From<ComentarioCualitativo>()
+            .Insert(comentario);
+
+        if (!response.Models.Any())
+            throw new Exception("No se pudo insertar el comentario");
+
+        return response.Models.FirstOrDefault();
     }
 
 }

@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useMemo, useContext } from "react";
+import { useState, useEffect, useMemo, useContext } from "react";
 import { Plus, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { DesktopHeader } from "../components/eventos/DesktopHeader";
@@ -126,6 +126,12 @@ export default function DashboardPage() {
                                                         localStorage.setItem("eventoNombre", evento.nombre);
                                                         localStorage.setItem("eventoDescripcion", evento.descripcion);
                                                         navigate("/dashboard-votacion-categorias");
+                                                    }
+                                                    if(rol === "Organizador") {
+                                                        localStorage.setItem("eventoId", evento.id);
+                                                        localStorage.setItem("eventoNombre", evento.nombre);
+                                                        localStorage.setItem("eventoDescripcion", evento.descripcion);
+                                                        navigate("/organizador-dashboard");
                                                     }
                                                     
                                                 }

@@ -1,5 +1,4 @@
-using Votify.API.Models.Domain;
-using Supabase;
+﻿using Votify.API.Models.Domain;
 
 namespace Votify.API.Repositories
 {
@@ -22,6 +21,16 @@ namespace Votify.API.Repositories
 
             // Devolver el voto insertado como Voto (base class)
             return response.Models.First();
+        }
+
+        public async Task<List<VotoPublico>> ObtenerPorProyectoIdAsync(int proyectoId)
+        {
+            var response = await _supabase
+                .From<VotoPublico>()
+                .Filter("idproyecto", Supabase.Postgrest.Constants.Operator.Equals, proyectoId.ToString())
+                .Get();
+
+            return response.Models;
         }
     }
 }
