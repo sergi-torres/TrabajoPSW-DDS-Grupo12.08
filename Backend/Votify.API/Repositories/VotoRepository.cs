@@ -32,5 +32,6 @@ namespace Votify.API.Repositories
 
             return response.Models;
         }
+
     }
 }
