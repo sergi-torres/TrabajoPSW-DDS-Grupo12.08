@@ -22,6 +22,5 @@ namespace Votify.API.Repositories
             // Devolver el voto insertado como Voto (base class)
             return response.Models.First();
         }
-
     }
 }

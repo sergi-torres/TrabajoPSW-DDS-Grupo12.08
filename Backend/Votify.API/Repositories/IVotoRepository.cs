@@ -6,6 +6,5 @@ namespace Votify.API.Repositories
     {
         Task<Voto> AgregarVotoAsync(Voto voto);
 
-
     }
 }
