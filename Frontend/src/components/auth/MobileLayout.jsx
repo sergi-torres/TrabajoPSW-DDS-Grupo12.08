@@ -25,7 +25,11 @@ export function MobileLayout() {
         if (pin.length > 0) {
             try {
                 const data = await joinEvento(pin);
-                loginPublic(data.id, data.nombre || "Evento");
+
+                // PIN flow: siempre sesión pública nueva, sin identidad de jurado
+                const newSessionId = crypto.randomUUID();
+
+                loginPublic(data.id, data.nombre || "Evento", newSessionId);
                 navigate("/dashboard-votacion-categorias");
             } catch (error) {
                 console.error("Error validando PIN:", error);
