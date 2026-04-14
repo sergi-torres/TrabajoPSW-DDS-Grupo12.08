@@ -1,15 +1,17 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { Hash } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AuthTabs } from "./AuthTabs";
 import logo from "../../assets/LogoSinTexto.png";
 import { joinEvento } from "../../api/eventosApi";
+import { AuthContext } from "../../context/AuthContext";
 
 /**
  * DesktopLayout.jsx
  */
 export function DesktopLayout() {
     const navigate = useNavigate();
+    const { loginPublic } = useContext(AuthContext);
     const [pin, setPin] = useState("");
 
     const handleJoin = async () => {

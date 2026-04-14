@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { ArrowRight } from "lucide-react";
 import { LoginDrawer } from "./LoginDrawer";
 import logo from "../../assets/LogoSinTexto.png";
 import { useNavigate } from "react-router-dom";
 import { joinEvento } from "../../api/eventosApi";
+import { AuthContext } from "../../context/AuthContext";
 
 /**
  * MobileLayout.jsx
@@ -15,6 +16,7 @@ import { joinEvento } from "../../api/eventosApi";
 
 export function MobileLayout() {
     const navigate = useNavigate();
+    const { loginPublic } = useContext(AuthContext);
     const [pin, setPin] = useState("");
 
     const handleJoin = async (e) => {

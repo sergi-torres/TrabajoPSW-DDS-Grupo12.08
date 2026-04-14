@@ -1,5 +1,6 @@
-﻿import { useLocation, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+﻿import { useNavigate } from "react-router-dom";
+import { useEffect, useState, useContext } from "react";
+import { AuthContext } from "../context/AuthContext";
 import {
   ArrowLeft,
   Target,
@@ -11,7 +12,6 @@ import {
 } from "lucide-react";
 
 import "../index.css";
-import { comentariosApi } from "../api/comentariosApi";
 
 // --- SUB-COMPONENTES ATÓMICOS ---
 
@@ -55,6 +55,7 @@ const CommentCard = ({ author, comment, timestamp, likes }) => (
 
 export default function ParticipantDashboard() {
   const navigate = useNavigate();
+  const { isPublic } = useContext(AuthContext);
 
   // STATE BIEN COLOCADO
   const [publicComments, setPublicComments] = useState([]);
@@ -119,66 +120,85 @@ export default function ParticipantDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* HEADER */}
-      <header className="bg-purple-600 text-white p-6">
+    <div className="min-h-screen bg-gray-50 font-body">
+      {/* HEADER - Participant Style (Purple) */}
+      <header className="bg-purple-600 text-white p-6 lg:p-10">
         <div className="max-w-7xl mx-auto">
-          <button
-            onClick={() => navigate("/eventos")}
-            className="flex items-center gap-2 mb-4 hover:opacity-80 transition-opacity"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            Volver
-          </button>
+          {!isPublic && (
+            <button
+              onClick={() => navigate("/eventos")}
+              className="flex items-center gap-2 mb-6 hover:opacity-80 transition-opacity font-heading font-semibold"
+            >
+              <ArrowLeft className="w-5 h-5" strokeWidth={2} />
+              Volver a eventos
+            </button>
+          )}
 
-          <h1 className="text-3xl mb-2">Dashboard del Participante</h1>
-          <p>Bienvenido, {state.participantName}</p>
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div className="max-w-2xl">
+              <div className="flex items-center gap-3 mb-3">
+                <span className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest border border-white/20">
+                  Panel Participante
+                </span>
+              </div>
+              <h1 className="text-3xl lg:text-4xl font-heading font-bold tracking-tight mb-2">
+                {state.projectName}
+              </h1>
+              <p className="text-purple-100 text-lg font-medium opacity-90">
+                Bienvenido de nuevo, {state.participantName}
+              </p>
+            </div>
+
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
+              <p className="text-xs uppercase tracking-wider font-bold text-purple-200 mb-1">Tu Puntuación Global</p>
+              <div className="flex items-baseline gap-2">
+                <p className="text-3xl font-heading font-bold">{state.overallScore}</p>
+                <p className="text-sm font-medium text-purple-200">/ 100</p>
+              </div>
+            </div>
+          </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto p-6 space-y-6">
+      <main className="max-w-7xl mx-auto p-6 lg:p-10 -mt-10 space-y-8">
 
-        {/* PROYECTO */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <article className="md:col-span-2 bg-white rounded-lg shadow p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <Target className="w-6 h-6 text-purple-600" />
-              <h2 className="text-xl font-semibold">Tu Proyecto</h2>
+        {/* PROYECTO Y RESUMEN */}
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <article className="lg:col-span-2 bg-white rounded-2xl shadow-sm p-8 border border-gray-100">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2.5 bg-purple-50 text-purple-600 rounded-xl">
+                <Target className="w-6 h-6" />
+              </div>
+              <h2 className="text-xl font-heading font-bold text-gray-900">Sobre tu Proyecto</h2>
             </div>
 
-            <h3 className="text-2xl mb-3">{state.projectName}</h3>
-            <p className="text-gray-600">
-              {localStorage.getItem("eventoDescripcion")}
+            <p className="text-gray-600 text-lg leading-relaxed">
+              {localStorage.getItem("eventoDescripcion") || "Sin descripción disponible para este proyecto."}
             </p>
           </article>
 
-          <article className="bg-white rounded-lg shadow p-6 text-center">
-            <div className="flex items-center justify-center gap-2 mb-4">
-              <Award className="w-6 h-6 text-purple-600" />
-              <h2 className="text-xl font-semibold">Puntuación</h2>
+          <article className="bg-white rounded-2xl shadow-sm p-8 border border-gray-100 text-center flex flex-col justify-center items-center">
+            <div className="w-16 h-16 bg-yellow-50 text-yellow-500 rounded-full flex items-center justify-center mb-4">
+              <Award className="w-10 h-10" />
             </div>
-
-            <div className="text-5xl font-bold text-purple-600 mb-2">
-              {state.overallScore}
-            </div>
-
-            <p className="text-gray-600">de 100 puntos</p>
-            <span className="inline-block mt-4 bg-purple-600 text-white px-3 py-1 rounded-full text-sm">
-              Top 10%
+            <h2 className="text-xl font-heading font-bold text-gray-900 mb-2">Reconocimiento</h2>
+            <p className="text-gray-500 mb-6">Tu proyecto se encuentra entre los más destacados del evento.</p>
+            <span className="px-4 py-2 bg-purple-600 text-white font-bold rounded-full text-sm shadow-lg shadow-purple-200">
+              Top 10% del Evento
             </span>
           </article>
         </section>
 
         {/* CRITERIOS */}
-        <section className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center gap-2 mb-6">
-            <TrendingUp className="w-6 h-6 text-purple-600" />
-            <h2 className="text-xl font-semibold">
-              Evaluación por Criterios
-            </h2>
+        <section className="bg-white rounded-2xl shadow-sm p-8 border border-gray-100">
+          <div className="flex items-center gap-3 mb-8">
+            <div className="p-2.5 bg-purple-50 text-purple-600 rounded-xl">
+              <TrendingUp className="w-6 h-6" />
+            </div>
+            <h2 className="text-xl font-heading font-bold text-gray-900">Evaluación Detallada</h2>
           </div>
 
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
             {EVALUATION_CRITERIA.map((item) => (
               <CriterionBar key={item.name} {...item} />
             ))}
@@ -186,25 +206,35 @@ export default function ParticipantDashboard() {
         </section>
 
         {/* COMENTARIOS */}
-        <section className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center gap-2 mb-2">
-            <MessageSquare className="w-6 h-6 text-purple-600" />
-            <h2 className="text-xl font-semibold">
-              Comentarios del Público
-            </h2>
+        <section className="bg-white rounded-2xl shadow-sm p-8 border border-gray-100">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-purple-50 text-purple-600 rounded-xl">
+                <MessageSquare className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-xl font-heading font-bold text-gray-900">Feedback del Público</h2>
+                <p className="text-sm text-gray-500">Lo que otros participantes y asistentes opinan</p>
+              </div>
+            </div>
+            <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
+              {publicComments.length} Comentarios
+            </span>
           </div>
 
-          <p className="text-sm text-gray-600 mb-6">
-            Lo que el público opina sobre tu proyecto
-          </p>
-
-          <div className="space-y-4">
-            {publicComments.map((comment) => (
-              <CommentCard key={comment.id} {...comment} />
-            ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {publicComments.length > 0 ? (
+              publicComments.map((comment) => (
+                <CommentCard key={comment.id} {...comment} />
+              ))
+            ) : (
+              <div className="col-span-full py-12 text-center border-2 border-dashed border-gray-100 rounded-2xl">
+                <p className="text-gray-400 font-medium">Aún no hay comentarios públicos para este proyecto.</p>
+              </div>
+            )}
           </div>
         </section>
       </main>
     </div>
   );
-}
+  }
