@@ -4,7 +4,7 @@ namespace Votify.API.Factories
 {
     public class VotoPublicoFactory : IVotoFactory
     {
-        public Voto CrearVoto(int proyectoId, float valorBase, int idCategoria, int idCriterio, string? comentario, string? urlAudio)
+        public Voto CrearVoto(int proyectoId, float valorBase, int idCategoria, int idCriterio, string? comentario, string? urlAudio, int? idUsuario, string ipDispositivo)
         {
             return new VotoPublico
             {
@@ -15,7 +15,8 @@ namespace Votify.API.Factories
                 Comentario = comentario,
                 UrlAudio = urlAudio,
                 FechaVoto = DateTime.UtcNow,
-                IpDispositivo = "" // Se llenará en el Service con la IP real del cliente
+                IdEvaluador = null, // El público es anónimo, ignora el idUsuario
+                IpDispositivo = ipDispositivo
             };
         }
     }

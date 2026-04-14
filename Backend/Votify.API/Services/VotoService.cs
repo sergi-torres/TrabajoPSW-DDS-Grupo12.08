@@ -194,21 +194,10 @@ namespace Votify.API.Services
                     idCategoria: request.CategoriaId,
                     idCriterio: 1, // TODO: Esto en el futuro seguramente será una lista de criterios
                     comentario: request.Comentario,
-                    urlAudio: null
+                    urlAudio: null,
+                    idUsuario: idUsuario,
+                    ipDispositivo: "web" // TODO: Obtener IP real
                 );
-
-                // Asignar propiedades según tipo de usuario
-                if (voto is VotoPublico votoPublico)
-                {
-                    votoPublico.IpDispositivo = "web"; // TODO: Obtener IP real
-                    votoPublico.IdEvaluador = null;
-                }
-
-                if (voto is VotoJurado votoJurado)
-                {
-                    votoJurado.IpDispositivo = "web"; // TODO: Obtener IP real
-                    votoJurado.IdEvaluador = idUsuario;
-                }
 
                 var votoCreado = await _votoRepository.AgregarVotoAsync(voto);
 
