@@ -15,9 +15,6 @@ const API_URL = "http://localhost:5245/api/Auth";
  * @throws {Error} Si las credenciales son incorrectas o el servidor no responde
  */
 export async function loginUser(email, password) {
-
-    localStorage.setItem("email", email);
-
     const response = await fetch(`${API_URL}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -40,7 +37,7 @@ export async function loginUser(email, password) {
  * @param {string} data.email
  * @param {string} data.password
  * @param {string} [data.rol="Organizador"] - Rol inicial (requerido por UsuarioFactory.cs)
- * @returns {Promise<{token: string}>} Token JWT de Supabase
+ * @returns {Promise<{token: string, userId: number, nombreUsuario: string}>} Token JWT y datos del usuario
  * @throws {Error} Si el registro falla
  */
 export async function registerUser({ nombreCompleto, nombreUsuario, email, password, rol = "Organizador" }) {

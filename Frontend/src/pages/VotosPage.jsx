@@ -55,7 +55,7 @@ const CommentCard = ({ author, comment, timestamp, likes }) => (
 
 export default function ParticipantDashboard() {
   const navigate = useNavigate();
-  const { isPublic } = useContext(AuthContext);
+  const { isPublic, userName } = useContext(AuthContext);
 
   // STATE BIEN COLOCADO
   const [publicComments, setPublicComments] = useState([]);
@@ -109,7 +109,7 @@ export default function ParticipantDashboard() {
   }, []);
 
   const state = {
-    participantName: localStorage.getItem("email"),
+    participantName: userName || localStorage.getItem("userName") || "Usuario",
     projectName: localStorage.getItem("eventoNombre"),
     overallScore: 85.75
   };

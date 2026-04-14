@@ -15,7 +15,7 @@ namespace Votify.API.Services
             _supabase = supabase;
         }
 
-        public async Task<(string? token, int userId)> RegistrarAsync(RegistroRequestDto request)
+        public async Task<(string? token, int userId, string? nombreUsuario)> RegistrarAsync(RegistroRequestDto request)
         {
             var usuario = new Usuario
             {
@@ -31,7 +31,7 @@ namespace Votify.API.Services
                 var session = await _supabase.Auth.SignUp(usuario.Email, usuario.Password);
                 var insertResponse = await _supabase.From<Usuario>().Insert(usuario);
                 var created = insertResponse.Models.FirstOrDefault();
-                return (session?.AccessToken, created?.Id ?? 0);
+                return (session?.AccessToken, created?.Id ?? 0, created?.NombreUsuario ?? request.Email);
             }
             catch (Exception ex)
             {
@@ -39,20 +39,20 @@ namespace Votify.API.Services
             }
         }
 
-        public async Task<(string? token, int userId)> LoginAsync(LoginRequestDto request)
+        public async Task<(string? token, int userId, string? nombreUsuario)> LoginAsync(LoginRequestDto request)
         {
             try
             {
                 var session = await _supabase.Auth.SignIn(request.Email, request.Password);
 
-                // Buscar el ID del usuario en nuestra tabla
+                // Buscar el ID y Nombre de usuario en nuestra tabla
                 var userResponse = await _supabase
                     .From<Usuario>()
                     .Where(u => u.Email == request.Email)
                     .Get();
 
                 var user = userResponse.Models.FirstOrDefault();
-                return (session?.AccessToken, user?.Id ?? 0);
+                return (session?.AccessToken, user?.Id ?? 0, user?.NombreUsuario ?? request.Email);
             }
             catch (Exception ex)
             {

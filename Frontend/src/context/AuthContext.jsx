@@ -10,6 +10,7 @@ export function AuthProvider({ children }) {
         const stored = localStorage.getItem("userId");
         return stored ? parseInt(stored) : null;
     });
+    const [userName, setUserName] = useState(() => localStorage.getItem("userName"));
     const [isPublic, setIsPublic] = useState(() => {
         return localStorage.getItem("isPublic") === "true";
     });
@@ -33,6 +34,7 @@ export function AuthProvider({ children }) {
         // Actualizar Estado Global de forma atómica
         setToken(newToken);
         setUserId(newUserId);
+        setUserName(newUserName);
         setIsPublic(false);
     };
 
@@ -53,6 +55,7 @@ export function AuthProvider({ children }) {
         // Actualizar Estado Global
         setToken(null);
         setUserId(null);
+        setUserName(null);
         setIsPublic(true);
     };
 
@@ -63,6 +66,7 @@ export function AuthProvider({ children }) {
         localStorage.clear(); // Limpieza total para seguridad
         setToken(null);
         setUserId(null);
+        setUserName(null);
         setIsPublic(false);
     };
 
@@ -71,6 +75,7 @@ export function AuthProvider({ children }) {
         const handleStorage = (e) => {
             if (e.key === "token") setToken(e.newValue);
             if (e.key === "userId") setUserId(e.newValue ? parseInt(e.newValue) : null);
+            if (e.key === "userName") setUserName(e.newValue);
             if (e.key === "isPublic") setIsPublic(e.newValue === "true");
         };
         window.addEventListener("storage", handleStorage);
@@ -78,7 +83,7 @@ export function AuthProvider({ children }) {
     }, []);
 
     return (
-        <AuthContext.Provider value={{ token, userId, isAuthenticated, isPublic, login, loginPublic, logout }}>
+        <AuthContext.Provider value={{ token, userId, userName, isAuthenticated, isPublic, login, loginPublic, logout }}>
             {children}
         </AuthContext.Provider>
     );
