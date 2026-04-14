@@ -35,8 +35,8 @@ const DashboardVotacionCategorias = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 font-body">
-      {/* HEADER - Jury Style (Orange) */}
-      <header className="bg-orange-600 text-white p-6 lg:p-10">
+      {/* HEADER - Dynamic Style */}
+      <header className={`${isPublic ? 'bg-emerald-600' : 'bg-orange-600'} text-white p-6 lg:p-10`}>
         <div className="max-w-7xl mx-auto">
           {!isPublic && (
             <button
@@ -53,15 +53,15 @@ const DashboardVotacionCategorias = () => {
               <h1 className="text-3xl lg:text-4xl font-heading font-bold tracking-tight mb-3">
                 Panel de Evaluación
               </h1>
-              <p className="text-orange-50 text-lg font-medium opacity-90">
+              <p className={`${isPublic ? 'text-emerald-50' : 'text-orange-50'} text-lg font-medium opacity-90`}>
                 Selecciona una categoría para comenzar a evaluar los proyectos. 
                 Tus votos son limitados por categoría.
               </p>
             </div>
             {datos && (
               <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
-                <p className="text-xs uppercase tracking-wider font-bold text-orange-200 mb-1">Estado de Sesión</p>
-                <p className="text-xl font-heading font-bold">Jurado Experto</p>
+                <p className={`text-xs uppercase tracking-wider font-bold ${isPublic ? 'text-emerald-200' : 'text-orange-200'} mb-1`}>Estado de Sesión</p>
+                <p className="text-xl font-heading font-bold">{isPublic ? 'Público General' : 'Jurado Experto'}</p>
               </div>
             )}
           </div>
@@ -74,7 +74,7 @@ const DashboardVotacionCategorias = () => {
             {/* Stats Section in a Card */}
             <section className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
               <div className="flex items-center gap-2 mb-6">
-                <Target className="w-6 h-6 text-orange-600" />
+                <Target className={`w-6 h-6 ${isPublic ? 'text-emerald-600' : 'text-orange-600'}`} />
                 <h2 className="text-xl font-heading font-bold text-gray-900">Resumen de Votación</h2>
               </div>
               <StatsBar config={datos} />
@@ -83,7 +83,7 @@ const DashboardVotacionCategorias = () => {
             {/* Categories Grid */}
             <section>
               <div className="flex items-center gap-2 mb-6">
-                <Award className="w-6 h-6 text-orange-600" />
+                <Award className={`w-6 h-6 ${isPublic ? 'text-emerald-600' : 'text-orange-600'}`} />
                 <h2 className="text-xl font-heading font-bold text-gray-900">Categorías Disponibles</h2>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
