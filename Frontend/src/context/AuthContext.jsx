@@ -1,4 +1,4 @@
-﻿import { createContext, useState, useEffect } from "react";
+import { createContext, useState, useEffect } from "react";
 
 const AuthContext = createContext(null);
 
@@ -20,10 +20,18 @@ export function AuthProvider({ children }) {
      * Guarda el token, el userId y el userName en el estado global y en localStorage.
      */
     const login = (newToken, newUserId, newUserName) => {
+        // Guardar en Storage
         localStorage.setItem("token", newToken);
         localStorage.setItem("userId", newUserId);
         localStorage.setItem("userName", newUserName);
         localStorage.setItem("isPublic", "false");
+        
+        // Limpiar datos de sesión pública si existieran
+        localStorage.removeItem("eventoId");
+        localStorage.removeItem("eventoNombre");
+
+        // Actualizar Estado Global de forma atómica
+        setToken(newToken);
         setUserId(newUserId);
         setIsPublic(false);
     };
@@ -32,28 +40,33 @@ export function AuthProvider({ children }) {
      * Inicia sesión como público (anónimo) vía PIN.
      */
     const loginPublic = (eventoId, eventoNombre) => {
+        // Limpiar sesión de usuario previa totalmente
+        localStorage.removeItem("token");
+        localStorage.removeItem("userId");
+        localStorage.removeItem("userName");
+        
+        // Guardar datos de evento
         localStorage.setItem("eventoId", eventoId);
         localStorage.setItem("eventoNombre", eventoNombre);
         localStorage.setItem("isPublic", "true");
+
+        // Actualizar Estado Global
+        setToken(null);
+        setUserId(null);
         setIsPublic(true);
     };
 
     /**
-     * Elimina el token y userId del estado global y de localStorage.
+     * Elimina todos los datos de sesión.
      */
     const logout = () => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("userId");
-        localStorage.removeItem("userName");
-        localStorage.removeItem("isPublic");
-        localStorage.removeItem("eventoId");
-        localStorage.removeItem("eventoNombre");
+        localStorage.clear(); // Limpieza total para seguridad
         setToken(null);
         setUserId(null);
         setIsPublic(false);
     };
 
-    // Si el token cambia externamente (otra pestaña), sincronizamos
+    // Sincronización entre pestañas
     useEffect(() => {
         const handleStorage = (e) => {
             if (e.key === "token") setToken(e.newValue);
