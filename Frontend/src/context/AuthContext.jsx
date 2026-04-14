@@ -14,7 +14,7 @@ export function AuthProvider({ children }) {
     const [isPublic, setIsPublic] = useState(() => {
         return localStorage.getItem("isPublic") === "true";
     });
-
+    const [sessionId, setSessionId] = useState(() => localStorage.getItem("votacionSessionId"));
     const isAuthenticated = !!token;
 
     /**
@@ -30,18 +30,20 @@ export function AuthProvider({ children }) {
         // Limpiar datos de sesión pública si existieran
         localStorage.removeItem("eventoId");
         localStorage.removeItem("eventoNombre");
+        localStorage.removeItem("votacionSessionId");
 
         // Actualizar Estado Global de forma atómica
         setToken(newToken);
         setUserId(newUserId);
         setUserName(newUserName);
+        setSessionId(null);
         setIsPublic(false);
     };
 
     /**
      * Inicia sesión como público (anónimo) vía PIN.
      */
-    const loginPublic = (eventoId, eventoNombre) => {
+    const loginPublic = (eventoId, eventoNombre, newSessionId) => {
         // Limpiar sesión de usuario previa totalmente
         localStorage.removeItem("token");
         localStorage.removeItem("userId");
@@ -51,12 +53,14 @@ export function AuthProvider({ children }) {
         localStorage.setItem("eventoId", eventoId);
         localStorage.setItem("eventoNombre", eventoNombre);
         localStorage.setItem("isPublic", "true");
+        localStorage.setItem("votacionSessionId", newSessionId);
 
         // Actualizar Estado Global
         setToken(null);
         setUserId(null);
         setUserName(null);
         setIsPublic(true);
+        setSessionId(newSessionId);
     };
 
     /**
@@ -68,6 +72,7 @@ export function AuthProvider({ children }) {
         setUserId(null);
         setUserName(null);
         setIsPublic(false);
+        setSessionId(null);
     };
 
     // Sincronización entre pestañas
@@ -77,13 +82,14 @@ export function AuthProvider({ children }) {
             if (e.key === "userId") setUserId(e.newValue ? parseInt(e.newValue) : null);
             if (e.key === "userName") setUserName(e.newValue);
             if (e.key === "isPublic") setIsPublic(e.newValue === "true");
+            if (e.key === "votacionSessionId") setSessionId(e.newValue);
         };
         window.addEventListener("storage", handleStorage);
         return () => window.removeEventListener("storage", handleStorage);
     }, []);
 
     return (
-        <AuthContext.Provider value={{ token, userId, userName, isAuthenticated, isPublic, login, loginPublic, logout }}>
+        <AuthContext.Provider value={{ token, userId, userName, sessionId, isAuthenticated, isPublic, login, loginPublic, logout }}>
             {children}
         </AuthContext.Provider>
     );

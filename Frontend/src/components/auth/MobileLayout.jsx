@@ -27,13 +27,9 @@ export function MobileLayout() {
                 const data = await joinEvento(pin);
 
                 // PIN flow: siempre sesión pública nueva, sin identidad de jurado
-                localStorage.removeItem("token");
-                localStorage.removeItem("userId");
-                localStorage.removeItem("userName");
-                localStorage.setItem("votacionSessionId", crypto.randomUUID());
+                const newSessionId = crypto.randomUUID();
 
-                localStorage.setItem("eventoId", data.id);
-                localStorage.setItem("eventoNombre", data.nombre || "Evento");
+                loginPublic(data.id, data.nombre || "Evento", newSessionId);
                 navigate("/dashboard-votacion-categorias");
             } catch (error) {
                 console.error("Error validando PIN:", error);
