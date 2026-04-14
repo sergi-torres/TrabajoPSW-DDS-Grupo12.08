@@ -6,5 +6,7 @@ namespace Votify.API.Repositories
     {
         Task<Voto> AgregarVotoAsync(Voto voto);
         Task<string?> ObtenerRolUsuarioEnEventoAsync(int idUsuario, int idEvento);
+        Task<List<VotoPublico>> ObtenerPorProyectoIdAsync(int proyectoId);
+
     }
 }

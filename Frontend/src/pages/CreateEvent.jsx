@@ -170,12 +170,11 @@ const CreateEvent = () => {
         {/* Navigation buttons */}
         <div className="flex justify-between items-center mt-6">
           <button
-            onClick={handlePrev}
-            disabled={currentStep === 1}
-            className="flex items-center gap-2 h-12 px-6 rounded-md font-heading font-semibold border border-border bg-background text-foreground hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            onClick={() => currentStep === 1 ? navigate("/eventos") : handlePrev()}
+            className="flex items-center gap-2 h-12 px-6 rounded-md font-heading font-semibold border border-border bg-background text-foreground hover:bg-muted transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            Anterior
+            {currentStep === 1 ? "Cancelar" : "Anterior"}
           </button>
 
           {currentStep < 3 ? (

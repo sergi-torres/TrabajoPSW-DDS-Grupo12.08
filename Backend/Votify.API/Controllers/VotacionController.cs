@@ -11,7 +11,9 @@ namespace Votify.API.Controllers
     {
         private readonly IVotoService _votoService;
 
-        public VotacionController(IVotoService votoService)
+
+        public VotacionController(
+        IVotoService votoService)
         {
             _votoService = votoService;
         }
@@ -23,6 +25,7 @@ namespace Votify.API.Controllers
             {
                 // IdUsuario viene del frontend (localStorage) - null = PIN flow, valor = Jurado flow
                 var dashboard = await _votoService.ProcesarVotoAsync(request, request.IdUsuario, request.SessionId);
+
                 return Ok(dashboard);
             }
             catch (Exception ex)
@@ -30,6 +33,8 @@ namespace Votify.API.Controllers
                 return BadRequest(ex.InnerException?.Message ?? ex.Message);
             }
         }
+
+
 
         [HttpGet("dashboard")]
         public async Task<IActionResult> ObtenerDashboard([FromQuery] int eventoId, [FromQuery] int? idUsuario = null, [FromQuery] string? sessionId = null)

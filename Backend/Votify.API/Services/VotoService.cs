@@ -12,6 +12,7 @@ namespace Votify.API.Services
         private readonly IVotoRepository _votoRepository;
         private readonly VotoPublicoFactory _votoPublicoFactory;
         private readonly VotoJuradoFactory _votoJuradoFactory;
+        private readonly IComentarioCualitativoService _comentarioService;
 
         // Cache por evento durante la sesión de votación (categorías y proyectos no cambian durante votación)
         private static readonly Dictionary<int, (List<Categoria> categorias, List<Proyecto> proyectos, DateTime timestamp)> _eventosCache = new();
@@ -42,13 +43,15 @@ namespace Votify.API.Services
             IProyectoRepository proyectoRepository,
             IVotoRepository votoRepository,
             VotoPublicoFactory votoPublicoFactory,
-            VotoJuradoFactory votoJuradoFactory)
+            VotoJuradoFactory votoJuradoFactory,
+            IComentarioCualitativoService comentarioService)
         {
             _categoriaRepository = categoriaRepository;
             _proyectoRepository = proyectoRepository;
             _votoRepository = votoRepository;
             _votoPublicoFactory = votoPublicoFactory;
             _votoJuradoFactory = votoJuradoFactory;
+            _comentarioService = comentarioService;
         }
 
         private async Task<IVotoFactory> ObtenerFactoryPorRolAsync(int eventoId, int? idUsuario)
@@ -72,14 +75,14 @@ namespace Votify.API.Services
         private async Task<(List<Categoria> categorias, List<Proyecto> proyectos)> ObtenerDatosEventoCacheAsync(int eventoId)
         {
             // Si el evento no está en cache o está expirado, cargar desde BD
-            if (!_eventosCache.ContainsKey(eventoId) || 
+            if (!_eventosCache.ContainsKey(eventoId) ||
                 DateTime.Now - _eventosCache[eventoId].timestamp > CacheDuration)
             {
                 var categorias = await _categoriaRepository.ObtenerPorEventoIdAsync(eventoId);
-                
+
                 var proyectos = new List<Proyecto>();
 
-                
+
                 foreach (var categoria in categorias)
                 {
                     categoria.VotosRestantes = 3;//por defecto , será una variable en el futuro
@@ -87,7 +90,7 @@ namespace Votify.API.Services
                     var proyectosCategoria = await _proyectoRepository.ObtenerPorCategoriaIdAsync(categoria.Id);
                     proyectos.AddRange(proyectosCategoria);
                 }
-                
+
                 _eventosCache[eventoId] = (categorias, proyectos, DateTime.Now);
             }
 
@@ -149,7 +152,7 @@ namespace Votify.API.Services
                     categoriasResumen.Add(new CategoriaResumenDto
                     {
                         Id = cat.Id,
-                        Titulo = cat.Nombre, 
+                        Titulo = cat.Nombre,
                         VotosRestantes = Math.Max(0, votosRestantes),
                         Estado = estadoCategoria,
                         Proyectos = proyectosDto
@@ -207,7 +210,18 @@ namespace Votify.API.Services
                     votoJurado.IdEvaluador = idUsuario;
                 }
 
-                await _votoRepository.AgregarVotoAsync(voto);
+                var votoCreado = await _votoRepository.AgregarVotoAsync(voto);
+
+
+                // CREAR COMENTARIO
+                if (!string.IsNullOrWhiteSpace(request.Comentario))
+                {
+                    await _comentarioService.CreateComentarioAsync(
+                        votoCreado.Id,
+                        request.Comentario
+                    );
+                }
+
 
                 // Actualizar estado en memoria para este usuario
                 if (!VotosRealizadosPorUsuario.ContainsKey(claveSesion))
