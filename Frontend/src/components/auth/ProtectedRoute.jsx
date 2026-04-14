@@ -1,15 +1,22 @@
-import { Navigate, Outlet } from "react-router-dom";
-import { useAuth } from "../../hooks/useAuth";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { useContext } from "react";
+import { AuthContext } from "../../context/AuthContext";
 
 const ProtectedRoute = () => {
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, isPublic } = useContext(AuthContext);
+    const location = useLocation();
 
-    // Si no está autenticado, lo redirige a la página de login
+    // Las rutas de votación pueden ser accedidas por usuarios autenticados O por público con PIN
+    const isVotingRoute = location.pathname === "/dashboard-votacion-categorias" || location.pathname === "/votos";
+
+    if (isPublic && isVotingRoute) {
+        return <Outlet />;
+    }
+
     if (!isAuthenticated) {
         return <Navigate to="/login" replace />;
     }
 
-    // Si está autenticado, renderiza las rutas hijas
     return <Outlet />;
 };
 

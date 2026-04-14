@@ -20,8 +20,8 @@ namespace Votify.API.Controllers
         {
             try
             {
-                var (token, userId) = await _authService.RegistrarAsync(request);
-                return Ok(new { token, userId });
+                var (token, userId, nombreUsuario) = await _authService.RegistrarAsync(request);
+                return Ok(new { token, userId, nombreUsuario });
             }
             catch (Exception ex)
             {
@@ -34,8 +34,8 @@ namespace Votify.API.Controllers
         {
             try
             {
-                var (token, userId) = await _authService.LoginAsync(request);
-                return Ok(new { token, userId });
+                var (token, userId, nombreUsuario) = await _authService.LoginAsync(request);
+                return Ok(new { token, userId, nombreUsuario });
             }
             catch (Exception ex)
             {

@@ -1,13 +1,31 @@
-import { Search, Bell, ChevronDown } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Search, Bell, ChevronDown, LogOut, User } from "lucide-react";
+import { useAuth } from "../../hooks/useAuth";
 import logo from "../../assets/LogoSinTexto.png";
 
 /**
- * DesktopHeader — Barra superior fija para escritorio.
- * @param {Object} props
- * @param {string} props.searchQuery - Texto actual del buscador
- * @param {Function} props.onSearchChange - Callback cuando cambia el texto
+ * DesktopHeader — Barra superior fija para escritorio con menú de usuario.
  */
 export function DesktopHeader({ searchQuery = "", onSearchChange }) {
+    const { userName, logout } = useAuth();
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const menuRef = useRef(null);
+
+    // Cerrar menú al hacer clic fuera
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (menuRef.current && !menuRef.current.contains(event.target)) {
+                setIsMenuOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    const initials = userName 
+        ? userName.split("@")[0].substring(0, 2).toUpperCase() 
+        : "US";
+
     return (
         <header className="hidden lg:flex fixed top-0 w-full h-[72px] bg-card/95 backdrop-blur-md z-50 border-b border-border items-center px-8 justify-between transition-all">
             {/* Logo */}
@@ -35,11 +53,48 @@ export function DesktopHeader({ searchQuery = "", onSearchChange }) {
                     <span className="absolute top-0 right-0 w-2 h-2 bg-destructive border-2 border-card rounded-full translate-x-1/2 -translate-y-1/4" />
                 </button>
 
-                <div className="flex items-center gap-2 cursor-pointer group">
-                    <div className="h-9 w-9 rounded-full bg-gradient-to-tr from-[var(--color-org)] to-[var(--color-part)] flex items-center justify-center text-white font-medium text-sm shadow-sm ring-2 ring-card group-hover:ring-muted transition-all">
-                        US
+                <div className="relative" ref={menuRef}>
+                    <div 
+                        className="flex items-center gap-2 cursor-pointer group"
+                        onClick={() => setIsMenuOpen(!isMenuOpen)}
+                    >
+                        <div className="h-9 w-9 rounded-full bg-gradient-to-tr from-[var(--color-org)] to-[var(--color-part)] flex items-center justify-center text-white font-medium text-sm shadow-sm ring-2 ring-card group-hover:ring-muted transition-all">
+                            {initials}
+                        </div>
+                        <ChevronDown 
+                            size={16} 
+                            strokeWidth={2} 
+                            className={`text-muted-foreground group-hover:text-foreground transition-transform duration-200 ${isMenuOpen ? "rotate-180" : ""}`} 
+                        />
                     </div>
-                    <ChevronDown size={16} strokeWidth={2} className="text-muted-foreground group-hover:text-foreground transition-colors" />
+
+                    {/* Desplegable */}
+                    {isMenuOpen && (
+                        <div className="absolute right-0 mt-3 w-64 bg-card border border-border rounded-2xl shadow-xl py-2 z-50 animate-in fade-in zoom-in slide-in-from-top-2 duration-200">
+                            <div className="px-4 py-3 border-b border-border mb-1">
+                                <p className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground mb-0.5">Sesión iniciada</p>
+                                <p className="text-sm font-medium text-foreground truncate">{userName || "Usuario"}</p>
+                            </div>
+                            
+                            <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors">
+                                <User size={16} className="text-muted-foreground" />
+                                Mi Perfil
+                            </button>
+
+                            <div className="h-px bg-border my-1" />
+                            
+                            <button 
+                                onClick={() => {
+                                    setIsMenuOpen(false);
+                                    logout();
+                                }}
+                                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-destructive hover:bg-destructive/5 transition-colors font-medium"
+                            >
+                                <LogOut size={16} />
+                                Cerrar sesión
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
         </header>
