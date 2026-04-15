@@ -1,5 +1,5 @@
-using Votify.API.Models.Domain;
-using Supabase;
+﻿using Votify.API.Models.Domain;
+using Votify.API.Models.DTOs;
 
 namespace Votify.API.Repositories
 {
@@ -22,7 +22,30 @@ namespace Votify.API.Repositories
             return response.Models;
         }
 
-        public async Task<List<Categoria>> ObtenerPorEventoIdAsync(int eventoId)
+        public async Task<Categoria> CrearAsync(Categoria categoria)
+        {
+            var insertObj = new List<Categoria>
+{
+            new Categoria
+                {
+                    Nombre = categoria.Nombre,
+                    IdEvento = categoria.IdEvento
+                }
+            };
+
+            var response = await _supabase
+                .From<Categoria>()
+                .Insert(insertObj);
+
+            var insertado = response.Models.FirstOrDefault();
+
+            if (insertado == null)
+                throw new Exception("No se pudo crear la categoría");
+
+            return insertado;
+        }
+
+        public async Task<List<CategoriaResponseDto>> ObtenerPorEventoIdAsync(int eventoId)
         {
             var response = await _supabase
                 .From<Categoria>()
@@ -30,7 +53,12 @@ namespace Votify.API.Repositories
                 .Select("*")
                 .Get();
 
-            return response.Models;
+            return response.Models.Select(c => new CategoriaResponseDto
+            {
+                Id = c.Id,
+                Nombre = c.Nombre,
+                IdEvento = c.IdEvento
+            }).ToList();
         }
     }
 }

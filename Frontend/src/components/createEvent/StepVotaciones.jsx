@@ -1,7 +1,48 @@
-import { Users, Scale } from "lucide-react";
+﻿import { Users, Scale } from "lucide-react";
+import { useState } from "react";
+
+const maxCategorias = 10; // Definimos un máximo de categorías
+
+const ParentComponent = () => {
+  const [formData, setFormData] = useState({
+    pesoJurado: 50,
+    votoPublicoHabilitado: true,
+    categorias: [],
+    
+  });
+
+  return (
+    <StepVotaciones
+      data={formData}
+      onChange={setFormData}
+    />
+  );
+
+};
+
+
 
 const StepVotaciones = ({ data, onChange }) => {
+
+    const { categorias = []} = data;
+
     const pesoPublico = 100 - data.pesoJurado;
+
+    const handleUpdateCategories = (newCats) => {
+        onChange({
+            ...data,       
+            categorias: newCats
+        });
+    };
+
+    const handleWeightChange = (newWeight) => {
+        onChange({
+            ...data,
+            pesoJurado: newWeight
+        });
+    };
+
+    //console.log("Datos actuales de votación:", data);
 
     return (
         <div className="space-y-6">
@@ -90,6 +131,68 @@ const StepVotaciones = ({ data, onChange }) => {
                     </div>
                 )}
             </div>
+
+            {/*Categorías, concretamente, botón de añadir, y hasta un máximo de 5*/}
+
+            <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                    <h4 className="text-base font-heading font-semibold text-foreground">
+                        Categorías del evento
+                    </h4>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            if ((data.categorias?.length || 0) >= maxCategorias) return;
+                                onChange({
+                                ...data,
+                                categorias: [...(data.categorias || []), ""],
+                                });
+                                        
+                                }}
+                            className="text-sm px-3 py-1 rounded-lg bg-org text-white hover:opacity-90 disabled:opacity-50"
+                            disabled={(data.categorias?.length || 0) >= maxCategorias}
+                            >
+                        + Añadir
+                    </button>
+            </div>
+
+            {/*Categorías, texto de los contenedores y botón de eliminar*/}
+
+            <div className="space-y-2">
+                {(data.categorias || []).map((cat, index) => (
+                <div key={index} className="flex items-center gap-2">
+                    <input
+                        type="text"
+                        value={cat}
+                        onChange={(e) => {
+                            const nuevas = [...data.categorias];
+                            nuevas[index] = e.target.value;
+                            onChange({ ...data, categorias: nuevas });
+                        }}
+                        placeholder={`Categoría ${index + 1}`}
+                        className="flex-1 px-3 py-2 rounded-lg border border-border bg-background text-sm"
+                    />
+
+                <button
+                    type="button"
+                    onClick={() => {
+                        const nuevas = data.categorias.filter((_, i) => i !== index);
+                        onChange({ ...data, categorias: nuevas });
+                        }}
+                    className="px-2 py-1 text-sm rounded-lg bg-red-100 text-red-600 hover:bg-red-200"
+                    >
+                        ✕
+                    </button>
+                </div>
+                ))}
+            </div>
+
+                     <p className="text-xs text-muted-foreground">
+                            Puedes añadir hasta {maxCategorias} categorías
+                    </p>
+
+            </div>
+
         </div>
     );
 };
