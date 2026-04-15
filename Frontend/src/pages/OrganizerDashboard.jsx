@@ -1,4 +1,4 @@
-// src/pages/OrganizerDashboard.jsx
+﻿// src/pages/OrganizerDashboard.jsx
 import { useState, useEffect, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Target, Award, TrendingUp, LayoutDashboard, Clock } from "lucide-react";
@@ -8,6 +8,7 @@ import RankingList from "../components/organizator_dashboard/RankingList";
 import ProjectFeed from "../components/organizator_dashboard/ProjectFeed";
 import { getDashboard, extenderTiempo, cerrarVotacion } from "../api/orgDashboardApi";
 import { AuthContext } from "../context/AuthContext";
+import { categoriasApi } from "../api/categoriasApi";
 import "../components/organizator_dashboard/Dashboard.css";
 
 export default function OrganizerDashboard() {
@@ -18,6 +19,11 @@ export default function OrganizerDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { eventoId: paramEventoId } = useParams();
+  
+  const [categorias, setCategorias] = useState([]);     //categorias para tabs
+  const [loadingCategorias, setLoadingCategorias] = useState(true);
+
+  const [activeTab, setActiveTab] = useState(null);
 
   const eventoId = paramEventoId || localStorage.getItem("eventoId");
 
@@ -26,6 +32,7 @@ export default function OrganizerDashboard() {
     setTimeout(() => setToast(null), 4000);
   };
 
+  // Cargar datos del dashboard
   const fetchDashboard = async () => {
     if (!eventoId) {
       setError("No se encontró el ID del evento.");
@@ -45,11 +52,43 @@ export default function OrganizerDashboard() {
     }
   };
 
+
   useEffect(() => {
     fetchDashboard();
     const interval = setInterval(fetchDashboard, 30000);
     return () => clearInterval(interval);
+
   }, [eventoId]);
+
+  useEffect(() => {
+  const loadCategorias = async () => {
+    try {
+      const eventoId = localStorage.getItem("eventoId");
+
+      if (!eventoId) {
+        console.warn("No hay eventoId en localStorage");
+        return;
+      }
+
+      const data = await categoriasApi.getByEvento(eventoId);
+
+      setCategorias(data);
+    } catch (err) {
+      console.error("Error cargando categorías:", err);
+    } finally {
+      setLoadingCategorias(false);
+    }
+  };
+
+  loadCategorias();
+}, []);
+
+  useEffect(() => {
+  if (categorias.length > 0 && !activeTab) {
+    setActiveTab(categorias[0].id);
+  }
+    }, [categorias]);
+
 
   const handleExtend = async () => {
     try {
@@ -141,6 +180,21 @@ export default function OrganizerDashboard() {
 
   const { stats, ranking, feed, liveInfo } = dashboardData;
 
+        
+
+        const proyectosFiltrados =
+            categorias.length > 0 && activeTab != null
+            ? ranking.filter(p => p.idCategoria === activeTab)
+            : ranking;
+
+    /*
+    console.log("Proyectos filtrados para categoría", activeTab, proyectosFiltrados)
+    console.log("activeTab:", activeTab);
+    console.log("ranking completo:", ranking);
+    ranking.forEach((p) => {
+      console.log(`DEBUG PROYECTO ${p.id} - CAT: ${p.idCategoria}`);
+    });*/
+
   return (
     <div className="min-h-screen bg-gray-50 font-body pb-12">
       <header className="bg-blue-600 text-white p-6 lg:p-10">
@@ -206,14 +260,37 @@ export default function OrganizerDashboard() {
           </div>
         </section>
 
+{/* Main content: ranking + feed */}
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <section className="lg:col-span-2 bg-white rounded-2xl shadow-sm p-6 border border-gray-100 h-fit">
             <div className="flex items-center gap-2 mb-6">
-              <Award className="w-6 h-6 text-blue-600" />
-              <h2 className="text-xl font-heading font-bold text-gray-900">Ranking en Tiempo Real</h2>
+                <Award className="w-6 h-6 text-blue-600" />
+                <h2 className="text-xl font-heading font-bold text-gray-900">
+                    Ranking en Tiempo Real
+                </h2>
             </div>
-            <RankingList projects={ranking} />
-          </section>
+
+                {/*Tabs */}
+            <div className="flex gap-2 mb-6 border-b">
+                {categorias.map((cat) => (
+                    <button
+                        key={cat.id}
+                        onClick={() => setActiveTab(cat.id)}
+                        className={`px-4 py-2 text-sm font-medium transition-all border-b-2 ${
+                         activeTab === cat.id
+                          ? "border-blue-600 text-blue-600"
+                          : "border-transparent text-gray-500 hover:text-gray-700"
+                           }`}
+                            >
+                            {cat.nombre}
+                            </button>
+                            ))}
+           </div>
+
+                {/* Contenido del tab */}
+            <RankingList projects={proyectosFiltrados} />
+        </section>
 
           <section className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 h-fit">
             <div className="flex items-center gap-2 mb-6">

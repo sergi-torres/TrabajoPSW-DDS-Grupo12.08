@@ -15,7 +15,7 @@ namespace Votify.API.Services
         private readonly IComentarioCualitativoService _comentarioService;
 
         // Cache por evento durante la sesión de votación (categorías y proyectos no cambian durante votación)
-        private static readonly Dictionary<int, (List<Categoria> categorias, List<Proyecto> proyectos, DateTime timestamp)> _eventosCache = new();
+        private static readonly Dictionary<int, (List<CategoriaConPesos> categorias, List<Proyecto> proyectos, DateTime timestamp)> _eventosCache = new();
         // Cache por 4 horas, esto dependerá del limite que querramos dejar para todas las votaciones 
         private static readonly TimeSpan CacheDuration = TimeSpan.FromHours(4);
         
@@ -72,22 +72,30 @@ namespace Votify.API.Services
                 : _votoPublicoFactory;
         }
 
-        private async Task<(List<Categoria> categorias, List<Proyecto> proyectos)> ObtenerDatosEventoCacheAsync(int eventoId)
+        private async Task<(List<CategoriaConPesos> categorias, List<Proyecto> proyectos)>
+        ObtenerDatosEventoCacheAsync(int eventoId)
         {
-            // Si el evento no está en cache o está expirado, cargar desde BD
             if (!_eventosCache.ContainsKey(eventoId) ||
                 DateTime.Now - _eventosCache[eventoId].timestamp > CacheDuration)
             {
-                var categorias = await _categoriaRepository.ObtenerPorEventoIdAsync(eventoId);
+                var categoriasDb = await _categoriaRepository.ObtenerPorEventoIdAsync(eventoId);
+
+                var categorias = categoriasDb.Select(c => new CategoriaConPesos
+                {
+                    Id = c.Id,
+                    Nombre = c.Nombre,
+                    VotosRestantes = 3,
+                    Estado = "pendiente",
+                    PesosPorRol = new List<PesoCategoriaRol>()
+                }).ToList();
 
                 var proyectos = new List<Proyecto>();
 
-
                 foreach (var categoria in categorias)
                 {
-                    categoria.VotosRestantes = 3;//por defecto , será una variable en el futuro
-                    categoria.Estado = "pendiente";
-                    var proyectosCategoria = await _proyectoRepository.ObtenerPorCategoriaIdAsync(categoria.Id);
+                    var proyectosCategoria =
+                        await _proyectoRepository.ObtenerPorCategoriaIdAsync(categoria.Id);
+
                     proyectos.AddRange(proyectosCategoria);
                 }
 

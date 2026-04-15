@@ -1,11 +1,6 @@
+﻿using Votify.API.Factories;
 using Votify.API.Models.Domain;
 using Votify.API.Models.DTOs;
-using Votify.API.Factories;
-using System.Threading.Tasks;
-using System;
-using Supabase;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Votify.API.Services
 {
@@ -115,7 +110,8 @@ namespace Votify.API.Services
                     }
                 }
 
-                categorias.Add(new Categoria
+                // 2. Luego montamos la categoría y le metemos sus pesos
+                categorias.Add(new CategoriaConPesos
                 {
                     Nombre = dtoCat.Nombre,
                     PesosPorRol = pesos

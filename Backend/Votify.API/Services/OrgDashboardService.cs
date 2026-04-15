@@ -1,4 +1,4 @@
-using Votify.API.Models.Domain;
+﻿using Votify.API.Models.Domain;
 using Votify.API.Models.DTOs;
 using Votify.API.Repositories;
 
@@ -228,6 +228,7 @@ namespace Votify.API.Services
                 float juryScore = juryVotes.Count > 0 ? juryVotes.Average(v => v.Valor!.Value) * 10f : 0f;
                 float publicScore = publicVotes.Count > 0 ? publicVotes.Average(v => v.Valor!.Value) * 10f : 0f;
 
+
                 // Peso jurado/público de la categoría
                 var pesoJurado = pesos.FirstOrDefault(p => p.IdCategoria == proyecto.IdCategoria && p.RolVotante == "Jurado")?.Peso ?? 0.7f;
                 var pesoPublico = pesos.FirstOrDefault(p => p.IdCategoria == proyecto.IdCategoria && p.RolVotante == "Publico")?.Peso ?? 0.3f;
@@ -240,6 +241,7 @@ namespace Votify.API.Services
                     Name = proyecto.Nombre,
                     Score = MathF.Round(combinedScore, 1),
                     JuryScore = MathF.Round(juryScore, 1),
+                    IdCategoria = proyecto.IdCategoria,
                     PublicScore = MathF.Round(publicScore, 1),
                     Trend = "stable" // TODO: comparar con snapshot anterior para calcular tendencia real
                 });

@@ -1,4 +1,4 @@
-using Votify.API.Models.Domain;
+﻿using Votify.API.Models.Domain;
 using Supabase;
 
 namespace Votify.API.Repositories
@@ -12,13 +12,11 @@ namespace Votify.API.Repositories
             _supabase = supabase;
         }
 
-
-        //Actualmente no se filtra por categoria
         public async Task<List<Proyecto>> ObtenerTodosAsync()
         {
             var response = await _supabase
                 .From<Proyecto>()
-                .Select("*")
+                .Select("id, nombre, descripcion, urlmultimedia, idevento, idparticipante, idcategoria")
                 .Get();
 
             return response.Models;
@@ -28,9 +26,10 @@ namespace Votify.API.Repositories
         {
             var response = await _supabase
                 .From<Proyecto>()
+                .Select("id, nombre, descripcion, urlmultimedia, idevento, idparticipante, idcategoria")
                 .Where(p => p.IdCategoria == categoriaId)
-                .Select("*")
                 .Get();
+            
 
             return response.Models;
         }

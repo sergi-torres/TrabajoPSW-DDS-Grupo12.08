@@ -30,6 +30,7 @@ const CreateEvent = () => {
   const [votacion, setVotacion] = useState({
     votoPublicoHabilitado: true,
     pesoJurado: 70,
+    categorias: []
   });
 
   const [reglas, setReglas] = useState({
@@ -52,6 +53,8 @@ const CreateEvent = () => {
       }
     }
     
+    // Paso 2 (Votaciones)
+    
     if (currentStep < 3) setCurrentStep((s) => s + 1);
   };
 
@@ -59,82 +62,146 @@ const CreateEvent = () => {
     if (currentStep > 1) setCurrentStep((s) => s - 1);
   };
 
+  //Bloqueo de doble submit mientras se procesa la publicación del evento
+  const [isPublishing, setIsPublishing] = useState(false);
+
   const handlePublish = async () => {
+  if (isPublishing) return;
+  setIsPublishing(true);
+
+  try {
+    // VALIDACIONES
     if (!detalles.nombre.trim()) {
-      toast.error("Campo obligatorio", { description: "El nombre del evento es obligatorio." });
-      return;
+      throw new Error("El nombre del evento es obligatorio.");
     }
+
     if (!detalles.fechaInicio) {
-      toast.error("Campo obligatorio", { description: "La fecha de inicio es obligatoria." });
-      return;
+      throw new Error("La fecha de inicio es obligatoria.");
     }
+
     if (!detalles.fechaFin) {
-      toast.error("Campo obligatorio", { description: "La fecha de fin es obligatoria." });
-      return;
+      throw new Error("La fecha de fin es obligatoria.");
     }
-    
+
     const inicio = new Date(detalles.fechaInicio);
     const fin = new Date(detalles.fechaFin);
+
     if (inicio >= fin) {
-      toast.error("Fechas inválidas", { description: "La fecha de inicio debe ser anterior a la fecha de fin." });
-      return;
+      throw new Error("La fecha de inicio debe ser anterior a la fecha de fin.");
     }
 
     if (!reglas.plantilla) {
-      toast.error("Campo obligatorio", { description: "Debes seleccionar una plantilla de baremos." });
-      return;
+      throw new Error("Debes seleccionar una plantilla de baremos.");
     }
 
-    try {
-      const tipoEvento = reglas.plantilla === "hackathon" ? "Hackaton"
-        : reglas.plantilla === "pitch" ? "Evento Pequeño"
-          : "Feria";
+    // TIPO EVENTO
+    const tipoEvento =
+      reglas.plantilla === "hackathon" ? "Hackaton"
+      : reglas.plantilla === "pitch" ? "Evento Pequeño"
+      : "Feria";
 
-      const body = {
-        nombre: detalles.nombre,
-        descripcion: detalles.descripcion,
-        fechaInicio: new Date(detalles.fechaInicio).toISOString(),
-        fechaFin: new Date(detalles.fechaFin).toISOString(),
-        tipoEvento,
-        idOrganizador: userId,
-        codEvento: Math.floor(100000 + Math.random() * 900000),
-        baremos: reglas.dimensiones.map((d) => ({
-          nombre: d.nombre,
-          criterios: [],
-        })),
-        categorias: [],
-      };
+    // NORMALIZAR CATEGORÍAS (CLAVE)
+    const categoriasFinales = [
+      ...new Set(
+        votacion.categorias.length === 0
+          ? ["Global"]
+          : votacion.categorias
+      )
+    ];
 
-      const response = await fetch("http://localhost:5245/api/event", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
+    // BODY EVENTO
+    const body = {
+      nombre: detalles.nombre,
+      descripcion: detalles.descripcion,
+      fechaInicio: inicio.toISOString(),
+      fechaFin: fin.toISOString(),
+      tipoEvento,
+      idOrganizador: userId,
+      codEvento: Math.floor(100000 + Math.random() * 900000),
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        let errorMessage = errorData.error;
-        
-        if (!errorMessage && errorData.errors) {
-            const firstKey = Object.keys(errorData.errors)[0];
-            errorMessage = errorData.errors[firstKey][0];
+      baremos: reglas.dimensiones.map(d => ({
+        nombre: d.nombre,
+        criterios: [],
+      })),
+
+      categorias: [] //  NO duplicar creación
+    };
+
+    // 1. CREAR EVENTO
+    const response = await fetch("http://localhost:5245/api/event", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      const errorMessage =
+        data?.error ||
+        (data?.errors && data.errors[Object.keys(data.errors)[0]][0]) ||
+        "Error al crear el evento";
+
+      throw new Error(errorMessage);
+    }
+
+    const eventoId = data.id;
+
+    // 2. CREAR CATEGORÍAS
+    for (const nombre of categoriasFinales) {
+      const catResponse = await fetch(
+        "http://localhost:5245/api/categorias",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            nombre,
+            idEvento: eventoId,
+            pesos: [
+              {
+                rolVotante: "Jurado",
+                peso: votacion.pesoJurado
+              },
+              {
+                rolVotante: "Publico",
+                peso: 100 - votacion.pesoJurado
+              }
+            ]
+          })
         }
-        
-        throw new Error(errorMessage || "Error al crear el evento");
-      }
+      );
 
-      const data = await response.json();
-      toast.success("Evento creado exitosamente", {
-        description: `Tu evento "${data.nombre}" ha sido publicado con ID ${data.id}.`,
-      });
-      
-      navigate("/eventos");
-    } catch (error) {
-      toast.error("Error al crear el evento", {
-        description: error.message,
-      });
+      if (!catResponse.ok) {
+        let errorText = "";
+
+        try {
+          const errJson = await catResponse.json();
+          errorText = errJson.message || JSON.stringify(errJson);
+        } catch {
+          errorText = await catResponse.text();
+        }
+
+        throw new Error(`Error creando categoría "${nombre}": ${errorText}`);
+      }
     }
-  };
+
+    // SUCCESS
+    toast.success("Evento creado exitosamente", {
+      description: `Tu evento "${data.nombre}" ha sido publicado con ID ${data.id}.`,
+    });
+
+    console.log("Categorías creadas:", categoriasFinales);
+
+    navigate("/eventos");
+
+  } catch (error) {
+    toast.error("Error al crear el evento", {
+      description: error.message,
+    });
+  } finally {
+    setIsPublishing(false);
+  }
+};
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -178,6 +245,7 @@ const CreateEvent = () => {
           ) : (
             <button
               onClick={handlePublish}
+              disabled={isPublishing}
               className="flex items-center gap-2 h-12 px-6 rounded-md font-heading font-semibold bg-success text-white hover:brightness-105 hover:scale-[1.02] hover:shadow-hover transition-all duration-[150ms]"
             >
               Publicar Evento
