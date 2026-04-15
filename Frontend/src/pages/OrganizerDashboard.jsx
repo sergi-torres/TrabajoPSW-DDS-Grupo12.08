@@ -187,9 +187,12 @@ export default function OrganizerDashboard() {
 
   const { stats, ranking, feed, liveInfo } = dashboardData;
 
-    const proyectosFiltrados = ranking.filter(
-        (p) => p.idCategoria === activeTab
-    );
+        
+
+        const proyectosFiltrados =
+            categorias.length > 0 && activeTab != null
+            ? ranking.filter(p => p.idCategoria === activeTab)
+            : ranking;
 
     /*
     console.log("Proyectos filtrados para categoría", activeTab, proyectosFiltrados)
@@ -295,7 +298,7 @@ export default function OrganizerDashboard() {
                             ))}
            </div>
 
-                {/* 🔹 Contenido del tab */}
+                {/* Contenido del tab */}
             <RankingList projects={proyectosFiltrados} />
         </section>
 
