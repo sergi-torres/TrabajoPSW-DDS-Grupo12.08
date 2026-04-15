@@ -8,7 +8,6 @@ import CreateEvent from './pages/CreateEvent'
 import NotFound from './pages/NotFound'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import OrganizerDashboard from './pages/OrganizerDashboard'
-import "./components/organizator_dashboard/Dashboard.css"
 import VotosPage from './pages/VotosPage'
 import DashboardVotacionCategorias from './pages/DashboardVotacionCategorias'
 

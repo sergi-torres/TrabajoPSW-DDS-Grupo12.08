@@ -8,6 +8,7 @@ import RankingList from "../components/organizator_dashboard/RankingList";
 import ProjectFeed from "../components/organizator_dashboard/ProjectFeed";
 import { getDashboard, extenderTiempo, cerrarVotacion } from "../api/orgDashboardApi";
 import { AuthContext } from "../context/AuthContext";
+import "../components/organizator_dashboard/Dashboard.css";
 
 export default function OrganizerDashboard() {
   const navigate = useNavigate();
