@@ -10,10 +10,17 @@ export const useVotacionDashboard = () => {
     try {
       setCargando(true);
       const eventoId = localStorage.getItem('eventoId');
+      const userIdRaw = localStorage.getItem('userId');
+      const idUsuario = userIdRaw ? parseInt(userIdRaw) : null;
+      const sessionId = localStorage.getItem('votacionSessionId');
       if (!eventoId) {
         throw new Error('evento ID no encontrado');
       }
-      const result = await getDashboardData(eventoId);
+      const result = await getDashboardData(
+        eventoId,
+        Number.isNaN(idUsuario) ? null : idUsuario,
+        sessionId || null
+      );
       setDatos(result);
       setError(null);
     } catch (err) {

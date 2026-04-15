@@ -10,23 +10,66 @@ namespace Votify.API.Services
         private readonly ICategoriaRepository _categoriaRepository;
         private readonly IProyectoRepository _proyectoRepository;
         private readonly IVotoRepository _votoRepository;
-        private readonly IVotoFactory _votoFactory;
+        private readonly VotoPublicoFactory _votoPublicoFactory;
+        private readonly VotoJuradoFactory _votoJuradoFactory;
         private readonly IComentarioCualitativoService _comentarioService;
 
         // Cache por evento durante la sesión de votación (categorías y proyectos no cambian durante votación)
         private static readonly Dictionary<int, (List<CategoriaConPesos> categorias, List<Proyecto> proyectos, DateTime timestamp)> _eventosCache = new();
         // Cache por 4 horas, esto dependerá del limite que querramos dejar para todas las votaciones 
         private static readonly TimeSpan CacheDuration = TimeSpan.FromHours(4);
+        
+        // Votos segregados por clave de sesión:
+        // Jurado => "U:{idUsuario}"
+        // Público => "P:{sessionId}"
+        private static readonly Dictionary<string, List<(int CategoriaId, int ProyectoId)>> VotosRealizadosPorUsuario = new();
+        
+        // Track último usuario activo para detectar cambio de sesión (nuevo Jurado = reset a zero)
+        private static int? _ultimoIdUsuarioActivo = null;
 
-        private static readonly List<(int CategoriaId, int ProyectoId)> VotosRealizados = new();
+        private static string ObtenerClaveSesion(int? idUsuario, string? sessionId)
+        {
+            if (idUsuario.HasValue)
+            {
+                return $"U:{idUsuario.Value}";
+            }
 
-        public VotoService(ICategoriaRepository categoriaRepository, IProyectoRepository proyectoRepository, IVotoRepository votoRepository, IVotoFactory votoFactory, IComentarioCualitativoService comentarioService)
+            var safeSessionId = string.IsNullOrWhiteSpace(sessionId) ? "anon-default" : sessionId.Trim();
+            return $"P:{safeSessionId}";
+        }
+
+        public VotoService(
+            ICategoriaRepository categoriaRepository,
+            IProyectoRepository proyectoRepository,
+            IVotoRepository votoRepository,
+            VotoPublicoFactory votoPublicoFactory,
+            VotoJuradoFactory votoJuradoFactory,
+            IComentarioCualitativoService comentarioService)
         {
             _categoriaRepository = categoriaRepository;
             _proyectoRepository = proyectoRepository;
             _votoRepository = votoRepository;
-            _votoFactory = votoFactory;
+            _votoPublicoFactory = votoPublicoFactory;
+            _votoJuradoFactory = votoJuradoFactory;
             _comentarioService = comentarioService;
+        }
+
+        private async Task<IVotoFactory> ObtenerFactoryPorRolAsync(int eventoId, int? idUsuario)
+        {
+            if (!idUsuario.HasValue)
+            {
+                return _votoPublicoFactory;
+            }
+
+            var rol = await _votoRepository.ObtenerRolUsuarioEnEventoAsync(idUsuario.Value, eventoId);
+            if (string.IsNullOrWhiteSpace(rol))
+            {
+                throw new Exception("El usuario no pertenece al evento o no tiene rol asignado.");
+            }
+
+            return rol.Equals("Jurado", StringComparison.OrdinalIgnoreCase)
+                ? _votoJuradoFactory
+                : _votoPublicoFactory;
         }
 
         private async Task<(List<CategoriaConPesos> categorias, List<Proyecto> proyectos)>
@@ -62,12 +105,37 @@ namespace Votify.API.Services
             return (_eventosCache[eventoId].categorias, _eventosCache[eventoId].proyectos);
         }
 
-        public async Task<DashboardResponseDto> ObtenerDashboardAsync(int eventoId)
+        public async Task<DashboardResponseDto> ObtenerDashboardAsync(int eventoId, int? idUsuario = null, string? sessionId = null)
         {
             try
             {
+            var claveSesion = ObtenerClaveSesion(idUsuario, sessionId);
+
+                // Detectar cambio de usuario (nuevo Jurado = reset a zero state)
+                if (idUsuario.HasValue && idUsuario != _ultimoIdUsuarioActivo)
+                {
+                    // Nuevo usuario Jurado: inicializar su lista como vacía
+                    if (!VotosRealizadosPorUsuario.ContainsKey(claveSesion))
+                    {
+                        VotosRealizadosPorUsuario[claveSesion] = new List<(int CategoriaId, int ProyectoId)>();
+                    }
+                    _ultimoIdUsuarioActivo = idUsuario;
+                }
+
+                // PIN flow: siempre inicializa lista como vacía (stateless)
+                if (!idUsuario.HasValue && !VotosRealizadosPorUsuario.ContainsKey(claveSesion))
+                {
+                    VotosRealizadosPorUsuario[claveSesion] = new List<(int CategoriaId, int ProyectoId)>();
+                    _ultimoIdUsuarioActivo = null;
+                }
+
                 // Obtener datos del evento (con cache inteligente)
                 var (categoriasDelEvento, todosProyectos) = await ObtenerDatosEventoCacheAsync(eventoId);
+
+                // Obtener votos realizados por este usuario (o PIN si es anónimo)
+                var votosUsuario = VotosRealizadosPorUsuario.ContainsKey(claveSesion) 
+                    ? VotosRealizadosPorUsuario[claveSesion] 
+                    : new List<(int CategoriaId, int ProyectoId)>();
 
                 var categoriasResumen = new List<CategoriaResumenDto>();
 
@@ -82,10 +150,10 @@ namespace Votify.API.Services
                         Id = p.Id,
                         Nombre = p.Nombre,
                         Descripcion = p.Descripcion,
-                        Estado = VotosRealizados.Any(v => v.CategoriaId == cat.Id && v.ProyectoId == p.Id) ? "votado" : "disponible"
+                        Estado = votosUsuario.Any(v => v.CategoriaId == cat.Id && v.ProyectoId == p.Id) ? "votado" : "disponible"
                     }).ToList();
 
-                    var votosEnCategoria = VotosRealizados.Count(v => v.CategoriaId == cat.Id);
+                    var votosEnCategoria = votosUsuario.Count(v => v.CategoriaId == cat.Id);
                     var votosRestantes = 3 - votosEnCategoria; // Usar valor inicial 3
                     var estadoCategoria = votosRestantes <= 0 ? "completado" : "pendiente";
 
@@ -101,45 +169,43 @@ namespace Votify.API.Services
 
                 return new DashboardResponseDto
                 {
-                    VotosGlobalesMaximos = categoriasDelEvento.Count * 3, // El 3 es default, en el sprint 2 será una varible
-                    VotosGlobalesRealizados = VotosRealizados.Count,
+                    VotosGlobalesMaximos = categoriasDelEvento.Count * 3,
+                    VotosGlobalesRealizados = votosUsuario.Count,
                     ProyectosActivos = categoriasResumen.Sum(c => c.Proyectos.Count),
-                    TiempoRestante = "05:00", // TODO: Calcular tiempo real, su funcion no entra en este sprint1
+                    TiempoRestante = "05:00",
                     Categorias = categoriasResumen
                 };
             }
             catch (Exception ex)
             {
-                // Agregar más información de debug
                 throw new Exception($"Error obteniendo dashboard: {ex.Message}. Inner: {ex.InnerException?.Message}", ex);
             }
         }
 
-        public async Task<DashboardResponseDto> ProcesarVotoAsync(VotoRequestDto request)
+        public async Task<DashboardResponseDto> ProcesarVotoAsync(VotoRequestDto request, int? idUsuario = null, string? sessionId = null)
         {
+            var claveSesion = ObtenerClaveSesion(idUsuario, sessionId);
+
             // Obtener dashboard actual para el evento específico
-            var dashboard = await ObtenerDashboardAsync(request.EventoId);
+            var dashboard = await ObtenerDashboardAsync(request.EventoId, idUsuario, sessionId);
 
             var categoria = dashboard.Categorias.FirstOrDefault(c => c.Id == request.CategoriaId);
 
             if (categoria != null && categoria.VotosRestantes > 0)
             {
+                var factory = await ObtenerFactoryPorRolAsync(request.EventoId, idUsuario);
+
                 // Crear voto usando el patrón Factory
-                var voto = _votoFactory.CrearVoto(
+                var voto = factory.CrearVoto(
                     proyectoId: request.ProyectoId,
                     valorBase: 1.0f, // Valor por defecto para público
                     idCategoria: request.CategoriaId,
                     idCriterio: 1, // TODO: Esto en el futuro seguramente será una lista de criterios
                     comentario: request.Comentario,
-                    urlAudio: null // No hay audio en esta implementación
+                    urlAudio: null,
+                    idUsuario: idUsuario,
+                    ipDispositivo: "web" // TODO: Obtener IP real
                 );
-
-                // Asignar IP y evaluador (para público, sin ID de usuario)
-                if (voto is VotoPublico votoPublico)
-                {
-                    votoPublico.IpDispositivo = "web"; // TODO: Obtener IP real
-                    votoPublico.IdEvaluador = null; // Los votos públicos no tienen evaluador asignado
-                }
 
                 var votoCreado = await _votoRepository.AgregarVotoAsync(voto);
 
@@ -154,11 +220,15 @@ namespace Votify.API.Services
                 }
 
 
-                // Actualizar estado en memoria
-                VotosRealizados.Add((request.CategoriaId, request.ProyectoId));
+                // Actualizar estado en memoria para este usuario
+                if (!VotosRealizadosPorUsuario.ContainsKey(claveSesion))
+                {
+                    VotosRealizadosPorUsuario[claveSesion] = new List<(int CategoriaId, int ProyectoId)>();
+                }
+                VotosRealizadosPorUsuario[claveSesion].Add((request.CategoriaId, request.ProyectoId));
             }
 
-            return await ObtenerDashboardAsync(request.EventoId);
+            return await ObtenerDashboardAsync(request.EventoId, idUsuario, sessionId);
         }
     }
 }

@@ -206,10 +206,8 @@ const CreateEvent = () => {
   return (
     <div className="min-h-screen bg-muted/30">
       <div className="max-w-3xl mx-auto py-10 px-4 sm:px-6">
-        {/* Stepper */}
         <StepIndicator steps={steps} currentStep={currentStep} />
 
-        {/* Title */}
         <div className="text-center mt-8 mb-6">
           <h1 className="text-2xl sm:text-3xl font-heading font-bold text-foreground">
             {currentStep === 1 && "Detalles del Evento"}
@@ -221,14 +219,12 @@ const CreateEvent = () => {
           </p>
         </div>
 
-        {/* Card */}
         <div className="bg-card rounded-2xl shadow-votify-base p-6 sm:p-8">
           {currentStep === 1 && <StepDetalles data={detalles} onChange={setDetalles} />}
           {currentStep === 2 && <StepVotaciones data={votacion} onChange={setVotacion} />}
           {currentStep === 3 && <StepReglas data={reglas} onChange={setReglas} />}
         </div>
 
-        {/* Navigation buttons */}
         <div className="flex justify-between items-center mt-6">
           <button
             onClick={() => currentStep === 1 ? navigate("/eventos") : handlePrev()}

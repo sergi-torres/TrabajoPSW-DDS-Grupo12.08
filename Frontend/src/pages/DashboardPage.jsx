@@ -40,7 +40,6 @@ export default function DashboardPage() {
         }
     }, [userId]);
 
-    // Filtrar eventos por nombre según el texto de búsqueda
     const filteredMis = useMemo(() => {
         if (!searchQuery.trim()) return misEventos;
         const q = searchQuery.toLowerCase();
@@ -53,7 +52,6 @@ export default function DashboardPage() {
 
             <main className="max-w-7xl mx-auto px-4 lg:px-8 py-6 lg:py-10">
 
-                {/* Header de página — siempre visible */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8 lg:mb-10">
                     <h1 className="font-heading text-3xl font-bold text-foreground leading-tight tracking-tight">
                         Eventos
@@ -67,7 +65,6 @@ export default function DashboardPage() {
                     </button>
                 </div>
 
-                {/* Buscador móvil — siempre visible en < lg */}
                 <div className="lg:hidden relative group mb-6">
                     <Search size={18} strokeWidth={1.75} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-[var(--color-org)] transition-colors" />
                     <input
@@ -79,14 +76,12 @@ export default function DashboardPage() {
                     />
                 </div>
 
-                {/* Estado de carga */}
                 {loading && (
                     <div className="text-center py-20 text-muted-foreground">
                         <p className="text-lg font-medium">Cargando eventos...</p>
                     </div>
                 )}
 
-                {/* Error de conexión */}
                 {error && !loading && (
                     <div className="text-center py-12 bg-card rounded-2xl border border-destructive/30 mb-8">
                         <p className="text-destructive font-medium mb-1">No se pudieron cargar los eventos</p>
@@ -94,11 +89,9 @@ export default function DashboardPage() {
                     </div>
                 )}
 
-                {/* Contenido (se muestra aunque haya error, con listas vacías) */}
                 {!loading && (
                     <div className="space-y-12">
 
-                        {/* Mis Eventos */}
                         <section>
                             {filteredMis.length > 0 ? (
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
@@ -108,10 +101,7 @@ export default function DashboardPage() {
                                             {...evento}
                                             onClick={
                                                 () => {
-                                                    console.log("TODO: Navegar a evento", evento.id, evento.nombre);
-                                                    //Ir a la página de Votaciones si soy un participante
                                                     const rol = JSON.parse(localStorage.getItem("propsRol")).label;
-                                                    console.log("ROL EN EVENTO", rol);
 
                                                     if (rol === "Participante") {
                                                         localStorage.setItem("eventoId", evento.id);
@@ -120,7 +110,7 @@ export default function DashboardPage() {
 
                                                         localStorage.setItem("eventoDescripcion", evento.descripcion);
                                                     }
-                                                    //OTRAS PÁGINAS SEGÚN ROL AQUÍ =>
+                                                    
                                                     if(rol === "Jurado") {
                                                         localStorage.setItem("eventoId", evento.id);
                                                         localStorage.setItem("eventoNombre", evento.nombre);

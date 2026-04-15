@@ -35,6 +35,12 @@ namespace Votify.API.Models.DTOs
 
         [MaxLength(200)]
         public string? Comentario { get; set; }
+
+        // null = PIN flow (anónimo), valor = Jurado flow (usuario autenticado)
+        public int? IdUsuario { get; set; }
+
+        // Solo para público: identifica una sesión de votación efímera
+        public string? SessionId { get; set; }
     }
 
     public class ProyectosResponseDto

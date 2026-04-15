@@ -4,8 +4,6 @@ import { clsx } from "clsx";
 import { useAuth } from "../../hooks/useAuth";
 
 /**
- * AuthForm.jsx
- * 
  * Componente "tonto" (Dumb Component) que renderiza el formulario real.
  * Si mode="login", muestra [Email, Password]. 
  * Si mode="register", muestra [NombreCompleto, Username, Email, Password].
@@ -33,10 +31,8 @@ export function AuthForm({ mode = "login", isMobile = false }) {
     return (
         <form onSubmit={handleSubmit} className="space-y-5 font-body">
 
-            {/* CAMPOS CONDICIONALES (Solo en Registro) */}
             {mode === "register" && (
                 <>
-                    {/* Campo: Nombre Completo */}
                     <div className="space-y-1.5">
                         <label className="text-sm font-heading font-bold text-foreground ml-1">Nombre Completo</label>
                         <div className="relative group">
@@ -52,7 +48,6 @@ export function AuthForm({ mode = "login", isMobile = false }) {
                         </div>
                     </div>
 
-                    {/* Campo: Nombre de Usuario */}
                     <div className="space-y-1.5">
                         <label className="text-sm font-heading font-bold text-foreground ml-1">Nombre de Usuario</label>
                         <div className="relative group">
@@ -70,7 +65,6 @@ export function AuthForm({ mode = "login", isMobile = false }) {
                 </>
             )}
 
-            {/* Campo: Correo Electrónico */}
             <div className="space-y-1.5">
                 <label className="text-sm font-heading font-bold text-foreground ml-1">Correo Electrónico</label>
                 <div className="relative group">
@@ -94,7 +88,6 @@ export function AuthForm({ mode = "login", isMobile = false }) {
                 </div>
             </div>
 
-            {/* Campo: Contraseña */}
             <div className="space-y-1.5">
                 <div className="flex justify-between items-center ml-1">
                     <label className="text-sm font-heading font-bold text-foreground">Contraseña</label>
@@ -131,7 +124,6 @@ export function AuthForm({ mode = "login", isMobile = false }) {
                 </div>
             </div>
 
-            {/* BOTÓN PRINCIPAL DE SUBMIT */}
             <button
                 type="submit"
                 className={clsx(
@@ -148,7 +140,6 @@ export function AuthForm({ mode = "login", isMobile = false }) {
                 )}
             </button>
 
-            {/* TEXTO DE AYUDA (Solo móvil) */}
             {isMobile && (
                 <p className="text-center text-sm text-muted-foreground mt-6">
                     {mode === "login" ? "¿Aún no tienes cuenta? " : "¿Ya tienes cuenta? "}

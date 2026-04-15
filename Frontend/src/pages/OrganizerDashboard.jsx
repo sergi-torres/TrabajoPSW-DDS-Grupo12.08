@@ -9,7 +9,7 @@ import ProjectFeed from "../components/organizator_dashboard/ProjectFeed";
 import { getDashboard, extenderTiempo, cerrarVotacion } from "../api/orgDashboardApi";
 import { AuthContext } from "../context/AuthContext";
 import { categoriasApi } from "../api/categoriasApi";
-
+import "../components/organizator_dashboard/Dashboard.css";
 
 export default function OrganizerDashboard() {
   const navigate = useNavigate();
@@ -25,15 +25,12 @@ export default function OrganizerDashboard() {
 
   const [activeTab, setActiveTab] = useState(null);
 
-  // Obtener el eventoId: primero de la URL, luego de localStorage
   const eventoId = paramEventoId || localStorage.getItem("eventoId");
 
   const showToast = (message, type = "success") => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4000);
   };
-
-
 
   // Cargar datos del dashboard
   const fetchDashboard = async () => {
@@ -58,7 +55,6 @@ export default function OrganizerDashboard() {
 
   useEffect(() => {
     fetchDashboard();
-    // Refrescar cada 30 segundos para datos "en vivo"
     const interval = setInterval(fetchDashboard, 30000);
     return () => clearInterval(interval);
 
@@ -98,7 +94,7 @@ export default function OrganizerDashboard() {
     try {
       await extenderTiempo(eventoId, 10);
       showToast("Tiempo extendido 10 minutos ✓", "success");
-      fetchDashboard(); // refrescar datos
+      fetchDashboard();
     } catch (err) {
       showToast(`Error: ${err.message}`, "warning");
     }
@@ -108,7 +104,7 @@ export default function OrganizerDashboard() {
     try {
       await cerrarVotacion(eventoId);
       showToast("Votación cerrada ✓", "success");
-      fetchDashboard(); // refrescar datos
+      fetchDashboard();
     } catch (err) {
       showToast(`Error: ${err.message}`, "warning");
     }
@@ -116,7 +112,6 @@ export default function OrganizerDashboard() {
 
   const handleViewDetails = (item) => showToast(`Viendo: ${item.title}`, "info");
 
-  // Transformar datos del backend al formato que esperan los componentes
   const buildStats = (stats) => [
     {
       id: "projects",
@@ -152,7 +147,6 @@ export default function OrganizerDashboard() {
     },
   ];
 
-  // Estado de carga
   if (loading && !dashboardData) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center font-body">
@@ -164,7 +158,6 @@ export default function OrganizerDashboard() {
     );
   }
 
-  // Error sin datos
   if (error && !dashboardData) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center font-body p-6">
@@ -204,7 +197,6 @@ export default function OrganizerDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50 font-body pb-12">
-      {/* HEADER - Organizer Style (Blue) */}
       <header className="bg-blue-600 text-white p-6 lg:p-10">
         <div className="max-w-7xl mx-auto">
           {!isPublic && (
@@ -249,7 +241,6 @@ export default function OrganizerDashboard() {
         </div>
       </header>
 
-      {/* Toast notification */}
       {toast && (
         <div className={`fixed top-6 right-6 z-50 flex items-center gap-3 bg-white rounded-2xl shadow-modal p-4 border-l-4 border-l-${toast.type === 'success' ? 'green' : toast.type === 'warning' ? 'orange' : 'blue'}-500 animate-in fade-in slide-in-from-right-8 duration-300`} role="alert">
           <p className="font-medium text-gray-900">{toast.message}</p>
@@ -257,7 +248,6 @@ export default function OrganizerDashboard() {
       )}
 
       <main className="max-w-7xl mx-auto p-6 lg:p-10 -mt-10 space-y-8">
-        {/* Stats row in Cards */}
         <section className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
           <div className="flex items-center gap-2 mb-6">
             <Target className="w-6 h-6 text-blue-600" />
@@ -270,8 +260,8 @@ export default function OrganizerDashboard() {
           </div>
         </section>
 
+{/* Main content: ranking + feed */}
 
-        {/* Main content: ranking + feed */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <section className="lg:col-span-2 bg-white rounded-2xl shadow-sm p-6 border border-gray-100 h-fit">
             <div className="flex items-center gap-2 mb-6">

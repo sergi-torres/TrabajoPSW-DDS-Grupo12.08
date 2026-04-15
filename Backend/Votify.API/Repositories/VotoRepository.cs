@@ -1,4 +1,4 @@
-using Votify.API.Models.Domain;
+﻿using Votify.API.Models.Domain;
 
 namespace Votify.API.Repositories
 {
@@ -13,28 +13,43 @@ namespace Votify.API.Repositories
 
         public async Task<Voto> AgregarVotoAsync(Voto voto)
         {
-            // Usar VotoPublico como tipo concreto para Supabase por ahora
-            var votoPublico = (VotoPublico)voto;
-            var response = await _supabase
-                .From<VotoPublico>()
-                .Insert(votoPublico);
+            if (voto is VotoJurado votoJurado)
+            {
+                var responseJurado = await _supabase
+                    .From<VotoJurado>()
+                    .Insert(votoJurado);
 
-            // Devolver el voto insertado como Voto (base class)
-            return response.Models.First();
+                return responseJurado.Models.First();
+            }
+
+            if (voto is VotoPublico votoPublico)
+            {
+                var responsePublico = await _supabase
+                    .From<VotoPublico>()
+                    .Insert(votoPublico);
+
+                return responsePublico.Models.First();
+            }
+
+            throw new InvalidOperationException("Tipo de voto no soportado para persistencia.");
         }
 
-        public async Task<VotoPublico> AgregarVotoAsync(VotoPublico voto)
+        public async Task<string?> ObtenerRolUsuarioEnEventoAsync(int idUsuario, int idEvento)
         {
-            var response = await _supabase
-                .From<VotoPublico>()
-                .Insert(voto);
+            try
+            {
+                var response = await _supabase
+                    .From<EventoUsuario>()
+                    .Where(eu => eu.IdUsuario == idUsuario && eu.IdEvento == idEvento)
+                    .Single();
 
-            var insertado = response.Models.FirstOrDefault();
-
-            if (insertado == null)
-                throw new Exception("No se pudo insertar el voto");
-
-            return insertado;
+                return response?.Rol;
+            }
+            catch
+            {
+                // Usuario no encontrado en evento_usuario
+                return null;
+            }
         }
 
         public async Task<List<VotoPublico>> ObtenerPorProyectoIdAsync(int proyectoId)

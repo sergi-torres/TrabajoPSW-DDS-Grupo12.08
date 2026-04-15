@@ -32,7 +32,7 @@ namespace Votify.API.Services
               eventDto.Descripcion,
               eventDto.FechaInicio,
               eventDto.FechaFin,
-              "Configuracion", // por poner uno ahora mismo
+              "Configuracion",
               eventDto.IdOrganizador,
               categorias,
               baremos,
@@ -42,7 +42,6 @@ namespace Votify.API.Services
             var response = await _supabaseClient.From<Event>().Insert(NuevoEvento);
             var eventoCreado = response.Models.First();
 
-            // Vincular el evento recién creado con el usuario que lo organiza en la tabla relacional
             var relacion = new EventoUsuario
             {
                 IdEvento = eventoCreado.Id,
@@ -63,14 +62,11 @@ namespace Votify.API.Services
 
             foreach (var dtoBaremo in dtos)
             {
-                // 1. Primero traducimos los criterios que van por dentro
                 var criterios = new List<Criterio>();
                 if (dtoBaremo.Criterios != null)
                 {
                     foreach (var dtoCrit in dtoBaremo.Criterios)
                     {
-                        // TRUCO: Convertimos el texto (ej: "Numerico") al Enum real de C#
-                        // 'ignoreCase: true' hace que funcione aunque el Frontend mande "numerico" o "NUMERICO"
                         var tipoEnum = Enum.Parse<TipoCriterioEnum>(dtoCrit.TipoCriterio, ignoreCase: true);
 
                         criterios.Add(new Criterio
@@ -82,7 +78,6 @@ namespace Votify.API.Services
                     }
                 }
 
-                // 2. Luego montamos el baremo y le metemos sus criterios
                 baremos.Add(new Baremo
                 {
                     Nombre = dtoBaremo.Nombre,
@@ -98,12 +93,10 @@ namespace Votify.API.Services
         {
             var categorias = new List<Categoria>();
 
-            // Si no hay categorías, devolvemos la lista vacía para que no pete
             if (dtos == null) return categorias;
 
             foreach (var dtoCat in dtos)
             {
-                // 1. Primero traducimos los pesos que van por dentro
                 var pesos = new List<PesoCategoriaRol>();
                 if (dtoCat.Pesos != null)
                 {

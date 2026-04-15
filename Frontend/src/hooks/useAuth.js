@@ -14,7 +14,7 @@ export function useAuth() {
     const handleLogin = async (email, password) => {
         try {
             const data = await loginUser(email, password);
-            login(data.token, data.userId, data.email);
+            login(data.token, data.userId, data.nombreUsuario);
             toast.success("¡Bienvenido/a a Votify!");
             navigate("/eventos");
             return true;
@@ -27,7 +27,7 @@ export function useAuth() {
     const handleRegister = async (formData) => {
         try {
             const data = await registerUser(formData);
-            login(data.token, data.userId, data.email);
+            login(data.token, data.userId, data.nombreUsuario);
             toast.success("Cuenta creada exitosamente", { description: "¡Bienvenido/a a Votify!" });
             navigate("/eventos");
             return true;

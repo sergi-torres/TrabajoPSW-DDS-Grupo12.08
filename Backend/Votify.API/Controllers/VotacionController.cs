@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-
 using Votify.API.Models.DTOs;
 using Votify.API.Services;
 
@@ -11,15 +10,12 @@ namespace Votify.API.Controllers
     public class VotacionController : ControllerBase
     {
         private readonly IVotoService _votoService;
-        private readonly IComentarioCualitativoService _comentarioService;
 
 
         public VotacionController(
-        IVotoService votoService,
-        IComentarioCualitativoService comentarioService)
+        IVotoService votoService)
         {
             _votoService = votoService;
-            _comentarioService = comentarioService;
         }
 
         [HttpPost("votar")]
@@ -27,17 +23,10 @@ namespace Votify.API.Controllers
         {
             try
             {
-                var result = await _votoService.ProcesarVotoAsync(request);
+                // IdUsuario viene del frontend (localStorage) - null = PIN flow, valor = Jurado flow
+                var dashboard = await _votoService.ProcesarVotoAsync(request, request.IdUsuario, request.SessionId);
 
-                if (!string.IsNullOrWhiteSpace(request.Comentario))
-                {
-                    await _comentarioService.CreateComentarioAsync(
-                        request.ProyectoId,
-                        request.Comentario
-                    );
-                }
-
-                return Ok(result);
+                return Ok(dashboard);
             }
             catch (Exception ex)
             {
@@ -48,16 +37,16 @@ namespace Votify.API.Controllers
 
 
         [HttpGet("dashboard")]
-        public async Task<IActionResult> ObtenerDashboard([FromQuery] int eventoId)
+        public async Task<IActionResult> ObtenerDashboard([FromQuery] int eventoId, [FromQuery] int? idUsuario = null, [FromQuery] string? sessionId = null)
         {
             try
             {
-                var dashboard = await _votoService.ObtenerDashboardAsync(eventoId);
+                // idUsuario from query param (localStorage) - null = PIN flow, valor = Jurado flow
+                var dashboard = await _votoService.ObtenerDashboardAsync(eventoId, idUsuario, sessionId);
                 return Ok(dashboard);
             }
             catch (Exception ex)
             {
-                // Retornar error con detalles
                 return BadRequest(new { error = ex.Message, inner = ex.InnerException?.Message, stack = ex.StackTrace });
             }
         }

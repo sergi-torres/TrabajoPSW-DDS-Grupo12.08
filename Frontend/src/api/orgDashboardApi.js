@@ -1,17 +1,5 @@
-/**
- * orgDashboardApi.js
- *
- * Capa de red para el dashboard del organizador.
- * Centraliza las llamadas fetch al OrgDashboardController.
- */
-
 const API_URL = "http://localhost:5245/api/OrgDashboard";
 
-/**
- * Obtiene todos los datos del dashboard del organizador para un evento.
- * @param {number} eventoId
- * @returns {Promise<{stats, ranking, feed, liveInfo}>}
- */
 export async function getDashboard(eventoId) {
     const response = await fetch(`${API_URL}/${eventoId}`);
     if (!response.ok) {
@@ -21,11 +9,6 @@ export async function getDashboard(eventoId) {
     return response.json();
 }
 
-/**
- * Extiende el tiempo de votación.
- * @param {number} eventoId
- * @param {number} minutosExtra
- */
 export async function extenderTiempo(eventoId, minutosExtra) {
     const response = await fetch(`${API_URL}/${eventoId}/extend`, {
         method: "POST",
@@ -39,10 +22,6 @@ export async function extenderTiempo(eventoId, minutosExtra) {
     return response.json();
 }
 
-/**
- * Cierra la votación del evento inmediatamente.
- * @param {number} eventoId
- */
 export async function cerrarVotacion(eventoId) {
     const response = await fetch(`${API_URL}/${eventoId}/close`, {
         method: "POST",

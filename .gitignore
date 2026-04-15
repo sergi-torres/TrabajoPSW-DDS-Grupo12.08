@@ -1,19 +1,25 @@
 # Environment variables (NUNCA subir claves a Git)
 .env
-.env.*
+.
+.env.local
 
 # .NET build artifacts
-[Bb]in/
-[Oo]bj/
+**/[Bb]in/
+**/[Oo]bj/
+**/[Dd]ebug/
+**/[Rr]elease/
 
 # User-specific files
 *.user
 *.suo
 *.userosscache
 *.sln.docstates
+*.vshistory
 
-# Visual Studio
+# Visual Studio / VS Code
 .vs/
+.vscode/*
+!.vscode/extensions.json
 
 # JetBrains Rider
 .idea/
@@ -22,36 +28,41 @@
 *.nupkg
 project.lock.json
 project.fragment.lock.json
+*.nuget.props
+*.nuget.targets
 
 # ASP.NET
 appsettings.Development.json
+appsettings.Local.json
 
 /0[0-9]_*.md
 /1[0-9]_*.md
 
 # Frontend
-Frontend/node_modules
-Frontend/.vite
-Frontend/dist
+**/node_modules/
+Frontend/.vite/
+Frontend/dist/
+Frontend/build/
 
 # OS / Editor Files
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# Additional Node/React ignores
+# Logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-Frontend/coverage/
-Frontend/.env.local
-Frontend/.env.development.local
-Frontend/.env.test.local
-Frontend/.env.production.local
+pnpm-debug.log*
 
-node_modules
+# Database data (Docker)
+database/data/
+database/pgdata/
 
 # Gemini
 .gemini/
 GEMINI.md
 
 # Gemini CLI Conductor
+conductor/

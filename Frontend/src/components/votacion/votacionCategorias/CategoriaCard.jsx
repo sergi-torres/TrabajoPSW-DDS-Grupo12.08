@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useContext } from 'react';
+import { AuthContext } from '../../../context/AuthContext';
 
 const CategoriaCard = ({ categoria, alVotar }) => {
+  const { isPublic } = useContext(AuthContext);
   // Extraemos los datos del objeto que viene de CONFIG_NEGOCIO
   const { titulo, votosRestantes, estado } = categoria;
   const esCompletado = estado === "completado";
@@ -30,7 +32,7 @@ const CategoriaCard = ({ categoria, alVotar }) => {
 
       {/* Frase de estado que pediste */}
       <p className={`text-xs font-bold uppercase tracking-wider mb-4 ${
-        esCompletado ? 'text-green-500' : 'text-orange-400'
+        esCompletado ? 'text-green-500' : (isPublic ? 'text-emerald-500' : 'text-orange-400')
       }`}>
         {esCompletado ? 'Voto registrado' : 'Pendiente de voto'}
       </p>
