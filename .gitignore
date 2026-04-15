@@ -1,6 +1,6 @@
 # Environment variables (NUNCA subir claves a Git)
 .env
-.env.*
+.
 .env.local
 
 # .NET build artifacts
