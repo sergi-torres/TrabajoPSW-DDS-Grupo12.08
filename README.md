@@ -20,7 +20,6 @@ cd Backend/Votify.API
 dotnet restore
 dotnet run
 ```
-*El backend se ejecutará por defecto en `http://localhost:5253`.*
 
 ### 3. Configurar el Frontend (React + Vite)
 En una nueva terminal, navega a la carpeta del frontend e instala las dependencias:
