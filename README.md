@@ -28,5 +28,9 @@ cd Frontend
 npm install
 npm run dev
 ```
+### Credenciales de prueba
+Usuario de prueba: jorge@gmail.com
+Contraseña: jorgeee
 
+Para la vista del público - Código evento: 123455
 ---

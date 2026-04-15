@@ -8,10 +8,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddScoped<Votify.API.Services.ICreateEventService, Votify.API.Services.CreateEventService>();
 
-// Add services to the container.
 builder.Services.AddControllers();
 
-// Agregar Soporte de Supabase C# Client usando .env
 var supabaseUrl = Environment.GetEnvironmentVariable("SUPABASE_URL");
 var supabaseKey = Environment.GetEnvironmentVariable("SUPABASE_KEY");
 
@@ -38,7 +36,6 @@ builder.Services.AddScoped<Votify.API.Services.IVotoService, Votify.API.Services
 builder.Services.AddScoped<Votify.API.Services.IComentarioCualitativoService, Votify.API.Services.ComentarioCualitativoService>();
 builder.Services.AddScoped<Votify.API.Services.IOrgDashboardService, Votify.API.Services.OrgDashboardService>();
 
-// Configurar CORS para permitir que el frontend de Vite (localhost:5173) acceda a la API
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
@@ -52,18 +49,15 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
 
-// Aplicar CORS justo antes de la autorización
 app.UseCors("AllowFrontend");
 
 app.UseAuthorization();
 
-// Endpoint de prueba para comprobar conexión con Supabase
 app.MapGet("/api/test-connection", async (Supabase.Client supabase) =>
 {
     try

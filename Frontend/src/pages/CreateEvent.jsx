@@ -52,8 +52,6 @@ const CreateEvent = () => {
       }
     }
     
-    // El paso 2 (Votaciones) tiene valores por defecto válidos (checkbox y slider numérico).
-    
     if (currentStep < 3) setCurrentStep((s) => s + 1);
   };
 
@@ -62,7 +60,6 @@ const CreateEvent = () => {
   };
 
   const handlePublish = async () => {
-    // Validación de campos obligatorios antes de enviar
     if (!detalles.nombre.trim()) {
       toast.error("Campo obligatorio", { description: "El nombre del evento es obligatorio." });
       return;
@@ -76,7 +73,6 @@ const CreateEvent = () => {
       return;
     }
     
-    // Validación de fecha lógica
     const inicio = new Date(detalles.fechaInicio);
     const fin = new Date(detalles.fechaFin);
     if (inicio >= fin) {
@@ -101,7 +97,7 @@ const CreateEvent = () => {
         fechaFin: new Date(detalles.fechaFin).toISOString(),
         tipoEvento,
         idOrganizador: userId,
-        codEvento: Math.floor(100000 + Math.random() * 900000), // Código único de 6 dígitos
+        codEvento: Math.floor(100000 + Math.random() * 900000),
         baremos: reglas.dimensiones.map((d) => ({
           nombre: d.nombre,
           criterios: [],
@@ -120,7 +116,6 @@ const CreateEvent = () => {
         let errorMessage = errorData.error;
         
         if (!errorMessage && errorData.errors) {
-            // Manejar formato de validación ASP.NET Core { errors: { Campo: ["Error1"] } }
             const firstKey = Object.keys(errorData.errors)[0];
             errorMessage = errorData.errors[firstKey][0];
         }
@@ -133,7 +128,6 @@ const CreateEvent = () => {
         description: `Tu evento "${data.nombre}" ha sido publicado con ID ${data.id}.`,
       });
       
-      // Redirigir al dashboard
       navigate("/eventos");
     } catch (error) {
       toast.error("Error al crear el evento", {
@@ -145,10 +139,8 @@ const CreateEvent = () => {
   return (
     <div className="min-h-screen bg-muted/30">
       <div className="max-w-3xl mx-auto py-10 px-4 sm:px-6">
-        {/* Stepper */}
         <StepIndicator steps={steps} currentStep={currentStep} />
 
-        {/* Title */}
         <div className="text-center mt-8 mb-6">
           <h1 className="text-2xl sm:text-3xl font-heading font-bold text-foreground">
             {currentStep === 1 && "Detalles del Evento"}
@@ -160,14 +152,12 @@ const CreateEvent = () => {
           </p>
         </div>
 
-        {/* Card */}
         <div className="bg-card rounded-2xl shadow-votify-base p-6 sm:p-8">
           {currentStep === 1 && <StepDetalles data={detalles} onChange={setDetalles} />}
           {currentStep === 2 && <StepVotaciones data={votacion} onChange={setVotacion} />}
           {currentStep === 3 && <StepReglas data={reglas} onChange={setReglas} />}
         </div>
 
-        {/* Navigation buttons */}
         <div className="flex justify-between items-center mt-6">
           <button
             onClick={() => currentStep === 1 ? navigate("/eventos") : handlePrev()}

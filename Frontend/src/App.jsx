@@ -20,10 +20,8 @@ function App() {
       <AuthProvider>
         <BrowserRouter>
           <Routes>
-            {/* Rutas Públicas */}
             <Route path="/login" element={<LoginPage />} />
 
-            {/* Rutas Protegidas (Requieren Login) */}
             <Route element={<ProtectedRoute />}>
               <Route path="/create-event" element={<CreateEvent />} />
               <Route path="/eventos" element={<DashboardPage />} />
@@ -33,9 +31,7 @@ function App() {
 
             <Route path="/organizador-dashboard/:eventoId" element={<OrganizerDashboard />} />
             <Route path="/organizador-dashboard" element={<OrganizerDashboard />} />
-            {/* Redireccion login default */}
             <Route path="/" element={<Navigate to="/login" replace />} />
-            {/* Fallback 404 para cualquier ruta no definida */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
