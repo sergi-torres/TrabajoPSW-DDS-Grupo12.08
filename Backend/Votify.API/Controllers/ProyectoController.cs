@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
 using Votify.API.Models.Domain;
+using Votify.API.Models.DTOs;
 using Votify.API.Repositories;
 
 namespace Votify.API.Controllers
@@ -49,7 +50,20 @@ namespace Votify.API.Controllers
         public async Task<ActionResult<List<Proyecto>>> ObtenerPorParticipante(int id)
         {
             var proyectos = await _proyectoRepository.ObtenerPorIdParticipanteAsync(id);
-            return Ok(proyectos);
+
+            var response = proyectos.Select(p => new ProyectoRequestDto
+            {
+                Id = p.Id,
+                Nombre = p.Nombre,
+                Descripcion = p.Descripcion,
+                UrlMultimedia = p.UrlMultimedia,
+                IdEvento = p.IdEvento,
+                IdParticipante = p.IdParticipante,
+                IdCategoria = p.IdCategoria,
+                Estado = p.Estado
+            }).ToList();
+
+            return Ok(response);
         }
 
         // GET: api/proyecto/evento/{eventoId}
@@ -58,6 +72,42 @@ namespace Votify.API.Controllers
         {
             var proyectos = await _proyectoRepository.ObtenerPorEventoIdAsync(eventoId);
             return Ok(proyectos);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CrearProyecto([FromBody] Proyecto proyecto)
+        {
+            // No null
+            if (proyecto == null)
+            {
+                return BadRequest("El proyecto no puede ser null");
+            }
+
+            //Console.WriteLine($"Recibido: Nombre={proyecto.Nombre}, Descripcion={proyecto.Descripcion}");
+
+            var creado = await _proyectoRepository.CrearAsync(proyecto);
+
+            // Se creó?
+            if (creado == null)
+            {
+                return StatusCode(500, "Error al crear el proyecto");
+            }
+
+            // Mapear a DTO
+            var response = new CreateProyectoDto
+            {
+                Nombre = creado.Nombre ?? string.Empty,
+                Descripcion = creado.Descripcion ?? string.Empty,
+                UrlMultimedia = creado.UrlMultimedia ?? string.Empty,
+                IdEvento = creado.IdEvento ?? 0,
+                IdParticipante = creado.IdParticipante,
+                IdCategoria = creado.IdCategoria ?? 0,
+                Estado = creado.Estado ?? "disponible"  // ← Solución CS8602
+            };
+
+            //Console.WriteLine($"Creado: ID={creado.Id}, Nombre={response.Nombre}");
+
+            return Ok(response);
         }
     }
 }

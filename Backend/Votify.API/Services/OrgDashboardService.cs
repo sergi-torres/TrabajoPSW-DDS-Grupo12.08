@@ -241,7 +241,7 @@ namespace Votify.API.Services
                     Name = proyecto.Nombre,
                     Score = MathF.Round(combinedScore, 1),
                     JuryScore = MathF.Round(juryScore, 1),
-                    IdCategoria = proyecto.IdCategoria,
+                    IdCategoria = proyecto.IdCategoria ?? 0,
                     PublicScore = MathF.Round(publicScore, 1),
                     Trend = "stable" // TODO: comparar con snapshot anterior para calcular tendencia real
                 });

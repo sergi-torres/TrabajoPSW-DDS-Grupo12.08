@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import { useState } from "react";
+import { createProyecto } from "../api/proyectoApi";
 
 export default function CreateProject() {
   const navigate = useNavigate();
@@ -45,30 +46,41 @@ export default function CreateProject() {
     setTechnologies(technologies.filter(t => t !== tech));
   };
 
-  const handleSubmit = (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!projectData.name || !projectData.description) {
-      alert("Por favor completa el nombre y descripción del proyecto");
-      return;
+        alert("Por favor completa el nombre y descripción del proyecto");
+        return;
     }
 
-    // Aquí iría la lógica para guardar el proyecto
+    // Obtener datos del usuario logueado
+    const userId = localStorage.getItem("userId");
+    const eventoId = localStorage.getItem("eventoId");
+
+    // ✅ CORREGIDO: Usa los nombres de propiedad que espera el backend
     const newProject = {
-      id: Date.now().toString(),
-      name: projectData.name,
-      description: projectData.description,
-      technology: technologies,
-      team: projectData.team,
-      created: new Date().toISOString().split('T')[0],
-      status: "En desarrollo",
-      image: imagePreview || "🚀",
+        nombre: projectData.name,              // ← "nombre" no "name"
+        descripcion: projectData.description,  // ← "descripcion" no "description"
+        urlMultimedia: imagePreview || projectData.image || "🚀", // ← "urlMultimedia" no "image"
+        idEvento: null,
+        idParticipante: userId ? parseInt(userId) : 16,
+        idCategoria: null,
+        estado: "disponible"
     };
 
-    console.log("Proyecto creado:", newProject);
-    alert(`¡Proyecto "${projectData.name}" creado exitosamente!`);
-    navigate("/eventos");
-  };
+    console.log("Datos del nuevo proyecto:", newProject);
+    
+    try {
+        const res = await createProyecto(newProject);
+        console.log("Proyecto creado:", res);
+        alert(`¡Proyecto "${projectData.name}" creado exitosamente!`);
+        navigate("/eventos");
+    } catch (error) {
+        console.error("Error al crear el proyecto:", error);
+        alert("Error al crear proyecto: " + error.message);
+    }
+};
 
   return (
     <div className="min-h-screen bg-[#F8F9FA]">
@@ -272,6 +284,7 @@ export default function CreateProject() {
                 <Button
                   type="submit"
                   size="lg"
+                  onClick={handleSubmit}
                   className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-8 py-6 text-lg rounded-2xl shadow-xl hover:shadow-2xl transition-all"
                 >
                   <Save className="w-6 h-6 mr-2" />

@@ -8,7 +8,9 @@ namespace Votify.API.Repositories
         Task<List<Proyecto>> ObtenerPorCategoriaIdAsync(int categoriaId);
 
         Task<List<Proyecto>> ObtenerPorIdParticipanteAsync(int id);
-        Task<Proyecto> ObtenerPorIdAsync(int id);
+        Task<Proyecto?> ObtenerPorIdAsync(int id);
         Task<List<Proyecto>> ObtenerPorEventoIdAsync(int eventoId);
+
+        Task<Proyecto?> CrearAsync(Proyecto proyecto);
     }
 }

@@ -44,7 +44,7 @@ namespace Votify.API.Repositories
             return response.Models;
         }
 
-        public async Task<Proyecto> ObtenerPorIdAsync(int id)
+        public async Task<Proyecto?> ObtenerPorIdAsync(int id)
         {
             var response = await _supabase
                 .From<Proyecto>()
@@ -62,6 +62,12 @@ namespace Votify.API.Repositories
                 .Where(p => p.IdEvento == eventoId)
                 .Get();
             return response.Models;
+        }
+
+        public async Task<Proyecto?> CrearAsync(Proyecto proyecto)
+        {
+            var response = await _supabase.From<Proyecto>().Insert(proyecto);
+            return response.Model;
         }
     }
 }

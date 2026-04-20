@@ -1,4 +1,4 @@
-using Supabase.Postgrest.Attributes;
+﻿using Supabase.Postgrest.Attributes;
 using Supabase.Postgrest.Models;
 
 namespace Votify.API.Models.Domain
@@ -19,15 +19,15 @@ namespace Votify.API.Models.Domain
         public string? UrlMultimedia { get; set; }
 
         [Column("idevento")]
-        public int IdEvento { get; set; }
+        public int? IdEvento { get; set; }
 
         [Column("idparticipante")]
         public int IdParticipante { get; set; }
 
         [Column("idcategoria")]
-        public int IdCategoria { get; set; }
+        public int? IdCategoria { get; set; } = null;
 
-        // Propiedad no mapeada (se asigna en Service)
+        [Column("estado")]
         public string Estado { get; set; } = "disponible"; // "disponible" o "votado"
     }
 }
