@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+﻿import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { AuthProvider } from './context/AuthContext'
 import LoginPage from './pages/LoginPage'
@@ -10,6 +10,9 @@ import ProtectedRoute from './components/auth/ProtectedRoute'
 import OrganizerDashboard from './pages/OrganizerDashboard'
 import VotosPage from './pages/VotosPage'
 import DashboardVotacionCategorias from './pages/DashboardVotacionCategorias'
+import ParticipantRegister from './pages/ParticipantRegister'
+import { VotingProvider } from "./context/VotingContext";
+import CreateProject from './pages/CreateProject'
 
 function App() {
 
@@ -18,6 +21,7 @@ function App() {
       <Toaster position="bottom-right" richColors />
       <AuthProvider>
         <BrowserRouter>
+         <VotingProvider>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
 
@@ -25,14 +29,17 @@ function App() {
               <Route path="/create-event" element={<CreateEvent />} />
               <Route path="/eventos" element={<DashboardPage />} />
               <Route path="/votos" element={<VotosPage />} />
+              <Route path="/participantRegister" element={<ParticipantRegister />} />
               <Route path="/dashboard-votacion-categorias" element={<DashboardVotacionCategorias />} />
+              <Route path="/create-project" element={<CreateProject />} />
             </Route>
 
             <Route path="/organizador-dashboard/:eventoId" element={<OrganizerDashboard />} />
             <Route path="/organizador-dashboard" element={<OrganizerDashboard />} />
             <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="*" element={<NotFound />} />
-          </Routes>
+           </Routes>
+          </VotingProvider>
         </BrowserRouter>
       </AuthProvider>
     </>
