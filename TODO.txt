@@ -1,0 +1,38 @@
+--- GESTIÓN DE JURADOS (#3797) ---
+
+Implementar sistema de envío de emails REAL (Integrar con Resend, SendGrid o Supabase Auth)
+
+Crear tabla 'invitaciones_pendientes' en la BD
+    Para trackear correos invitados que aún no tienen cuenta en Votify
+
+Desarrollar la vista de "Aceptar Invitación"
+    Para usuarios nuevos que llegan desde el correo
+
+Añadir middleware de protección en el backend
+    Solo el organizador del evento puede usar los endpoints de /Jurado
+
+
+--- MEJORAS TÉCNICAS / DEUDA ---
+
+Refactorizar el uso de localStorage
+    Usar un Contexto de Evento global para evitar redundancia en las rutas
+
+Implementar validación de emails duplicados
+    Evitar invitar dos veces al mismo usuario
+
+Que cojones pasa con las rutas y los colores?
+    Cuando entras como participante solo sale morado al principio, te paseas por el evento y los colores cambian.
+    Además al entrar al evento se entra con rutas raras (La id del evento deberian ser mas numeros?)
+
+--- POR QUÉ AÑADIR ESTO ---
+
+1. Emails reales
+   Actualmente solo salen por consola (Console.WriteLine)
+
+2. Tabla de invitaciones
+   Si invitas a alguien que no existe, el sistema lo marca como "Pendiente"
+   pero no hay persistencia real si se reinicia el flujo
+
+3. Seguridad
+   Falta validar en backend que quien elimina un jurado
+   es realmente el organizador del evento

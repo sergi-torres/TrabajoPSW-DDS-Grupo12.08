@@ -10,6 +10,7 @@ import ProtectedRoute from './components/auth/ProtectedRoute'
 import OrganizerDashboard from './pages/OrganizerDashboard'
 import VotosPage from './pages/VotosPage'
 import DashboardVotacionCategorias from './pages/DashboardVotacionCategorias'
+import InvitarJuradoPage from './pages/InvitarJuradoPage'
 
 function App() {
 
@@ -24,12 +25,13 @@ function App() {
             <Route element={<ProtectedRoute />}>
               <Route path="/create-event" element={<CreateEvent />} />
               <Route path="/eventos" element={<DashboardPage />} />
+              <Route path="/eventos/:eventoId" element={<OrganizerDashboard />} />
+              <Route path="/eventos/:eventoId/jurado" element={<InvitarJuradoPage />} />
+              <Route path="/eventos/:eventoId/ranking" element={<DashboardVotacionCategorias />} />
               <Route path="/votos" element={<VotosPage />} />
               <Route path="/dashboard-votacion-categorias" element={<DashboardVotacionCategorias />} />
             </Route>
 
-            <Route path="/organizador-dashboard/:eventoId" element={<OrganizerDashboard />} />
-            <Route path="/organizador-dashboard" element={<OrganizerDashboard />} />
             <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

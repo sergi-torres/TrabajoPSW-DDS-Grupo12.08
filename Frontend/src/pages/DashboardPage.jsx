@@ -121,7 +121,7 @@ export default function DashboardPage() {
                                                         localStorage.setItem("eventoId", evento.id);
                                                         localStorage.setItem("eventoNombre", evento.nombre);
                                                         localStorage.setItem("eventoDescripcion", evento.descripcion);
-                                                        navigate("/organizador-dashboard");
+                                                        navigate(`/eventos/${evento.id}`);
                                                     }
                                                     
                                                 }

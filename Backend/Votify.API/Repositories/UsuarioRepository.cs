@@ -22,6 +22,16 @@ namespace Votify.API.Repositories
             return response.Models.FirstOrDefault();
         }
 
+        public async Task<Usuario?> GetByIdAsync(int id)
+        {
+            var response = await _supabase
+                .From<Usuario>()
+                .Where(u => u.Id == id)
+                .Get();
+
+            return response.Models.FirstOrDefault();
+        }
+
         public async Task<Usuario> CreateAsync(Usuario usuario)
         {
             var response = await _supabase.From<Usuario>().Insert(usuario);

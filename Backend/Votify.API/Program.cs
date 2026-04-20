@@ -28,6 +28,7 @@ builder.Services.AddScoped<Votify.API.Repositories.ICategoriaRepository, Votify.
 builder.Services.AddScoped<Votify.API.Repositories.IProyectoRepository, Votify.API.Repositories.ProyectoRepository>();
 builder.Services.AddScoped<Votify.API.Repositories.IVotoRepository, Votify.API.Repositories.VotoRepository>();
 builder.Services.AddScoped<Votify.API.Repositories.IUsuarioRepository, Votify.API.Repositories.UsuarioRepository>();
+builder.Services.AddScoped<Votify.API.Repositories.IEventoUsuarioRepository, Votify.API.Repositories.EventoUsuarioRepository>();
 builder.Services.AddScoped<Votify.API.Factories.VotoPublicoFactory>();
 builder.Services.AddScoped<Votify.API.Factories.VotoJuradoFactory>();
 builder.Services.AddScoped<Votify.API.Services.IAuthService, Votify.API.Services.AuthService>();
@@ -36,6 +37,7 @@ builder.Services.AddScoped<Votify.API.Services.IComentarioCualitativoService, Vo
 builder.Services.AddScoped<Votify.API.Services.IVotoService, Votify.API.Services.VotoService>();
 builder.Services.AddScoped<Votify.API.Services.IComentarioCualitativoService, Votify.API.Services.ComentarioCualitativoService>();
 builder.Services.AddScoped<Votify.API.Services.IOrgDashboardService, Votify.API.Services.OrgDashboardService>();
+builder.Services.AddScoped<Votify.API.Services.IJuradoService, Votify.API.Services.JuradoService>();
 
 builder.Services.AddCors(options =>
 {

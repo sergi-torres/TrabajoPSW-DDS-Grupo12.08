@@ -18,7 +18,8 @@ function cn(...inputs) {
  */
 // eslint-disable-next-line no-unused-vars
 export function EventSidebar({ userRole, color = "var(--color-org)" }) {
-    const { id: eventId } = useParams();
+    const { eventoId: paramId } = useParams();
+    const eventoId = paramId || localStorage.getItem("eventoId");
     const navigate = useNavigate();
     const location = useLocation();
     const { userName, logout } = useAuth();
@@ -56,9 +57,9 @@ export function EventSidebar({ userRole, color = "var(--color-org)" }) {
 
     // Secciones comunes
     const commonLinks = [
-        { label: "General", path: `/eventos/${eventId}`, icon: Info },
-        { label: "Proyectos", path: `/eventos/${eventId}/proyectos`, icon: FolderOpen },
-        { label: "Ranking", path: `/eventos/${eventId}/ranking`, icon: Trophy },
+        { label: "General", path: `/eventos/${eventoId}`, icon: Info },
+        { label: "Proyectos", path: `/eventos/${eventoId}/proyectos`, icon: FolderOpen },
+        { label: "Ranking", path: `/eventos/${eventoId}/ranking`, icon: Trophy },
     ];
 
     // Secciones por rol
@@ -66,11 +67,12 @@ export function EventSidebar({ userRole, color = "var(--color-org)" }) {
     const normalizedRole = userRole?.toLowerCase();
     
     if (normalizedRole === "organizador") {
-        roleLinks.push({ label: "Ajustes", path: `/eventos/${eventId}/settings`, icon: Settings });
+        roleLinks.push({ label: "Jurado", path: `/eventos/${eventoId}/jurado`, icon: ClipboardList });
+        roleLinks.push({ label: "Ajustes", path: `/eventos/${eventoId}/settings`, icon: Settings });
     } else if (normalizedRole === "jurado") {
-        roleLinks.push({ label: "Evaluaciones", path: `/eventos/${eventId}/evaluations`, icon: ClipboardList });
+        roleLinks.push({ label: "Evaluaciones", path: `/eventos/${eventoId}/evaluations`, icon: ClipboardList });
     } else if (normalizedRole === "participante") {
-        roleLinks.push({ label: "Mi Proyecto", path: `/eventos/${eventId}/my-project`, icon: User });
+        roleLinks.push({ label: "Mi Proyecto", path: `/eventos/${eventoId}/my-project`, icon: User });
     }
 
     const allLinks = [...commonLinks, ...roleLinks];

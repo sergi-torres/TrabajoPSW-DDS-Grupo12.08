@@ -125,3 +125,30 @@ Content-Type: application/json
   "categorias": [],
   "baremos": []
 }
+### ============================================
+### 10. GESTIÓN DE JURADO (NUEVO)
+### ============================================
+
+# Asignar jurado existente
+POST {{baseUrl}}/Jurado/asignar
+Content-Type: application/json
+
+{
+    "idEvento": 1,
+    "email": "jorge@test.com"
+}
+
+# Invitar jurado no existente (Simulado)
+POST {{baseUrl}}/Jurado/asignar
+Content-Type: application/json
+
+{
+    "idEvento": 1,
+    "email": "nuevo_jurado@test.com"
+}
+
+# Obtener jurados de un evento
+GET {{baseUrl}}/Jurado/evento/1
+
+# Eliminar jurado
+DELETE {{baseUrl}}/Jurado/evento/1/usuario/16
