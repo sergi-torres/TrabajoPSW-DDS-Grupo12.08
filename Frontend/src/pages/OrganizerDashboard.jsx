@@ -1,5 +1,5 @@
 // src/pages/OrganizerDashboard.jsx
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Target, Award, TrendingUp, LayoutDashboard, Clock } from "lucide-react";
 import LiveHeader from "../components/organizator_dashboard/LiveHeader";
@@ -8,6 +8,7 @@ import RankingList from "../components/organizator_dashboard/RankingList";
 import ProjectFeed from "../components/organizator_dashboard/ProjectFeed";
 import { getDashboard, extenderTiempo, cerrarVotacion } from "../api/orgDashboardApi";
 import { AuthContext } from "../context/AuthContext";
+import { EventContext } from "../context/EventContext";
 import { categoriasApi } from "../api/categoriasApi";
 import { EventSidebar } from "../components/layout/EventSidebar";
 import "../components/organizator_dashboard/Dashboard.css";
@@ -15,41 +16,25 @@ import "../components/organizator_dashboard/Dashboard.css";
 export default function OrganizerDashboard() {
   const navigate = useNavigate();
   const { isPublic } = useContext(AuthContext);
+  const { eventoId: contextEventoId, userRole, userColor } = useContext(EventContext);
   const [toast, setToast] = useState(null);
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { eventoId: paramEventoId } = useParams();
 
-  // Detectar rol real del usuario con validación de seguridad
-  const rolDataRaw = localStorage.getItem("propsRol");
-  const rolData = rolDataRaw ? JSON.parse(rolDataRaw) : null;
-  
-  const userRole = rolData?.label || "Público";
-  
-  // Colores estándar (Mismo mapeo que Sidebar para consistencia)
-  const roleColors = {
-      "Organizador": "#2563eb", // blue-600
-      "Participante": "#9333ea", // púrpura
-      "Jurado": "#ea580c",      // naranja
-      "Público": "#059669"      // emerald-600
-  };
-
-  const userColor = roleColors[userRole] || roleColors["Organizador"];
-  
   const [categorias, setCategorias] = useState([]);     //categorias para tabs
-  const [loadingCategorias, setLoadingCategorias] = useState(true);
   const [activeTab, setActiveTab] = useState(null);
 
-  const eventoId = paramEventoId || localStorage.getItem("eventoId");
+  const eventoId = paramEventoId || contextEventoId;
 
-  const showToast = (message, type = "success") => {
+  const showToast = useCallback((message, type = "success") => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4000);
-  };
+  }, []);
 
   // Cargar datos del dashboard
-  const fetchDashboard = async () => {
+  const fetchDashboard = useCallback(async () => {
     if (!eventoId || eventoId === "undefined") {
       setError("ID de evento no válido.");
       setLoading(false);
@@ -67,13 +52,13 @@ export default function OrganizerDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [eventoId]);
 
   useEffect(() => {
     fetchDashboard();
     const interval = setInterval(fetchDashboard, 30000);
     return () => clearInterval(interval);
-  }, [eventoId]);
+  }, [fetchDashboard]);
 
   useEffect(() => {
     const loadCategorias = async () => {
@@ -83,8 +68,6 @@ export default function OrganizerDashboard() {
         setCategorias(data);
       } catch (err) {
         console.error("Error cargando categorías:", err);
-      } finally {
-        setLoadingCategorias(false);
       }
     };
     loadCategorias();
@@ -94,7 +77,7 @@ export default function OrganizerDashboard() {
     if (categorias.length > 0 && !activeTab) {
       setActiveTab(categorias[0].id);
     }
-  }, [categorias]);
+  }, [categorias, activeTab]);
 
   const handleExtend = async () => {
     try {
@@ -193,7 +176,7 @@ export default function OrganizerDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50 font-body relative">
-      <EventSidebar userRole={userRole} color={userColor} />
+      <EventSidebar />
 
       <div className="pb-[88px] lg:pb-12">
         <header className="bg-blue-600 text-white p-6 lg:p-10 lg:pl-80" style={{ backgroundColor: userColor }}>

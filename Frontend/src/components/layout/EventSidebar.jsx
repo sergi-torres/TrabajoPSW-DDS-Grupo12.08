@@ -1,9 +1,10 @@
 import { Link, useLocation, useParams, useNavigate } from "react-router-dom";
 import { Info, FolderOpen, Trophy, Settings, ClipboardList, User, LogOut, ChevronUp } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useContext } from "react";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { useAuth } from "../../hooks/useAuth";
+import { EventContext } from "../../context/EventContext";
 import logo from "../../assets/LogoSinTexto.png";
 
 /**
@@ -19,27 +20,15 @@ function cn(...inputs) {
 // eslint-disable-next-line no-unused-vars
 export function EventSidebar({ color: propColor }) {
     const { eventoId: paramId } = useParams();
-    const eventoId = paramId || localStorage.getItem("eventoId");
     const navigate = useNavigate();
     const location = useLocation();
     const { userName, logout } = useAuth();
+    const { eventoId: contextId, userRole, userColor: activeColor } = useContext(EventContext);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const menuRef = useRef(null);
 
-    // Leer rol de la base de datos local (Fuente de verdad única)
-    const rolData = JSON.parse(localStorage.getItem("propsRol") || "{}");
-    const userRole = rolData?.label || "Público";
+    const eventoId = paramId || contextId;
     
-    // Configuración de colores estándar del sistema
-    const roleColors = {
-        "Organizador": "var(--color-org)", // Azul #3B82F6
-        "Participante": "#9333ea",        // Púrpura
-        "Jurado": "#ea580c",              // Naranja
-        "Público": "#059669"              // Esmeralda
-    };
-
-    const activeColor = roleColors[userRole] || roleColors["Organizador"];
-
     // Dynamic role styles mapping para iconos y estados activos
     const roleStyles = {
         "var(--color-org)": { text: "text-blue-600", bg: "bg-blue-50" },

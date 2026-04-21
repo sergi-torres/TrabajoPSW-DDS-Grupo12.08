@@ -1,25 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { ArrowLeft, Target, Award } from 'lucide-react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import StatsBar from '../components/votacion/votacionCategorias/StatsBar';
 import CategoriaCard from '../components/votacion/votacionCategorias/CategoriaCard';
 import DashboardVotacionProyectos from './DashboardVotacionProyectos';
 import { useVotacionDashboard } from '../hooks/VotacionHooks/useVotacionDashboard';
-import { AuthContext } from '../context/AuthContext';
+import { EventContext } from '../context/EventContext';
 import { EventSidebar } from '../components/layout/EventSidebar';
 
 const DashboardVotacionCategorias = () => {
   const navigate = useNavigate();
-  const { eventoId } = useParams();
-  const { isPublic } = React.useContext(AuthContext);
+  const { userRole, userColor } = useContext(EventContext);
   const { datos, cargando, cargarDashboard } = useVotacionDashboard();
   const [vistaActual, setVistaActual] = useState('categorias');
   const [categoriaElegida, setCategoriaElegida] = useState(null);
-
-  // Detectar rol y color dinámico desde la fuente de verdad única
-  const rolDataRaw = localStorage.getItem("propsRol");
-  const rolData = rolDataRaw ? JSON.parse(rolDataRaw) : null;
-  const userColor = rolData?.color || (isPublic ? "#059669" : "#ea580c"); // Jurado es Naranja por defecto si no es público
 
   useEffect(() => {
     if (vistaActual === 'categorias') {
@@ -69,7 +63,7 @@ const DashboardVotacionCategorias = () => {
               {datos && (
                 <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
                   <p className="text-xs uppercase tracking-wider font-bold mb-1 opacity-80">Estado de Sesión</p>
-                  <p className="text-xl font-heading font-bold">{rolData?.label || (isPublic ? 'Público General' : 'Jurado Experto')}</p>
+                  <p className="text-xl font-heading font-bold">{userRole}</p>
                 </div>
               )}
             </div>

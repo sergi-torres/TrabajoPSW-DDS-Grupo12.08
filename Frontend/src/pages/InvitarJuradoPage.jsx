@@ -1,49 +1,100 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { 
     ArrowLeft, Users, UserPlus, Trash2, Mail, Loader2, 
     CheckCircle2, AlertCircle, Send, FileText, RefreshCw, 
-    ShieldCheck, Clock, X
+    ShieldCheck, Clock, X, AlertTriangle
 } from "lucide-react";
+import { motion as Motion, AnimatePresence } from "motion/react";
 import { EventSidebar } from "../components/layout/EventSidebar";
-import { getJuradosEvento, asignarJurado, eliminarJurado } from "../api/juradoApi";
+import { EventContext } from "../context/EventContext";
+import { getJuradosEvento, asignarJurado, eliminarJurado, reenviarInvitacion } from "../api/juradoApi";
 import { getDashboard } from "../api/orgDashboardApi";
 import logoVotify from "../assets/LogoVotify.png";
 
+/**
+ * Componente interno para el Modal de Confirmación
+ */
+function ConfirmModal({ isOpen, onClose, onConfirm, title, message, isLoading }) {
+    if (!isOpen) return null;
+
+    return (
+        <AnimatePresence>
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                <Motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={onClose}
+                    className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+                />
+                
+                <Motion.div 
+                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                    className="relative bg-white rounded-[32px] shadow-2xl w-full max-w-md overflow-hidden"
+                >
+                    <div className="p-8 text-center">
+                        <div className="w-16 h-16 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                            <AlertTriangle className="w-8 h-8" />
+                        </div>
+                        
+                        <h3 className="text-2xl font-heading font-bold text-gray-900 mb-2">{title}</h3>
+                        <p className="text-gray-500 leading-relaxed">{message}</p>
+                    </div>
+
+                    <div className="flex border-t border-gray-100">
+                        <button 
+                            onClick={onClose}
+                            className="flex-1 px-6 py-5 text-sm font-bold text-gray-400 hover:text-gray-900 hover:bg-gray-50 transition-colors border-r border-gray-100"
+                        >
+                            Cancelar
+                        </button>
+                        <button 
+                            onClick={onConfirm}
+                            disabled={isLoading}
+                            className="flex-1 px-6 py-5 text-sm font-bold text-red-500 hover:bg-red-50 transition-colors flex items-center justify-center gap-2"
+                        >
+                            {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Eliminar"}
+                        </button>
+                    </div>
+                </Motion.div>
+            </div>
+        </AnimatePresence>
+    );
+}
+
 export default function InvitarJuradoPage() {
-    const { eventoId } = useParams();
+    const { eventoId: paramEventoId } = useParams();
     const navigate = useNavigate();
+    const { eventoId: contextId, userColor } = useContext(EventContext);
     const [jurados, setJurados] = useState([]);
     const [loading, setLoading] = useState(true);
     const [eventInfo, setEventInfo] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [toast, setToast] = useState(null);
 
-    // Detectar rol real del usuario para el color del header
-    const rolDataRaw = localStorage.getItem("propsRol");
-    const rolData = rolDataRaw ? JSON.parse(rolDataRaw) : null;
-    
-    // Mapeo de colores estándar (Jurado = Naranja, Participante = Púrpura)
-    const roleColors = {
-        "Organizador": "#2563eb", 
-        "Participante": "#9333ea", 
-        "Jurado": "#ea580c",      
-        "Público": "#059669"      
-    };
-    
-    const userColor = roleColors[rolData?.label] || "#ea580c"; 
+    // Estado para el modal de eliminación
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [juradoToDelete, setJuradoToDelete] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    // Estado para reenvío
+    const [isResending, setIsResending] = useState(null); 
+
+    const eventoId = paramEventoId || contextId;
 
     // Estados del formulario
     const [emailInput, setEmailInput] = useState("");
-    const [emailsList, setEmailsList] = useState([]); // Lista de burbujas
+    const [emailsList, setEmailsList] = useState([]); 
     const [customMessage, setCustomMessage] = useState("");
 
-    const showToast = (message, type = "success") => {
+    const showToast = useCallback((message, type = "success") => {
         setToast({ message, type });
         setTimeout(() => setToast(null), 4000);
-    };
+    }, []);
 
-    // Lógica para añadir correos a la lista de burbujas
     const handleKeyDown = (e) => {
         if (["Enter", ",", " "].includes(e.key)) {
             e.preventDefault();
@@ -51,11 +102,9 @@ export default function InvitarJuradoPage() {
         }
     };
 
-    const addEmail = () => {
+    const addEmail = useCallback(() => {
         const trimmedEmail = emailInput.trim().replace(/,$/, "");
         if (!trimmedEmail) return;
-
-        // Validación básica de email
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (emailRegex.test(trimmedEmail)) {
             if (!emailsList.includes(trimmedEmail)) {
@@ -63,13 +112,13 @@ export default function InvitarJuradoPage() {
             }
             setEmailInput("");
         }
-    };
+    }, [emailInput, emailsList]);
 
     const removeEmail = (emailToRemove) => {
         setEmailsList(prev => prev.filter(email => email !== emailToRemove));
     };
 
-    const fetchJurados = async () => {
+    const fetchJurados = useCallback(async () => {
         if (!eventoId || eventoId === "undefined") return;
         try {
             const data = await getJuradosEvento(eventoId);
@@ -78,9 +127,9 @@ export default function InvitarJuradoPage() {
             console.error("Error cargando jurados:", err);
             showToast("Error al cargar la lista de jurados", "error");
         }
-    };
+    }, [eventoId, showToast]);
 
-    const fetchEventInfo = async () => {
+    const fetchEventInfo = useCallback(async () => {
         if (!eventoId || eventoId === "undefined") return;
         try {
             const data = await getDashboard(eventoId);
@@ -88,7 +137,7 @@ export default function InvitarJuradoPage() {
         } catch (err) {
             console.error("Error cargando info del evento:", err);
         }
-    };
+    }, [eventoId]);
 
     useEffect(() => {
         if (eventoId && eventoId !== "undefined") {
@@ -96,11 +145,10 @@ export default function InvitarJuradoPage() {
         } else {
             setLoading(false);
         }
-    }, [eventoId]);
+    }, [eventoId, fetchJurados, fetchEventInfo]);
 
     const handleAsignar = async (e) => {
         e.preventDefault();
-        
         let finalEmails = [...emailsList];
         if (emailInput.trim()) {
             const trimmedEmail = emailInput.trim();
@@ -109,13 +157,12 @@ export default function InvitarJuradoPage() {
                 finalEmails.push(trimmedEmail);
             }
         }
-
         if (finalEmails.length === 0) return;
-
         setIsSubmitting(true);
         try {
             for (const email of finalEmails) {
-                await asignarJurado(eventoId, email);
+                // Pasamos el mensaje personalizado
+                await asignarJurado(eventoId, email, customMessage);
             }
             showToast("Invitaciones enviadas correctamente", "success");
             setEmailInput("");
@@ -129,14 +176,37 @@ export default function InvitarJuradoPage() {
         }
     };
 
-    const handleEliminar = async (idUsuario) => {
-        if (!window.confirm("¿Estás seguro de que quieres eliminar a este jurado?")) return;
+    const handleReenviar = async (email) => {
+        setIsResending(email);
         try {
-            await eliminarJurado(eventoId, idUsuario);
-            showToast("Jurado eliminado", "success");
-            fetchJurados();
+            await reenviarInvitacion(eventoId, email);
+            showToast(`Invitación reenviada a ${email}`, "success");
         } catch (err) {
             showToast(err.message, "error");
+        } finally {
+            setIsResending(null);
+        }
+    };
+
+    const handleOpenDeleteModal = (jurado) => {
+        setJuradoToDelete(jurado);
+        setIsDeleteModalOpen(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!juradoToDelete) return;
+        setIsDeleting(true);
+        const isInvitation = juradoToDelete.id < 0;
+        try {
+            await eliminarJurado(eventoId, juradoToDelete.id);
+            showToast(isInvitation ? "Invitación eliminada" : "Jurado eliminado", "success");
+            fetchJurados();
+            setIsDeleteModalOpen(false);
+        } catch (err) {
+            showToast(err.message, "error");
+        } finally {
+            setIsDeleting(false);
+            setJuradoToDelete(null);
         }
     };
 
@@ -215,7 +285,7 @@ export default function InvitarJuradoPage() {
                                                         <p className="text-[11px] text-gray-500">{j.email}</p>
                                                     </div>
                                                 </div>
-                                                <button onClick={() => handleEliminar(j.id)} className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all">
+                                                <button onClick={() => handleOpenDeleteModal(j)} className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all">
                                                     <Trash2 className="w-4 h-4" />
                                                 </button>
                                             </div>
@@ -244,10 +314,15 @@ export default function InvitarJuradoPage() {
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-1">
-                                                    <button className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all" title="Reenviar invitación">
-                                                        <RefreshCw className="w-4 h-4" />
+                                                    <button 
+                                                        onClick={() => handleReenviar(j.email)}
+                                                        disabled={isResending === j.email}
+                                                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all disabled:opacity-50" 
+                                                        title="Reenviar invitación"
+                                                    >
+                                                        {isResending === j.email ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
                                                     </button>
-                                                    <button onClick={() => handleEliminar(j.id)} className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all">
+                                                    <button onClick={() => handleOpenDeleteModal(j)} className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all">
                                                         <Trash2 className="w-4 h-4" />
                                                     </button>
                                                 </div>
@@ -391,6 +466,19 @@ export default function InvitarJuradoPage() {
                     <p className="font-medium text-gray-900">{toast.message}</p>
                 </div>
             )}
+
+            {/* Modal de Confirmación para Eliminar */}
+            <ConfirmModal 
+                isOpen={isDeleteModalOpen}
+                onClose={() => {
+                    setIsDeleteModalOpen(false);
+                    setJuradoToDelete(null);
+                }}
+                onConfirm={handleConfirmDelete}
+                isLoading={isDeleting}
+                title={juradoToDelete?.id < 0 ? "¿Eliminar Invitación?" : "¿Eliminar Jurado?"}
+                message={`Estás a punto de eliminar a ${juradoToDelete?.nombreCompleto || juradoToDelete?.email} del panel de expertos. Esta acción no se puede deshacer.`}
+            />
         </div>
     );
 }

@@ -1,38 +1,40 @@
 --- GESTIÓN DE JURADOS (#3797) ---
 
-Implementar sistema de envío de emails REAL (Integrar con Resend, SendGrid o Supabase Auth)
+[x] Implementar sistema de envío de emails REAL
+    - Integración con Resend API y diseño de plantilla profesional.
+[x] Crear tabla 'invitaciones_pendientes' en la BD
+    - Sistema de persistencia para invitaciones con tokens únicos.
+[x] Desarrollar la vista de "Aceptar Invitación"
+    - Onboarding completo: los invitados pueden registrarse/loguearse y entrar directo al evento.
+[x] Funciones de Gestión (Reenviar y Eliminar)
+    - El organizador puede reenviar correos y cancelar invitaciones enviadas.
+[ ] Añadir middleware de protección robusto (PENDIENTE)
+    - Se inició 'OrganizerOnlyFilter' pero requiere revisión para ser una solución global.
 
-Crear tabla 'invitaciones_pendientes' en la BD
-    Para trackear correos invitados que aún no tienen cuenta en Votify
 
-Desarrollar la vista de "Aceptar Invitación"
-    Para usuarios nuevos que llegan desde el correo
+--- MEJORAS TÉCNICAS Y REFACTORS (Por qué hay tantos archivos cambiados) ---
 
-Añadir middleware de protección en el backend
-    Solo el organizador del evento puede usar los endpoints de /Jurado
+1. Refactor de Estado Global (EventContext):
+   - SE CAMBIARON: Sidebar, Dashboards, Auth y Páginas principales.
+   - MOTIVO: Se eliminó la dependencia de localStorage. Ahora el EventContext centraliza el ID del evento, el nombre y el ROL del usuario, garantizando que los colores (Azul para Organizador, Naranja para Jurado, Morado para Participante) sean consistentes en TODA la navegación sin recargar la página.
+
+2. Solución de Serialización (UsuarioDto):
+   - SE CAMBIARON: JuradoController, JuradoService e Interfaces.
+   - MOTIVO: El SDK de Supabase devolvía objetos pesados que daban error al enviarse al Frontend. Se creó el DTO para enviar solo lo necesario (ID, Email, Nombre) de forma limpia.
+
+3. Integración de Invitaciones en Auth:
+   - SE CAMBIARON: AuthController, AuthService y hooks de Auth.
+   - MOTIVO: El login y registro ahora aceptan un "invitationToken", permitiendo que el sistema asocie automáticamente al usuario al evento tras loguearse desde un email de invitación.
+
+4. Mejora de UX:
+   - SE CAMBIARON: InvitarJuradoPage y componentes UI.
+   - MOTIVO: Se reemplazaron los pop-ups feos del navegador por modales de confirmación con diseño de Votify.
 
 
---- MEJORAS TÉCNICAS / DEUDA ---
+--- PENDIENTE CRÍTICO ---
 
-Refactorizar el uso de localStorage
-    Usar un Contexto de Evento global para evitar redundancia en las rutas
+[ ] Seguridad Backend
+    - El filtro 'OrganizerOnly' no es infalible. Falta una validación más profunda de la identidad del usuario contra la base de datos en cada petición protegida.
 
-Implementar validación de emails duplicados
-    Evitar invitar dos veces al mismo usuario
-
-Que cojones pasa con las rutas y los colores?
-    Cuando entras como participante solo sale morado al principio, te paseas por el evento y los colores cambian.
-    Además al entrar al evento se entra con rutas raras (La id del evento deberian ser mas numeros?)
-
---- POR QUÉ AÑADIR ESTO ---
-
-1. Emails reales
-   Actualmente solo salen por consola (Console.WriteLine)
-
-2. Tabla de invitaciones
-   Si invitas a alguien que no existe, el sistema lo marca como "Pendiente"
-   pero no hay persistencia real si se reinicia el flujo
-
-3. Seguridad
-   Falta validar en backend que quien elimina un jurado
-   es realmente el organizador del evento
+[ ] IDs de Rutas
+    - Evaluar el cambio de IDs numéricos (/eventos/1) por UUIDs para mejorar la privacidad de los eventos.
