@@ -10,6 +10,8 @@ import { Badge } from "../components/ui/badge";
 import { toast } from "sonner";
 import { createProyecto } from "../api/proyectoApi";
 
+var totalMembers = 1; // Incluye al creador del proyecto
+
 export default function RegisterParticipant() {
   const navigate = useNavigate();
   const { categories, eventConfig } = useVoting();
@@ -46,13 +48,15 @@ export default function RegisterParticipant() {
       return;
     }
     setProjectCreated(true);
+    totalMembers += 1;
+    console.log(totalMembers);
   };
 
   const handleRegister = async () => {
   if (projectCreated && selectedCategory) {
     try {
       const userId = localStorage.getItem("userId");
-      const eventoId = localStorage.getItem("eventoId");
+      const eventoId = localStorage.getItem("eventoId");      
 
       const newProject = {
         nombre: projectData.name,
@@ -68,7 +72,7 @@ export default function RegisterParticipant() {
       console.log("Proyecto creado:", res);
       
       toast.success(`Proyecto registrado exitosamente!\n\nProyecto: ${projectData.name}\nCategoría: ${categories.find(c => c.id === selectedCategory)?.name}`);
-      
+      {/*` Cambiar a eventos*/}
       navigate("/eventos");
     } catch (error) {
       console.error("Error al crear el proyecto:", error);
@@ -167,22 +171,86 @@ export default function RegisterParticipant() {
                   />
                 </div>
 
-                {/* Tamaño del Equipo */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <Users className="w-4 h-4 inline mr-1" />
-                    Tamaño del Equipo
-                  </label>
-                  <input
-                    type="number"
-                    name="team"
-                    value={projectData.team}
-                    onChange={handleInputChange}
-                    min="1"
-                    max="20"
-                    className="w-32 px-4 py-2 border border-purple-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  />
-                </div>
+
+
+{/* Participantes del Proyecto */}
+<div>
+  <label className="block text-sm font-medium text-gray-700 mb-2">
+    <Users className="w-4 h-4 inline mr-1" />
+    Participantes del Proyecto ({1 + (projectData.additionalMembers?.length || 0)} miembros)
+  </label>
+  
+  {/* Participante actual (fijo) */}
+  <div className="flex items-center gap-2 mb-2 p-2 bg-purple-50 rounded-lg border border-purple-200">
+    <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-white text-sm">
+      {localStorage.getItem("email")?.charAt(0).toUpperCase() || "U"}
+    </div>
+    <div className="flex-1">
+      <p className="font-medium text-gray-900">{localStorage.getItem("email") || "Usuario"}</p>
+      <p className="text-xs text-gray-500">Tú (Creador)</p>
+    </div>
+    <Badge className="bg-purple-100 text-purple-700">Propietario</Badge>
+  </div>
+
+  {/* Lista de participantes adicionales */}
+  {projectData.additionalMembers?.map((member, index) => (
+    <div key={index} className="flex items-center gap-2 mb-2 p-2 bg-gray-50 rounded-lg border border-gray-200">
+      <div className="w-8 h-8 rounded-full bg-gray-400 flex items-center justify-center text-white text-sm">
+        {member.email?.charAt(0).toUpperCase() || "M"}
+      </div>
+      <div className="flex-1">
+        <p className="font-medium text-gray-900">{member.email}</p>
+        <p className="text-xs text-gray-500">Miembro</p>
+      </div>
+      <button
+        type="button"
+        onClick={() => {
+          const newMembers = [...projectData.additionalMembers];
+          newMembers.splice(index, 1);
+          setProjectData(prev => ({ ...prev, additionalMembers: newMembers }));
+        }}
+        className="text-red-500 hover:text-red-700"
+      >
+        <X className="w-4 h-4" />
+      </button>
+    </div>
+  ))}
+
+  {/* Botón para agregar más participantes */}
+  <div className="flex gap-2 mt-2">
+    <input
+      type="email"
+      placeholder="correo@ejemplo.com"
+      value={projectData.newMemberEmail || ""}
+      onChange={(e) => setProjectData(prev => ({ ...prev, newMemberEmail: e.target.value }))}
+      className="flex-1 px-3 py-2 text-sm border border-purple-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+    />
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      onClick={() => {
+        if (projectData.newMemberEmail && projectData.newMemberEmail.includes("@")) {
+          const newMembers = [...(projectData.additionalMembers || []), { email: projectData.newMemberEmail }];
+          setProjectData(prev => ({ 
+            ...prev, 
+            additionalMembers: newMembers,
+            newMemberEmail: "" 
+          }));
+        } else {
+          toast.error("Correo inválido");
+        }
+      }}
+      className="border-purple-300 text-purple-600 hover:bg-purple-50"
+    >
+      Agregar
+    </Button>
+  </div>
+  <p className="text-xs text-gray-500 mt-2">
+    Tú + {projectData.additionalMembers?.length || 0} miembros adicionales
+  </p>
+  <p className="text-xs text-gray-500 mt-2">Agrega a los miembros de tu equipo por correo electrónico</p>
+</div>
 
                 <div className="flex justify-end">
                   <Button 
@@ -223,7 +291,7 @@ export default function RegisterParticipant() {
                     <p className="text-gray-700 mb-3">{projectData.description}</p>
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <Users className="w-4 h-4" />
-                      <span>{projectData.team} miembros</span>
+                      <span>{totalMembers } miembros</span>
                     </div>
                   </div>
                   <button
