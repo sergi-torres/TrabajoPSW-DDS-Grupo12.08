@@ -5,6 +5,7 @@ import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import { useState } from "react";
 import { createProyecto } from "../api/proyectoApi";
+import { toast } from "sonner";
 
 export default function CreateProject() {
   const navigate = useNavigate();
@@ -50,7 +51,7 @@ const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!projectData.name || !projectData.description) {
-        alert("Por favor completa el nombre y descripción del proyecto");
+        toast.error("Faltan campos obligatorios", { description: "Por favor completa el nombre y descripción del proyecto "});
         return;
     }
 
@@ -74,8 +75,8 @@ const handleSubmit = async (e) => {
     try {
         const res = await createProyecto(newProject);
         console.log("Proyecto creado:", res);
-        alert(`¡Proyecto "${projectData.name}" creado exitosamente!`);
-        navigate("/eventos");
+        toast.success(`¡Proyecto "${projectData.name}" creado exitosamente!`);
+        navigate("/participantRegister");
     } catch (error) {
         console.error("Error al crear el proyecto:", error);
         alert("Error al crear proyecto: " + error.message);
@@ -88,7 +89,7 @@ const handleSubmit = async (e) => {
       <div className="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-6">
         <div className="max-w-4xl mx-auto">
           <button
-            onClick={() => navigate("/eventos")}
+            onClick={() => navigate("/participantRegister")}
             className="flex items-center gap-2 mb-4 hover:opacity-80 transition-opacity"
           >
             <ArrowLeft className="w-5 h-5" />

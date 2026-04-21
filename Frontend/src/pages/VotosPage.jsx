@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+﻿import { useNavigate } from "react-router-dom";
 import { useEffect, useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { EventSidebar } from "../components/layout/EventSidebar";
@@ -121,6 +121,7 @@ export default function ParticipantDashboard() {
       <EventSidebar userRole={userRole} color={roleColor} />
 
       <div className="pb-[88px] lg:pb-0">
+       <EventSidebar userRole={userRole} color={roleColor} />
         {/* HEADER - Participant Style (Purple) - Full Width */}
         <header className="bg-purple-600 text-white p-6 lg:p-10 lg:pl-80">
           <div className="max-w-7xl mx-auto">

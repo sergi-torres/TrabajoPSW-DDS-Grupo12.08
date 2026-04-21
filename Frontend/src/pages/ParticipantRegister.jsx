@@ -1,75 +1,83 @@
 ﻿// JavaScript source code
 
-import { ArrowLeft, FolderOpen, Check, Target, Calendar, Users, Code } from "lucide-react";
+import { ArrowLeft, Check, Target, Calendar, Users, Upload, X, Image as ImageIcon } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useState } from "react";
 import { useVoting } from "../context/VotingContext";
 import { Card, CardHeader, CardTitle, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
-import CreateProject from './CreateProject';
-import { PlusCircle } from "lucide-react";
-
-// Mock data - Proyectos del usuario
-const userProjects = [
-  {
-    id: "p1",
-    name: "Votify Platform",
-    description: "Plataforma innovadora de votación y evaluación para eventos competitivos con experiencia inmersiva para todos los roles.",
-    technology: ["React", "TypeScript", "Tailwind CSS"],
-    team: 4,
-    created: "2026-03-15",
-    status: "Finalizado",
-    image: "🎯",
-  },
-  {
-    id: "p2",
-    name: "EcoTrack App",
-    description: "Aplicación móvil para seguimiento de huella de carbono personal con gamificación y recomendaciones inteligentes basadas en IA.",
-    technology: ["React Native", "Node.js", "MongoDB"],
-    team: 3,
-    created: "2026-02-20",
-    status: "En desarrollo",
-    image: "🌱",
-  },
-  {
-    id: "p3",
-    name: "CodeCollab",
-    description: "Herramienta colaborativa en tiempo real para pair programming con video integrado y editor compartido de código.",
-    technology: ["Vue.js", "WebRTC", "Firebase"],
-    team: 5,
-    created: "2026-01-10",
-    status: "Finalizado",
-    image: "💻",
-  },
-  {
-    id: "p4",
-    name: "HealthHub",
-    description: "Sistema integral de gestión de salud con seguimiento de métricas, citas médicas y recordatorios de medicamentos.",
-    technology: ["Angular", "Python", "PostgreSQL"],
-    team: 6,
-    created: "2025-12-05",
-    status: "Finalizado",
-    image: "⚕️",
-  },
-];
+import { toast } from "sonner";
+import { createProyecto } from "../api/proyectoApi";
 
 export default function RegisterParticipant() {
   const navigate = useNavigate();
   const { categories, eventConfig } = useVoting();
-  const [selectedProject, setSelectedProject] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [projectData, setProjectData] = useState({
+    name: "",
+    description: "",
+    team: 1,
+  });
+  const [imagePreview, setImagePreview] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [projectCreated, setProjectCreated] = useState(false);
 
-  const handleRegister = () => {
-    if (selectedProject && selectedCategory) {
-      // Aquí iría la lógica de registro
-      alert(`Proyecto registrado exitosamente!\n\nProyecto: ${userProjects.find(p => p.id === selectedProject)?.name}\nCategoría: ${categories.find(c => c.id === selectedCategory)?.name}`);
-      navigate("/eventos");
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setProjectData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
-  const selectedProjectData = userProjects.find(p => p.id === selectedProject);
-  const isReadyToRegister = selectedProject && selectedCategory;
+  const handleContinue = () => {
+    if (!projectData.name || !projectData.description) {
+      toast.error("Faltan campos obligatorios", { description: "Por favor completa el nombre y descripción del proyecto "});
+      return;
+    }
+    setProjectCreated(true);
+  };
+
+  const handleRegister = async () => {
+  if (projectCreated && selectedCategory) {
+    try {
+      const userId = localStorage.getItem("userId");
+      const eventoId = localStorage.getItem("eventoId");
+
+      const newProject = {
+        nombre: projectData.name,
+        descripcion: projectData.description,
+        urlMultimedia: imagePreview || "🚀",
+        idEvento: eventoId ? parseInt(eventoId) : null,
+        idParticipante: userId ? parseInt(userId) : 16,
+        idCategoria: selectedCategory ? parseInt(selectedCategory) : null,
+        estado: "disponible"
+      };
+
+      const res = await createProyecto(newProject);
+      console.log("Proyecto creado:", res);
+      
+      toast.success(`Proyecto registrado exitosamente!\n\nProyecto: ${projectData.name}\nCategoría: ${categories.find(c => c.id === selectedCategory)?.name}`);
+      
+      navigate("/eventos");
+    } catch (error) {
+      console.error("Error al crear el proyecto:", error);
+      toast.error("Error al crear proyecto", { description: error.message });
+    }
+  }
+};
+
+  const isReadyToRegister = projectCreated && selectedCategory;
 
   return (
     <div className="min-h-screen bg-[#F8F9FA]">
@@ -85,116 +93,158 @@ export default function RegisterParticipant() {
           </button>
           <div>
             <h1 className="text-4xl mb-2">Registrar Proyecto</h1>
-            <p className="text-purple-100">Selecciona tu proyecto para {eventConfig.eventName}</p>
+            <p className="text-purple-100">Crea tu proyecto para {eventConfig.eventName}</p>
           </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto p-6 space-y-6">
-        {/* Paso 1: Seleccionar Proyecto */}
-        <Card className="border-purple-200 shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FolderOpen className="w-6 h-6 text-purple-600" />
-              Paso 1: Selecciona tu Proyecto
-              {selectedProject && (
+        {/* Paso 1: Crear Proyecto */}
+        {!projectCreated ? (
+          <Card className="border-purple-200 shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ImageIcon className="w-6 h-6 text-purple-600" />
+                Paso 1: Crea tu Proyecto
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                {/* Imagen del Proyecto */}
+                <div className="flex flex-col items-center gap-4">
+                  {imagePreview ? (
+                    <div className="relative">
+                      <img src={imagePreview} alt="Vista previa" className="w-32 h-32 rounded-2xl object-cover shadow-lg" />
+                      <button
+                        type="button"
+                        onClick={() => { setImagePreview(null); setSelectedImage(null); }}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="w-32 h-32 rounded-2xl bg-gradient-to-br from-purple-100 to-purple-200 flex items-center justify-center text-5xl shadow-lg">
+                      🚀
+                    </div>
+                  )}
+                  <label className="cursor-pointer">
+                    <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                    <div className="flex items-center gap-2 bg-purple-100 text-purple-700 px-4 py-2 rounded-lg hover:bg-purple-200 transition-colors">
+                      <Upload className="w-4 h-4" />
+                      <span>{imagePreview ? "Cambiar imagen" : "Subir imagen"}</span>
+                    </div>
+                  </label>
+                </div>
+
+                {/* Nombre del Proyecto */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Nombre del Proyecto *
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={projectData.name}
+                    onChange={handleInputChange}
+                    placeholder="Ej: Votify Platform"
+                    className="w-full px-4 py-2 border border-purple-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+
+                {/* Descripción */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Descripción *
+                  </label>
+                  <textarea
+                    name="description"
+                    value={projectData.description}
+                    onChange={handleInputChange}
+                    placeholder="Describe tu proyecto..."
+                    rows="4"
+                    className="w-full px-4 py-2 border border-purple-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+
+                {/* Tamaño del Equipo */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <Users className="w-4 h-4 inline mr-1" />
+                    Tamaño del Equipo
+                  </label>
+                  <input
+                    type="number"
+                    name="team"
+                    value={projectData.team}
+                    onChange={handleInputChange}
+                    min="1"
+                    max="20"
+                    className="w-32 px-4 py-2 border border-purple-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+
+                <div className="flex justify-end">
+                  <Button 
+                    onClick={handleContinue}
+                    className="bg-purple-600 hover:bg-purple-700"
+                  >
+                    Continuar
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          /* Resumen del proyecto (solo se muestra después de continuar) */
+          <Card className="border-purple-200 shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ImageIcon className="w-6 h-6 text-purple-600" />
+                Paso 1: Tu Proyecto
                 <Badge className="bg-purple-600 ml-2">
                   <Check className="w-3 h-3 mr-1" />
-                  Seleccionado
+                  Creado
                 </Badge>
-              )}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {userProjects.map((project) => (
-                <div
-                  key={project.id}
-                  onClick={() => setSelectedProject(project.id)}
-                  className={`
-                    bg-gradient-to-r from-white to-purple-50/30 border-2 rounded-2xl p-6
-                    hover:shadow-xl transition-all cursor-pointer
-                    ${selectedProject === project.id
-                      ? "border-purple-600 shadow-lg ring-4 ring-purple-200"
-                      : "border-purple-100 hover:border-purple-300"
-                    }
-                  `}
-                >
-                  <div className="flex items-start gap-6">
-                    {/* Icono del Proyecto */}
-                    <div className={`
-                      w-20 h-20 rounded-2xl flex items-center justify-center text-5xl shadow-lg
-                      ${selectedProject === project.id
-                        ? "bg-gradient-to-br from-purple-500 to-purple-700"
-                        : "bg-gradient-to-br from-purple-100 to-purple-200"
-                      }
-                    `}>
-                      {project.image}
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      {/* Header */}
-                      <div className="flex items-start justify-between mb-3">
-                        <div>
-                          <h3 className="text-2xl mb-2 flex items-center gap-3">
-                            {project.name}
-                            {selectedProject === project.id && (
-                              <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center">
-                                <Check className="w-5 h-5 text-white" />
-                              </div>
-                            )}
-                          </h3>
-                          <div className="flex items-center gap-3 flex-wrap">
-                            <Badge
-                              variant="outline"
-                              className={`
-                                ${project.status === "Finalizado"
-                                  ? "border-green-300 text-green-700 bg-green-50"
-                                  : "border-orange-300 text-orange-700 bg-orange-50"
-                                }
-                              `}
-                            >
-                              {project.status}
-                            </Badge>
-                            <div className="flex items-center gap-1 text-sm text-gray-600">
-                              <Users className="w-4 h-4" />
-                              <span>{project.team} miembros</span>
-                            </div>
-                            <div className="flex items-center gap-1 text-sm text-gray-600">
-                              <Calendar className="w-4 h-4" />
-                              <span>{new Date(project.created).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Descripción */}
-                      <p className="text-gray-700 mb-4 leading-relaxed">
-                        {project.description}
-                      </p>
-
-                      {/* Tecnologías */}
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <Code className="w-4 h-4 text-purple-600" />
-                        {project.technology.map((tech) => (
-                          <Badge
-                            key={tech}
-                            className="bg-purple-100 text-purple-700 hover:bg-purple-200 border border-purple-300"
-                          >
-                            {tech}
-                          </Badge>
-                        ))}
-                      </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="bg-gradient-to-r from-purple-50 to-white rounded-2xl p-6">
+                <div className="flex items-start gap-6">
+                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center text-5xl shadow-lg">
+                    {imagePreview ? (
+                      <img src={imagePreview} alt={projectData.name} className="w-full h-full rounded-2xl object-cover" />
+                    ) : (
+                      "🚀"
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-2xl mb-2">{projectData.name}</h3>
+                    <p className="text-gray-700 mb-3">{projectData.description}</p>
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <Users className="w-4 h-4" />
+                      <span>{projectData.team} miembros</span>
                     </div>
                   </div>
+                  <button
+                    onClick={() => {
+                      setProjectCreated(false);
+                      setProjectData({ name: "", description: "", team: 1 });
+                      setImagePreview(null);
+                      setSelectedImage(null);
+                    }}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-        {/* Paso 2: Seleccionar Categoría (solo visible si hay proyecto seleccionado) */}
-        {selectedProject && (
+        {/* Paso 2: Seleccionar Categoría (solo visible después de crear proyecto) */}
+        {projectCreated && (
           <Card className="border-purple-200 shadow-lg animate-in slide-in-from-bottom duration-500">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -227,23 +277,13 @@ export default function RegisterParticipant() {
                       <div className="flex items-center gap-4">
                         <div className={`
                           w-12 h-12 rounded-xl flex items-center justify-center
-                          ${selectedCategory === category.id
-                            ? "bg-purple-600"
-                            : "bg-purple-100"
-                          }
+                          ${selectedCategory === category.id ? "bg-purple-600" : "bg-purple-100"}
                         `}>
                           <Target className={`w-6 h-6 ${selectedCategory === category.id ? "text-white" : "text-purple-600"}`} />
                         </div>
                         <div>
                           <h4 className="text-xl">{category.name}</h4>
-                          <Badge
-                            variant="outline"
-                            className={`mt-1 ${
-                              category.status === "active"
-                                ? "border-green-300 text-green-700 bg-green-50"
-                                : "border-gray-300 text-gray-600"
-                            }`}
-                          >
+                          <Badge variant="outline" className={`mt-1 ${category.status === "active" ? "border-green-300 text-green-700 bg-green-50" : "border-gray-300 text-gray-600"}`}>
                             {category.status === "active" ? "Activa" : "Pendiente"}
                           </Badge>
                         </div>
@@ -262,7 +302,7 @@ export default function RegisterParticipant() {
         )}
 
         {/* Resumen y Botón de Registro */}
-        {selectedProject && selectedCategory && (
+        {projectCreated && selectedCategory && (
           <Card className="border-purple-200 shadow-lg bg-gradient-to-r from-purple-50 to-blue-50 animate-in slide-in-from-bottom duration-700">
             <CardContent className="p-8">
               <div className="flex items-center justify-between">
@@ -270,9 +310,9 @@ export default function RegisterParticipant() {
                   <h3 className="text-2xl mb-4">Resumen del Registro</h3>
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <FolderOpen className="w-5 h-5 text-purple-600" />
+                      <ImageIcon className="w-5 h-5 text-purple-600" />
                       <span className="font-medium">Proyecto:</span>
-                      <span className="text-gray-700">{selectedProjectData?.name}</span>
+                      <span className="text-gray-700">{projectData.name}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Target className="w-5 h-5 text-purple-600" />
@@ -299,36 +339,6 @@ export default function RegisterParticipant() {
             </CardContent>
           </Card>
         )}
-
-        {/* Mensaje informativo si no hay selección */}
-            {!selectedProject && (
-            <Card className="border-purple-200 shadow-lg bg-gradient-to-r from-purple-50 to-white">
-                <CardContent className="p-8 text-center">
-                <FolderOpen className="w-16 h-16 text-purple-300 mx-auto mb-4" />
-                <h3 className="text-xl mb-2 text-gray-600">Selecciona un proyecto para comenzar</h3>
-            <p className="text-gray-500">
-                Elige el proyecto que deseas registrar en {eventConfig.eventName}
-            </p>
-      
-        {/* Línea divisoria */}
-            <div className="my-6 border-t border-purple-200"></div>
-      
-        {/* Enlace para crear nuevo proyecto */}
-            <div>
-                <p className="text-gray-600 mb-3">¿No encuentras tu proyecto?</p>
-                <button
-                    onClick={() => navigate("/create-project")}
-                    className="inline-flex items-center gap-2 text-purple-600 hover:text-purple-700 font-medium transition-colors"
-                >
-                <PlusCircle className="w-5 h-5" />
-                Crear proyecto nuevo
-                </button>
-            </div>
-        </CardContent>
-    </Card>
-    )}
-
-
       </div>
     </div>
   );

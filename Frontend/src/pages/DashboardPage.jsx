@@ -117,12 +117,12 @@ export default function DashboardPage() {
                                                         const misProyectosDelEvento = new Array();
                                                         for(let i=0; i<misProyectos.length; i++)
                                                         {
-                                                            if(misProyectos[i].eventoId === evento.id){
+                                                            if(misProyectos[i].idEvento === evento.id){
                                                                 misProyectosDelEvento.push(misProyectos[i]);
                                                             }
                                                         }
-
-                                                        console.log("proyectos del evento:", misProyectosDelEvento);
+                                                        //console.log(evento.id, misProyectos[0].idEvento);
+                                                        //console.log("proyectos del evento:", misProyectosDelEvento);
 
                                                         if (misProyectosDelEvento.length > 0) {
                                                             const proyecto = misProyectosDelEvento[0]; // normalmente 1 por participante
