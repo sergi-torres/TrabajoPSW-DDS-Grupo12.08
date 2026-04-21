@@ -101,29 +101,15 @@ export default function DashboardPage() {
                                             {...evento}
                                             onClick={
                                                 () => {
-                                                    const rol = JSON.parse(localStorage.getItem("propsRol")).label;
+                                                    const rolData = JSON.parse(localStorage.getItem("propsRol"));
+                                                    const rol = rolData?.label;
 
-                                                    if (rol === "Participante") {
-                                                        localStorage.setItem("eventoId", evento.id);
-                                                        localStorage.setItem("eventoNombre", evento.nombre);
-                                                        navigate("/votos");
-
-                                                        localStorage.setItem("eventoDescripcion", evento.descripcion);
-                                                    }
+                                                    localStorage.setItem("eventoId", evento.id);
+                                                    localStorage.setItem("eventoNombre", evento.nombre);
+                                                    localStorage.setItem("eventoDescripcion", evento.descripcion);
                                                     
-                                                    if(rol === "Jurado") {
-                                                        localStorage.setItem("eventoId", evento.id);
-                                                        localStorage.setItem("eventoNombre", evento.nombre);
-                                                        localStorage.setItem("eventoDescripcion", evento.descripcion);
-                                                        navigate("/dashboard-votacion-categorias");
-                                                    }
-                                                    if(rol === "Organizador") {
-                                                        localStorage.setItem("eventoId", evento.id);
-                                                        localStorage.setItem("eventoNombre", evento.nombre);
-                                                        localStorage.setItem("eventoDescripcion", evento.descripcion);
-                                                        navigate(`/eventos/${evento.id}`);
-                                                    }
-                                                    
+                                                    // Ahora todos van a la misma ruta base del evento
+                                                    navigate(`/eventos/${evento.id}`);
                                                 }
                                             }
                                         />

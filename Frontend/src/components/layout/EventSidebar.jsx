@@ -17,7 +17,7 @@ function cn(...inputs) {
  * EventSidebar — Sidebar responsiva para navegación de eventos con color del rol.
  */
 // eslint-disable-next-line no-unused-vars
-export function EventSidebar({ userRole, color = "var(--color-org)" }) {
+export function EventSidebar({ color: propColor }) {
     const { eventoId: paramId } = useParams();
     const eventoId = paramId || localStorage.getItem("eventoId");
     const navigate = useNavigate();
@@ -26,19 +26,29 @@ export function EventSidebar({ userRole, color = "var(--color-org)" }) {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const menuRef = useRef(null);
 
-    // Dynamic role styles mapping
+    // Leer rol de la base de datos local (Fuente de verdad única)
+    const rolData = JSON.parse(localStorage.getItem("propsRol") || "{}");
+    const userRole = rolData?.label || "Público";
+    
+    // Configuración de colores estándar del sistema
+    const roleColors = {
+        "Organizador": "var(--color-org)", // Azul #3B82F6
+        "Participante": "#9333ea",        // Púrpura
+        "Jurado": "#ea580c",              // Naranja
+        "Público": "#059669"              // Esmeralda
+    };
+
+    const activeColor = roleColors[userRole] || roleColors["Organizador"];
+
+    // Dynamic role styles mapping para iconos y estados activos
     const roleStyles = {
         "var(--color-org)": { text: "text-blue-600", bg: "bg-blue-50" },
         "#ea580c": { text: "text-orange-600", bg: "bg-orange-50" },
         "#9333ea": { text: "text-purple-600", bg: "bg-purple-50" },
-        "#059669": { text: "text-emerald-600", bg: "bg-emerald-50" },
-        "#8B5CF6": { text: "text-purple-600", bg: "bg-purple-50" },
-        "#F97316": { text: "text-orange-600", bg: "bg-orange-50" },
-        "#3B82F6": { text: "text-blue-600", bg: "bg-blue-50" },
-        "#10B981": { text: "text-emerald-600", bg: "bg-emerald-50" }
+        "#059669": { text: "text-emerald-600", bg: "bg-emerald-50" }
     };
 
-    const activeStyle = roleStyles[color] || roleStyles["var(--color-org)"];
+    const activeStyle = roleStyles[activeColor] || roleStyles["var(--color-org)"];
 
     // Cerrar menú al hacer clic fuera
     useEffect(() => {
@@ -94,7 +104,7 @@ export function EventSidebar({ userRole, color = "var(--color-org)" }) {
                 <Icon 
                     size={22} 
                     strokeWidth={isActive ? 2.5 : 2} 
-                    color={isActive ? color : "currentColor"}
+                    color={isActive ? activeColor : "currentColor"}
                 />
                 <span className="text-[11px] lg:text-sm font-medium">{link.label}</span>
             </Link>

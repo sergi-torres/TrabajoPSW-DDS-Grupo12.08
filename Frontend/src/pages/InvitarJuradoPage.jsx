@@ -19,6 +19,20 @@ export default function InvitarJuradoPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [toast, setToast] = useState(null);
 
+    // Detectar rol real del usuario para el color del header
+    const rolDataRaw = localStorage.getItem("propsRol");
+    const rolData = rolDataRaw ? JSON.parse(rolDataRaw) : null;
+    
+    // Mapeo de colores estándar (Jurado = Naranja, Participante = Púrpura)
+    const roleColors = {
+        "Organizador": "#2563eb", 
+        "Participante": "#9333ea", 
+        "Jurado": "#ea580c",      
+        "Público": "#059669"      
+    };
+    
+    const userColor = roleColors[rolData?.label] || "#ea580c"; 
+
     // Estados del formulario
     const [emailInput, setEmailInput] = useState("");
     const [emailsList, setEmailsList] = useState([]); // Lista de burbujas
@@ -49,7 +63,6 @@ export default function InvitarJuradoPage() {
             }
             setEmailInput("");
         }
-        // Si no es válido, no hacemos nada (evita romper la app)
     };
 
     const removeEmail = (emailToRemove) => {
@@ -82,14 +95,12 @@ export default function InvitarJuradoPage() {
             Promise.all([fetchJurados(), fetchEventInfo()]).finally(() => setLoading(false));
         } else {
             setLoading(false);
-            console.error("eventoId no definido en la URL");
         }
     }, [eventoId]);
 
     const handleAsignar = async (e) => {
         e.preventDefault();
         
-        // Si hay texto sin convertir en burbuja, intentamos añadirlo antes de enviar
         let finalEmails = [...emailsList];
         if (emailInput.trim()) {
             const trimmedEmail = emailInput.trim();
@@ -108,7 +119,7 @@ export default function InvitarJuradoPage() {
             }
             showToast("Invitaciones enviadas correctamente", "success");
             setEmailInput("");
-            setEmailsList([]); // Limpiar burbujas
+            setEmailsList([]); 
             setCustomMessage("");
             fetchJurados();
         } catch (err) {
@@ -146,7 +157,7 @@ export default function InvitarJuradoPage() {
                 <div className="max-w-md bg-white p-8 rounded-3xl shadow-sm border border-red-100">
                     <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
                     <h2 className="text-xl font-bold text-gray-900 mb-2">Error de Identificación</h2>
-                    <p className="text-gray-500 mb-6">No se ha podido identificar el evento. Por favor, vuelve a la lista de eventos.</p>
+                    <p className="text-gray-500 mb-6">No se ha podido identificar el evento.</p>
                     <button onClick={() => navigate('/eventos')} className="px-6 py-3 bg-blue-600 text-white rounded-xl font-bold">
                         Volver a Eventos
                     </button>
@@ -157,10 +168,10 @@ export default function InvitarJuradoPage() {
 
     return (
         <div className="min-h-screen bg-gray-50 font-body relative">
-            <EventSidebar userRole="Organizador" color="var(--color-org)" />
+            <EventSidebar />
 
             <div className="pb-[88px] lg:pb-12">
-                <header className="bg-blue-600 text-white p-6 lg:p-10 lg:pl-80">
+                <header className="bg-blue-600 text-white p-6 lg:p-10 lg:pl-80" style={{ backgroundColor: userColor }}>
                     <div className="max-w-7xl mx-auto">
                         <button
                             onClick={() => navigate('/eventos')}
@@ -177,7 +188,6 @@ export default function InvitarJuradoPage() {
                 </header>
 
                 <main className="max-w-7xl mx-auto p-6 lg:p-10 lg:pl-80 space-y-12">
-                    {/* PANEL DE EXPERTOS (ARRIBA) */}
                     <section className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
                         <div className="p-6 lg:p-8 border-b border-gray-100 bg-gray-50/50">
                             <h2 className="text-xl font-heading font-bold text-gray-900 flex items-center gap-2">
@@ -250,7 +260,6 @@ export default function InvitarJuradoPage() {
                     </section>
 
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                        {/* COLUMNA IZQUIERDA: CONFIGURACIÓN */}
                         <div className="lg:col-span-7 space-y-6">
                             <section className="bg-white rounded-3xl shadow-sm p-6 lg:p-8 border border-gray-100">
                                 <div className="flex items-center gap-3 mb-8">
@@ -264,7 +273,6 @@ export default function InvitarJuradoPage() {
                                     <div>
                                         <label className="block text-sm font-bold text-gray-700 mb-2 ml-1">Destinatarios</label>
                                         <div className="min-h-[48px] flex flex-wrap gap-2 p-2 bg-gray-50 border border-gray-200 rounded-2xl focus-within:ring-2 focus-within:ring-blue-500 focus-within:bg-white transition-all">
-                                            {/* BURBUJAS */}
                                             {emailsList.map((email) => (
                                                 <div 
                                                     key={email} 
@@ -281,7 +289,6 @@ export default function InvitarJuradoPage() {
                                                 </div>
                                             ))}
                                             
-                                            {/* INPUT INVISIBLE */}
                                             <input
                                                 placeholder={emailsList.length === 0 ? "ejemplo@correo.com..." : ""}
                                                 value={emailInput}
@@ -334,7 +341,6 @@ export default function InvitarJuradoPage() {
                             </section>
                         </div>
 
-                        {/* COLUMNA DERECHA: LIVE PREVIEW */}
                         <div className="lg:col-span-5">
                             <div className="sticky top-10">
                                 <h3 className="text-sm font-bold text-gray-500 mb-4 ml-1 flex items-center gap-2">

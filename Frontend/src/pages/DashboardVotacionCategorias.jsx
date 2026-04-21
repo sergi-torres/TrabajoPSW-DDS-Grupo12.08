@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Target, Award } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import StatsBar from '../components/votacion/votacionCategorias/StatsBar';
 import CategoriaCard from '../components/votacion/votacionCategorias/CategoriaCard';
 import DashboardVotacionProyectos from './DashboardVotacionProyectos';
@@ -10,10 +10,16 @@ import { EventSidebar } from '../components/layout/EventSidebar';
 
 const DashboardVotacionCategorias = () => {
   const navigate = useNavigate();
+  const { eventoId } = useParams();
   const { isPublic } = React.useContext(AuthContext);
   const { datos, cargando, cargarDashboard } = useVotacionDashboard();
   const [vistaActual, setVistaActual] = useState('categorias');
   const [categoriaElegida, setCategoriaElegida] = useState(null);
+
+  // Detectar rol y color dinámico desde la fuente de verdad única
+  const rolDataRaw = localStorage.getItem("propsRol");
+  const rolData = rolDataRaw ? JSON.parse(rolDataRaw) : null;
+  const userColor = rolData?.color || (isPublic ? "#059669" : "#ea580c"); // Jurado es Naranja por defecto si no es público
 
   useEffect(() => {
     if (vistaActual === 'categorias') {
@@ -36,39 +42,34 @@ const DashboardVotacionCategorias = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 font-body relative">
-      <EventSidebar 
-        userRole={isPublic ? "Público" : "Jurado"} 
-        color={isPublic ? "#059669" : "#ea580c"} 
-      />
+      <EventSidebar />
 
       <div className="pb-[88px] lg:pb-0">
         {/* HEADER - Dynamic Style - Full Width */}
-        <header className={`${isPublic ? 'bg-emerald-600' : 'bg-orange-600'} text-white p-6 lg:p-10 lg:pl-80`}>
+        <header className="text-white p-6 lg:p-10 lg:pl-80" style={{ backgroundColor: userColor }}>
           <div className="max-w-7xl mx-auto">
-            {!isPublic && (
-              <button
-                onClick={() => navigate('/eventos')}
-                className="inline-flex items-center gap-2 mb-6 px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-xl transition-all duration-200 border border-white/10 font-heading font-semibold text-sm group"
-              >
-                <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" strokeWidth={2.5} />
-                Volver a eventos
-              </button>
-            )}
+            <button
+              onClick={() => navigate('/eventos')}
+              className="inline-flex items-center gap-2 mb-6 px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-xl transition-all duration-200 border border-white/10 font-heading font-semibold text-sm group"
+            >
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" strokeWidth={2.5} />
+              Volver a eventos
+            </button>
 
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
               <div className="max-w-2xl">
                 <h1 className="text-3xl lg:text-4xl font-heading font-bold tracking-tight mb-3">
                   Panel de Evaluación
                 </h1>
-                <p className={`${isPublic ? 'text-emerald-50' : 'text-orange-50'} text-lg font-medium opacity-90`}>
+                <p className="text-lg font-medium opacity-90">
                   Selecciona una categoría para comenzar a evaluar los proyectos. 
                   Tus votos son limitados por categoría.
                 </p>
               </div>
               {datos && (
                 <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
-                  <p className={`text-xs uppercase tracking-wider font-bold ${isPublic ? 'text-emerald-200' : 'text-orange-200'} mb-1`}>Estado de Sesión</p>
-                  <p className="text-xl font-heading font-bold">{isPublic ? 'Público General' : 'Jurado Experto'}</p>
+                  <p className="text-xs uppercase tracking-wider font-bold mb-1 opacity-80">Estado de Sesión</p>
+                  <p className="text-xl font-heading font-bold">{rolData?.label || (isPublic ? 'Público General' : 'Jurado Experto')}</p>
                 </div>
               )}
             </div>
@@ -81,7 +82,7 @@ const DashboardVotacionCategorias = () => {
               {/* Stats Section in a Card */}
               <section className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
                 <div className="flex items-center gap-2 mb-6">
-                  <Target className={`w-6 h-6 ${isPublic ? 'text-emerald-600' : 'text-orange-600'}`} />
+                  <Target className="w-6 h-6" style={{ color: userColor }} />
                   <h2 className="text-xl font-heading font-bold text-gray-900">Resumen de Votación</h2>
                 </div>
                 <StatsBar config={datos} />
@@ -90,7 +91,7 @@ const DashboardVotacionCategorias = () => {
               {/* Categories Grid */}
               <section>
                 <div className="flex items-center gap-2 mb-6">
-                  <Award className={`w-6 h-6 ${isPublic ? 'text-emerald-600' : 'text-orange-600'}`} />
+                  <Award className="w-6 h-6" style={{ color: userColor }} />
                   <h2 className="text-xl font-heading font-bold text-gray-900">Categorías Disponibles</h2>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

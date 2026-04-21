@@ -20,10 +20,25 @@ export default function OrganizerDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { eventoId: paramEventoId } = useParams();
+
+  // Detectar rol real del usuario con validación de seguridad
+  const rolDataRaw = localStorage.getItem("propsRol");
+  const rolData = rolDataRaw ? JSON.parse(rolDataRaw) : null;
+  
+  const userRole = rolData?.label || "Público";
+  
+  // Colores estándar (Mismo mapeo que Sidebar para consistencia)
+  const roleColors = {
+      "Organizador": "#2563eb", // blue-600
+      "Participante": "#9333ea", // púrpura
+      "Jurado": "#ea580c",      // naranja
+      "Público": "#059669"      // emerald-600
+  };
+
+  const userColor = roleColors[userRole] || roleColors["Organizador"];
   
   const [categorias, setCategorias] = useState([]);     //categorias para tabs
   const [loadingCategorias, setLoadingCategorias] = useState(true);
-
   const [activeTab, setActiveTab] = useState(null);
 
   const eventoId = paramEventoId || localStorage.getItem("eventoId");
@@ -35,14 +50,15 @@ export default function OrganizerDashboard() {
 
   // Cargar datos del dashboard
   const fetchDashboard = async () => {
-    if (!eventoId) {
-      setError("No se encontró el ID del evento.");
+    if (!eventoId || eventoId === "undefined") {
+      setError("ID de evento no válido.");
       setLoading(false);
       return;
     }
     try {
       setLoading(true);
       const data = await getDashboard(eventoId);
+      if (!data) throw new Error("No se recibieron datos del servidor");
       setDashboardData(data);
       setError(null);
     } catch (err) {
@@ -53,43 +69,32 @@ export default function OrganizerDashboard() {
     }
   };
 
-
   useEffect(() => {
     fetchDashboard();
     const interval = setInterval(fetchDashboard, 30000);
     return () => clearInterval(interval);
-
   }, [eventoId]);
 
   useEffect(() => {
-  const loadCategorias = async () => {
-    try {
-      const eventoId = localStorage.getItem("eventoId");
-
-      if (!eventoId) {
-        console.warn("No hay eventoId en localStorage");
-        return;
+    const loadCategorias = async () => {
+      if (!eventoId || eventoId === "undefined") return;
+      try {
+        const data = await categoriasApi.getByEvento(eventoId);
+        setCategorias(data);
+      } catch (err) {
+        console.error("Error cargando categorías:", err);
+      } finally {
+        setLoadingCategorias(false);
       }
-
-      const data = await categoriasApi.getByEvento(eventoId);
-
-      setCategorias(data);
-    } catch (err) {
-      console.error("Error cargando categorías:", err);
-    } finally {
-      setLoadingCategorias(false);
-    }
-  };
-
-  loadCategorias();
-}, []);
+    };
+    loadCategorias();
+  }, [eventoId]);
 
   useEffect(() => {
-  if (categorias.length > 0 && !activeTab) {
-    setActiveTab(categorias[0].id);
-  }
-    }, [categorias]);
-
+    if (categorias.length > 0 && !activeTab) {
+      setActiveTab(categorias[0].id);
+    }
+  }, [categorias]);
 
   const handleExtend = async () => {
     try {
@@ -150,7 +155,7 @@ export default function OrganizerDashboard() {
 
   if (loading && !dashboardData) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center font-body">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center font-body lg:pl-80">
         <div className="text-center p-8 bg-white rounded-2xl shadow-sm border border-gray-100">
           <LayoutDashboard className="w-12 h-12 text-blue-600 animate-pulse mx-auto mb-4" />
           <p className="text-lg font-medium text-gray-600">Cargando panel de control...</p>
@@ -159,15 +164,15 @@ export default function OrganizerDashboard() {
     );
   }
 
-  if (error && !dashboardData) {
+  if (error || !dashboardData) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center font-body p-6">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center font-body p-6 lg:pl-80">
         <div className="max-w-md w-full text-center p-8 bg-white rounded-2xl shadow-sm border border-red-100">
           <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
             <ArrowLeft className="w-8 h-8" />
           </div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Error de Conexión</h2>
-          <p className="text-gray-500 mb-6">{error}</p>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Panel no disponible</h2>
+          <p className="text-gray-500 mb-6">{error || "No se han podido cargar los datos del evento."}</p>
           <button 
             onClick={() => navigate('/eventos')}
             className="w-full py-3 bg-gray-900 text-white rounded-xl font-bold hover:bg-gray-800 transition-colors"
@@ -188,10 +193,10 @@ export default function OrganizerDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50 font-body relative">
-      <EventSidebar userRole="Organizador" color="var(--color-org)" />
+      <EventSidebar userRole={userRole} color={userColor} />
 
       <div className="pb-[88px] lg:pb-12">
-        <header className="bg-blue-600 text-white p-6 lg:p-10 lg:pl-80">
+        <header className="bg-blue-600 text-white p-6 lg:p-10 lg:pl-80" style={{ backgroundColor: userColor }}>
           <div className="max-w-7xl mx-auto">
             {!isPublic && (
               <button
@@ -207,7 +212,7 @@ export default function OrganizerDashboard() {
               <div className="max-w-2xl">
                 <div className="flex items-center gap-3 mb-3">
                   <span className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest border border-white/20">
-                    Panel Organizador
+                    Panel {userRole}
                   </span>
                   <span className="flex items-center gap-1.5 text-blue-100 text-sm font-medium">
                     <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
@@ -222,15 +227,17 @@ export default function OrganizerDashboard() {
                 </p>
               </div>
 
-              <div className="flex flex-col sm:flex-row items-center gap-4">
-                <LiveHeader
-                  eventName={liveInfo.eventName}
-                  phase={liveInfo.phase}
-                  onExtend={handleExtend}
-                  onClose={handleClose}
-                  minimal={true}
-                />
-              </div>
+              {userRole === "Organizador" && (
+                <div className="flex flex-col sm:flex-row items-center gap-4">
+                  <LiveHeader
+                    eventName={liveInfo.eventName}
+                    phase={liveInfo.phase}
+                    onExtend={handleExtend}
+                    onClose={handleClose}
+                    minimal={true}
+                  />
+                </div>
+              )}
             </div>
           </div>
         </header>
@@ -244,7 +251,7 @@ export default function OrganizerDashboard() {
         <main className="max-w-7xl mx-auto p-6 lg:p-10 lg:pl-80 -mt-10 space-y-8">
           <section className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
             <div className="flex items-center gap-2 mb-6">
-              <Target className="w-6 h-6 text-blue-600" />
+              <Target className="w-6 h-6 text-blue-600" style={{ color: userColor }} />
               <h2 className="text-xl font-heading font-bold text-gray-900">Estado del Evento</h2>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -257,7 +264,7 @@ export default function OrganizerDashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <section className="lg:col-span-2 bg-white rounded-2xl shadow-sm p-6 border border-gray-100 h-fit">
               <div className="flex items-center gap-2 mb-6">
-                  <Award className="w-6 h-6 text-blue-600" />
+                  <Award className="w-6 h-6 text-blue-600" style={{ color: userColor }} />
                   <h2 className="text-xl font-heading font-bold text-gray-900">
                       Ranking en Tiempo Real
                   </h2>
@@ -270,9 +277,10 @@ export default function OrganizerDashboard() {
                           onClick={() => setActiveTab(cat.id)}
                           className={`px-4 py-2 text-sm font-medium transition-all border-b-2 ${
                            activeTab === cat.id
-                            ? "border-blue-600 text-blue-600"
+                            ? `border-[${userColor}] text-[${userColor}]`
                             : "border-transparent text-gray-500 hover:text-gray-700"
                              }`}
+                          style={activeTab === cat.id ? { borderBottomColor: userColor, color: userColor } : {}}
                               >
                               {cat.nombre}
                               </button>
@@ -284,7 +292,7 @@ export default function OrganizerDashboard() {
 
             <section className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 h-fit">
               <div className="flex items-center gap-2 mb-6">
-                <TrendingUp className="w-6 h-6 text-blue-600" />
+                <TrendingUp className="w-6 h-6 text-blue-600" style={{ color: userColor }} />
                 <h2 className="text-xl font-heading font-bold text-gray-900">Feed de Actividad</h2>
               </div>
               <ProjectFeed
