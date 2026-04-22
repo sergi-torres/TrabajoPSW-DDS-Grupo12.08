@@ -17,5 +17,7 @@
         public int? IdCategoria { get; set; }
 
         public string? Estado { get; set; }
+
+        public List<int>? IdMiembros { get; set; }
     }
 }

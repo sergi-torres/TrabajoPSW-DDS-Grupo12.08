@@ -2,6 +2,7 @@
 import { useEffect, useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { EventSidebar } from "../components/layout/EventSidebar";
+import { obtenerVotosPorProyecto } from "../api/votacionApi";
 import {
   ArrowLeft,
   Target,
@@ -70,10 +71,15 @@ export default function ParticipantDashboard() {
     const fetchComments = async () => {
 
         const idEventoRaw = localStorage.getItem("eventoId");
-      
+        const idProyecto = localStorage.getItem("proyectoId");
 
       try {
-        const idVotacion = idEventoRaw; 
+        const voto = await fetch(
+        `http://localhost:5245/api/votacionApi?proyectoId=${idProyecto}`
+        );
+
+        console.log("Respuesta del fetch de votacionApi:", voto);
+        const idVotacion = voto.id; 
 
         if (!idVotacion) {
           console.warn("No hay idVotacion en localStorage");
@@ -172,9 +178,11 @@ export default function ParticipantDashboard() {
                 </div>
                 <h2 className="text-xl font-heading font-bold text-gray-900">Sobre tu Proyecto</h2>
               </div>
-
+              <p className="text-xl font-heading font-bold text-gray-900 mb-4">
+                {localStorage.getItem("proyectoNombre")}
+              </p>
               <p className="text-gray-600 text-lg leading-relaxed">
-                {localStorage.getItem("eventoDescripcion") || "Sin descripción disponible para este proyecto."}
+                {localStorage.getItem("proyectoDescripcion") || "Sin descripción disponible para este proyecto."}
               </p>
             </article>
 

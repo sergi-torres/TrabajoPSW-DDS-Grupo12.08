@@ -3,6 +3,7 @@
 using Votify.API.Models.Domain;
 using Votify.API.Models.DTOs;
 using Votify.API.Repositories;
+using Votify.API.Services;
 
 namespace Votify.API.Controllers
 {
@@ -11,10 +12,12 @@ namespace Votify.API.Controllers
     public class CategoriasController : ControllerBase
     {
         private readonly ICategoriaRepository _categoriaRepository;
+        private readonly ICategoriaService _categoriaService;
 
-        public CategoriasController(ICategoriaRepository categoriaRepository)
+        public CategoriasController(ICategoriaRepository categoriaRepository, ICategoriaService categoriaService)
         {
             _categoriaRepository = categoriaRepository;
+            _categoriaService = categoriaService;
         }
 
         // GET: api/categorias

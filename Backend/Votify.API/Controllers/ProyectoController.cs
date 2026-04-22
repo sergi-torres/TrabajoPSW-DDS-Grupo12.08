@@ -60,7 +60,8 @@ namespace Votify.API.Controllers
                 IdEvento = p.IdEvento,
                 IdParticipante = p.IdParticipante,
                 IdCategoria = p.IdCategoria,
-                Estado = p.Estado
+                Estado = p.Estado,
+                IdMiembros = p.IdMiembros
             }).ToList();
 
             return Ok(response);
@@ -102,7 +103,8 @@ namespace Votify.API.Controllers
                 IdEvento = creado.IdEvento ?? 0,
                 IdParticipante = creado.IdParticipante,
                 IdCategoria = creado.IdCategoria ?? 0,
-                Estado = creado.Estado ?? "disponible"  // ← Solución CS8602
+                Estado = creado.Estado ?? "disponible",
+                IdMiembros = creado.IdMiembros ?? new List<int>()
             };
 
             //Console.WriteLine($"Creado: ID={creado.Id}, Nombre={response.Nombre}");

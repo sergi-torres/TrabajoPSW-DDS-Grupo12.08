@@ -1,30 +1,64 @@
-﻿import { createContext, useContext, useState, useCallback } from "react";
+﻿import { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { showNotification } from "../components/Notifications/NotificationSystem";
+import { categoriasApi } from "../api/categoriasApi";
 
 const VotingContext = createContext(undefined);
 
-// Mock categories
-const initialCategories = [
-  { id: "1", name: "Innovación", status: "pending" },
-  { id: "2", name: "Diseño", status: "pending" },
-  { id: "3", name: "Funcionalidad", status: "pending" },
-  { id: "4", name: "Presentación", status: "pending" },
-];
-
-// Configuración inicial del evento
-const initialEventConfig = {
-  voteLimit: 3, // Por defecto 3 votos
-  eventName: "Hackathon Tech 2026",
-  eventCode: "HACK26",
-  allowComments: true,
-};
-
 export function VotingProvider({ children }) {
-  const [categories, setCategories] = useState(initialCategories);
+  const [categories, setCategories] = useState([]);
   const [currentCategory, setCurrentCategory] = useState(null);
   const [eventStatus, setEventStatus] = useState("not_started");
   const [notifications, setNotifications] = useState([]);
-  const [eventConfig, setEventConfig] = useState(initialEventConfig);
+  const [eventConfig, setEventConfig] = useState({
+    voteLimit: 3,
+    eventName: "Cargando...",
+    eventCode: "",
+    allowComments: true,
+  });
+  const [loading, setLoading] = useState(true);
+
+  // Cargar categorías y configuración del evento al iniciar
+  useEffect(() => {
+    const loadEventData = async () => {
+      try {
+        const eventoId = localStorage.getItem("eventoId");
+        const eventName = localStorage.getItem("eventoNombre");
+        const eventCode = localStorage.getItem("eventoCodigo") || "EVENTO";
+
+        // Configurar evento desde localStorage
+        setEventConfig({
+          voteLimit: 3,
+          eventName: eventName || "Evento sin nombre",
+          eventCode: eventCode,
+          allowComments: true,
+        });
+
+        // Obtener categorías del evento
+        if (eventoId) {
+          const categorias = await categoriasApi.getByEvento(parseInt(eventoId));
+          
+          // Mapear las categorías al formato que espera el frontend
+          const formattedCategories = categorias.map(cat => ({
+            id: cat.id?.toString() || cat.id,
+            name: cat.nombre || cat.name,
+            status: cat.estado === "activa" ? "active" : "pending"
+          }));
+          
+          setCategories(formattedCategories);
+        } else {
+          console.warn("No hay eventoId en localStorage");
+          setCategories([]);
+        }
+      } catch (error) {
+        console.error("Error cargando datos del evento:", error);
+        setCategories([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadEventData();
+  }, []);
 
   const addNotification = useCallback((state, categoryName) => {
     const newNotification = {
@@ -37,7 +71,6 @@ export function VotingProvider({ children }) {
     
     setNotifications((prev) => [newNotification, ...prev]);
     
-    // También mostrar el toast
     showNotification({
       state,
       categoryName,
@@ -74,7 +107,6 @@ export function VotingProvider({ children }) {
           const updatedCat = { ...cat, status: "active", startTime: new Date() };
           setCurrentCategory(updatedCat);
           
-          // Notificaciones
           addNotification("category_started", cat.name);
           addNotification("voting_started", cat.name);
           
@@ -92,7 +124,6 @@ export function VotingProvider({ children }) {
         if (cat.id === categoryId) {
           const updatedCat = { ...cat, status: "closed", endTime: new Date() };
           
-          // Notificación
           addNotification("category_closed", cat.name);
           addNotification("voting_closed", cat.name);
           
@@ -140,6 +171,17 @@ export function VotingProvider({ children }) {
     setEventStatus("results");
     addNotification("results_available");
   }, [addNotification]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Cargando evento...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <VotingContext.Provider

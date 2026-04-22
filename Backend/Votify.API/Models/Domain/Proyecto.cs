@@ -29,5 +29,8 @@ namespace Votify.API.Models.Domain
 
         [Column("estado")]
         public string Estado { get; set; } = "disponible"; // "disponible" o "votado"
+
+        [Column("idMiembros")]
+        public List<int>? IdMiembros { get; set; }
     }
 }

@@ -1,4 +1,4 @@
-//Aqui estaran los fecth (pedir datos del backend) relacionados con la votacion.
+﻿//Aqui estaran los fecth (pedir datos del backend) relacionados con la votacion.
 
 const API_URL = 'http://localhost:5245/api/votacion';
 
@@ -34,3 +34,27 @@ export const enviarDatosVoto = async (votoDto) => {
 
   return await response.json();
 }
+
+export const obtenerVotosPorProyecto = async (proyectoId) => {
+    if (proyectoId == null) {
+        throw new Error('proyectoId es obligatorio');
+    }
+
+    try {
+        const response = await fetch(`/porProyecto?proyectoId=${encodeURIComponent(proyectoId)}`, {
+            method: 'GET'
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data?.error || 'Error al obtener votos');
+        }
+
+        return data;
+
+    } catch (error) {
+        console.error('Error:', error.message);
+        throw error;
+    }
+};

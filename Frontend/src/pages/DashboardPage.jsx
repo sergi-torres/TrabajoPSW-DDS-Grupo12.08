@@ -128,6 +128,8 @@ export default function DashboardPage() {
                                                             const proyecto = misProyectosDelEvento[0]; // normalmente 1 por participante
                                                             localStorage.setItem("proyectoId", proyecto.id);
                                                             localStorage.setItem("proyectoNombre", proyecto.nombre);
+                                                            localStorage.setItem("proyectoDescripcion", proyecto.descripcion);
+
                                                             navigate("/votos");
 
                                                         }else{

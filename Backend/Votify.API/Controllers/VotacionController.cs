@@ -50,5 +50,19 @@ namespace Votify.API.Controllers
                 return BadRequest(new { error = ex.Message, inner = ex.InnerException?.Message, stack = ex.StackTrace });
             }
         }
+
+        [HttpGet("porProyecto")]
+        public async Task<IActionResult> ObtenerVotosPorProyecto([FromQuery] int proyectoId)
+        {
+            try
+            {
+                var votosPorProyecto = await _votoService.ObtenerVotosPorProyectoAsync(proyectoId);
+                return Ok(votosPorProyecto);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message, inner = ex.InnerException?.Message, stack = ex.StackTrace });
+            }
+        }
     }
 }

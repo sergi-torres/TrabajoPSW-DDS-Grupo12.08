@@ -2,13 +2,14 @@
 
 import { ArrowLeft, Check, Target, Calendar, Users, Upload, X, Image as ImageIcon } from "lucide-react";
 import { useNavigate } from "react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react"; 
 import { useVoting } from "../context/VotingContext";
 import { Card, CardHeader, CardTitle, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import { toast } from "sonner";
 import { createProyecto } from "../api/proyectoApi";
+import { usuarioApi } from "../api/usuarioApi";
 
 var totalMembers = 1; // Incluye al creador del proyecto
 
@@ -20,7 +21,19 @@ export default function RegisterParticipant() {
     name: "",
     description: "",
     team: 1,
+    memberIds: []
   });
+
+  useEffect(() => {
+  const userId = localStorage.getItem("userId");
+  if (userId && projectData.memberIds.length === 0) {
+    setProjectData(prev => ({
+      ...prev,
+      memberIds: [parseInt(userId)]
+    }));
+  }
+  }, []);
+
   const [imagePreview, setImagePreview] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
   const [projectCreated, setProjectCreated] = useState(false);
@@ -48,12 +61,11 @@ export default function RegisterParticipant() {
       return;
     }
     setProjectCreated(true);
-    totalMembers += 1;
     console.log(totalMembers);
   };
 
   const handleRegister = async () => {
-  if (projectCreated && selectedCategory) {
+  if (projectCreated && (selectedCategory || categories.length === 0)) {
     try {
       const userId = localStorage.getItem("userId");
       const eventoId = localStorage.getItem("eventoId");      
@@ -65,6 +77,7 @@ export default function RegisterParticipant() {
         idEvento: eventoId ? parseInt(eventoId) : null,
         idParticipante: userId ? parseInt(userId) : 16,
         idCategoria: selectedCategory ? parseInt(selectedCategory) : null,
+        idMiembros : projectData.memberIds,
         estado: "disponible"
       };
 
@@ -81,7 +94,7 @@ export default function RegisterParticipant() {
   }
 };
 
-  const isReadyToRegister = projectCreated && selectedCategory;
+  const isReadyToRegister = projectCreated && (selectedCategory || categories.length === 0);
 
   return (
     <div className="min-h-screen bg-[#F8F9FA]">
@@ -89,7 +102,12 @@ export default function RegisterParticipant() {
       <div className="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-6">
         <div className="max-w-7xl mx-auto">
           <button
-            onClick={() => navigate("/eventos")}
+            onClick={
+                () => 
+                {   navigate("/eventos");
+                    totalMembers = 1; // Reiniciar conteo de miembros al volver
+                }
+            }
             className="flex items-center gap-2 mb-4 hover:opacity-80 transition-opacity"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -223,24 +241,60 @@ export default function RegisterParticipant() {
       placeholder="correo@ejemplo.com"
       value={projectData.newMemberEmail || ""}
       onChange={(e) => setProjectData(prev => ({ ...prev, newMemberEmail: e.target.value }))}
+      
       className="flex-1 px-3 py-2 text-sm border border-purple-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
     />
     <Button
       type="button"
       variant="outline"
       size="sm"
-      onClick={() => {
+      onClick={async () => {
         if (projectData.newMemberEmail && projectData.newMemberEmail.includes("@")) {
-          const newMembers = [...(projectData.additionalMembers || []), { email: projectData.newMemberEmail }];
-          setProjectData(prev => ({ 
-            ...prev, 
-            additionalMembers: newMembers,
-            newMemberEmail: "" 
-          }));
+            try {
+                // Buscar el usuario por email en el backend
+                const response = await fetch(`http://localhost:5245/api/usuario/email/${projectData.newMemberEmail}`);
+      
+                if (!response.ok) {
+                    toast.error("Usuario no encontrado", { description: "El correo no está registrado" });
+                    console.log(projectData);
+                    return;
+                }
+      
+                const usuario = await response.json();
+      
+                // Verificar si ya está en la lista
+                const yaExiste = projectData.additionalMembers?.some(m => m.id === usuario.id);
+                if (yaExiste) {
+                  toast.error("Usuario ya agregado");
+                  return;
+                 }
+
+                // Actualizar también idMiembros (array de IDs)
+                projectData.memberIds.push(usuario.id);
+
+                // Agregar el usuario con su ID
+                const newMembers = [...(projectData.additionalMembers || []), { 
+                  id: usuario.id, 
+                  email: usuario.email || projectData.newMemberEmail 
+                }];
+      
+                setProjectData(prev => ({ 
+                ...prev, 
+                 additionalMembers: newMembers,
+                newMemberEmail: "" 
+                }));
+      
+             toast.success(`Usuario ${usuario.email || projectData.newMemberEmail} agregado`);
+      
+            } catch (error) {
+                
+                console.error("Error al buscar usuario:", error);
+                toast.error("Error al buscar usuario");
+            }
         } else {
-          toast.error("Correo inválido");
+            toast.error("Correo inválido");
         }
-      }}
+    }}
       className="border-purple-300 text-purple-600 hover:bg-purple-50"
     >
       Agregar
@@ -297,6 +351,7 @@ export default function RegisterParticipant() {
                   <button
                     onClick={() => {
                       setProjectCreated(false);
+                      totalMembers = 1; // Reiniciar conteo de miembros al editar
                       setProjectData({ name: "", description: "", team: 1 });
                       setImagePreview(null);
                       setSelectedImage(null);
@@ -312,7 +367,7 @@ export default function RegisterParticipant() {
         )}
 
         {/* Paso 2: Seleccionar Categoría (solo visible después de crear proyecto) */}
-        {projectCreated && (
+        {categories.length > 0 && projectCreated && (
           <Card className="border-purple-200 shadow-lg animate-in slide-in-from-bottom duration-500">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -370,7 +425,7 @@ export default function RegisterParticipant() {
         )}
 
         {/* Resumen y Botón de Registro */}
-        {projectCreated && selectedCategory && (
+        {projectCreated && (selectedCategory || categories.length === 0) && (
           <Card className="border-purple-200 shadow-lg bg-gradient-to-r from-purple-50 to-blue-50 animate-in slide-in-from-bottom duration-700">
             <CardContent className="p-8">
               <div className="flex items-center justify-between">

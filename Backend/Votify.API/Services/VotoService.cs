@@ -18,12 +18,12 @@ namespace Votify.API.Services
         private static readonly Dictionary<int, (List<CategoriaConPesos> categorias, List<Proyecto> proyectos, DateTime timestamp)> _eventosCache = new();
         // Cache por 4 horas, esto dependerá del limite que querramos dejar para todas las votaciones 
         private static readonly TimeSpan CacheDuration = TimeSpan.FromHours(4);
-        
+
         // Votos segregados por clave de sesión:
         // Jurado => "U:{idUsuario}"
         // Público => "P:{sessionId}"
         private static readonly Dictionary<string, List<(int CategoriaId, int ProyectoId)>> VotosRealizadosPorUsuario = new();
-        
+
         // Track último usuario activo para detectar cambio de sesión (nuevo Jurado = reset a zero)
         private static int? _ultimoIdUsuarioActivo = null;
 
@@ -109,7 +109,7 @@ namespace Votify.API.Services
         {
             try
             {
-            var claveSesion = ObtenerClaveSesion(idUsuario, sessionId);
+                var claveSesion = ObtenerClaveSesion(idUsuario, sessionId);
 
                 // Detectar cambio de usuario (nuevo Jurado = reset a zero state)
                 if (idUsuario.HasValue && idUsuario != _ultimoIdUsuarioActivo)
@@ -133,8 +133,8 @@ namespace Votify.API.Services
                 var (categoriasDelEvento, todosProyectos) = await ObtenerDatosEventoCacheAsync(eventoId);
 
                 // Obtener votos realizados por este usuario (o PIN si es anónimo)
-                var votosUsuario = VotosRealizadosPorUsuario.ContainsKey(claveSesion) 
-                    ? VotosRealizadosPorUsuario[claveSesion] 
+                var votosUsuario = VotosRealizadosPorUsuario.ContainsKey(claveSesion)
+                    ? VotosRealizadosPorUsuario[claveSesion]
                     : new List<(int CategoriaId, int ProyectoId)>();
 
                 var categoriasResumen = new List<CategoriaResumenDto>();
@@ -229,6 +229,17 @@ namespace Votify.API.Services
             }
 
             return await ObtenerDashboardAsync(request.EventoId, idUsuario, sessionId);
+        }
+
+        public async Task<IEnumerable<VotoRequestDto>> ObtenerVotosPorProyectoAsync(int proyectoId)
+        {
+            var votos = await _votoRepository.ObtenerPorProyectoIdAsync(proyectoId);
+            var votosPorProyecto = votos.GroupBy(v => v.IdProyecto)
+                .Select(g => new VotoRequestDto
+                {
+                    ProyectoId = g.Key,
+                });
+            return votosPorProyecto;
         }
     }
 }

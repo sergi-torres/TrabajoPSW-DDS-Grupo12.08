@@ -19,5 +19,7 @@ namespace Votify.API.Models.DTOs
         public int? IdCategoria { get; set; }
 
         public string Estado { get; set; } = "disponible";
+
+        public List<int>? IdMiembros { get; set; }
     }
 }
