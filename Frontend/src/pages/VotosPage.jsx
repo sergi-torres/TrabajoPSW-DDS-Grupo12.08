@@ -56,6 +56,8 @@ const CommentCard = ({ author, comment, timestamp, likes }) => (
 // --- COMPONENTE PRINCIPAL ---
 
 export default function ParticipantDashboard() {
+
+  const [votaciones, setVotaciones] = useState([]);
   const navigate = useNavigate();
   const { isPublic, userName } = useContext(AuthContext);
 
@@ -68,48 +70,60 @@ export default function ParticipantDashboard() {
 
   // FETCH DE COMENTARIOS
   useEffect(() => {
-    const fetchComments = async () => {
+  const fetchComments = async () => {
+    const idProyecto = localStorage.getItem("proyectoId");
 
-        const idEventoRaw = localStorage.getItem("eventoId");
-        const idProyecto = localStorage.getItem("proyectoId");
+    if (!idProyecto) {
+      console.log("No hay proyectoId en localStorage");
+      return;
+    }
 
-      try {
-        const voto = await fetch(
-        `http://localhost:5245/api/votacionApi?proyectoId=${idProyecto}`
-        );
+    try {
+      // 1. Obtener votaciones por proyecto
+      const votoRes = await fetch(`http://localhost:5245/api/votacion/porProyecto?proyectoId=${idProyecto}`);
+      
+      if (!votoRes.ok) {
+        throw new Error("Error al obtener votaciones");
+      }
 
-        console.log("Respuesta del fetch de votacionApi:", voto);
-        const idVotacion = voto.id; 
+      const dataVoto = await votoRes.json();
+      console.log("Votaciones obtenidas:", dataVoto);
+      console.log("ID del proyecto:", idProyecto);
+      
+      if (dataVoto && dataVoto.length > 0) {
+        setVotaciones(dataVoto);
+        const idVotacion = dataVoto[0].id; // ID de la primera votación
+        
+        // 2. Obtener comentarios por votación
+        const comentariosRes = await fetch(`http://localhost:5245/api/comentarios?idVotacion=${idVotacion}`);
 
-        if (!idVotacion) {
-          console.warn("No hay idVotacion en localStorage");
-          return;
-        }
+        if (!comentariosRes.ok) throw new Error("Error al cargar comentarios");
 
-        const res = await fetch(
-        `http://localhost:5245/api/comentarios?idVotacion=${idVotacion}`
-        );
-
-        if (!res.ok) throw new Error("Error al cargar comentarios");
-
-        const data = await res.json();
+        const data = await comentariosRes.json();
 
         const mapped = (data ?? []).map((c) => ({
           id: c.id,
-          author: "Anónimo",
+          author: c.nombreUsuario || c.email || "Anónimo",
           comment: c.comentario,
           timestamp: new Date(c.fecha).toLocaleString(),
-          likes: 0
+          likes: c.likes || 0
         }));
 
         setPublicComments(mapped);
-      } catch (err) {
-        console.error("Error cargando comentarios:", err);
+      } else {
+        console.log("No hay votaciones para este proyecto");
+        setVotaciones([]);
+        setPublicComments([]);
       }
-    };
+      
+    } catch (err) {
+      console.error("Error cargando comentarios:", err);
+      setPublicComments([]);
+    }
+  };
 
-    fetchComments();
-  }, []);
+  fetchComments();
+}, []);
 
   const state = {
     participantName: userName || localStorage.getItem("userName") || "Usuario",

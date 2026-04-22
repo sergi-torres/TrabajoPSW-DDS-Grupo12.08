@@ -231,14 +231,19 @@ namespace Votify.API.Services
             return await ObtenerDashboardAsync(request.EventoId, idUsuario, sessionId);
         }
 
-        public async Task<IEnumerable<VotoRequestDto>> ObtenerVotosPorProyectoAsync(int proyectoId)
+        public async Task<IEnumerable<VotoResponseDto>> ObtenerVotosPorProyectoAsync(int proyectoId)
         {
             var votos = await _votoRepository.ObtenerPorProyectoIdAsync(proyectoId);
-            var votosPorProyecto = votos.GroupBy(v => v.IdProyecto)
-                .Select(g => new VotoRequestDto
-                {
-                    ProyectoId = g.Key,
-                });
+
+            var votosPorProyecto = votos.Select(v => new VotoResponseDto
+            {
+                Id = v.Id,
+                ProyectoId = v.IdProyecto,
+                CategoriaId = v.IdCategoria,
+                Comentario = v.Comentario,
+                Fecha = v.FechaVoto,
+            });
+
             return votosPorProyecto;
         }
     }

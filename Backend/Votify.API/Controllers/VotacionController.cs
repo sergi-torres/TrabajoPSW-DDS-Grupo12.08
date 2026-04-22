@@ -57,6 +57,7 @@ namespace Votify.API.Controllers
             try
             {
                 var votosPorProyecto = await _votoService.ObtenerVotosPorProyectoAsync(proyectoId);
+
                 return Ok(votosPorProyecto);
             }
             catch (Exception ex)
