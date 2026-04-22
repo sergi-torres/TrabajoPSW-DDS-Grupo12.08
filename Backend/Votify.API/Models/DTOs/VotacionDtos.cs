@@ -50,4 +50,18 @@ namespace Votify.API.Models.DTOs
         public string Descripcion { get; set; } = string.Empty;
         public string Estado { get; set; } = "disponible"; // "disponible" o "votado"
     }
+
+    public class ConfigTiemposCategoriasDto //sirve como request como responses
+    {
+
+        public bool AutomatizacionActiva {get ; set;}
+
+        public int? EventoId {get; set;}
+
+        public int? CategoriaId {get; set;}
+
+        public DateTime? FechaIni {get; set;}
+
+        public DateTime? FechaFin {get; set;} 
+    }
 }
