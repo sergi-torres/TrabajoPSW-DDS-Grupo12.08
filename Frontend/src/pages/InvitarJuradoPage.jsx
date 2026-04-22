@@ -68,7 +68,7 @@ function ConfirmModal({ isOpen, onClose, onConfirm, title, message, isLoading })
 export default function InvitarJuradoPage() {
     const { eventoId: paramEventoId } = useParams();
     const navigate = useNavigate();
-    const { eventoId: contextId, userColor } = useContext(EventContext);
+    const { eventoId: contextId, userColor, isCollapsed } = useContext(EventContext);
     const [jurados, setJurados] = useState([]);
     const [loading, setLoading] = useState(true);
     const [eventInfo, setEventInfo] = useState(null);
@@ -215,16 +215,20 @@ export default function InvitarJuradoPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center lg:pl-80">
-                <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <EventSidebar />
+                <div className={`transition-all duration-300 ${isCollapsed ? 'lg:pl-28' : 'lg:pl-80'}`}>
+                    <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
+                </div>
             </div>
         );
     }
 
     if (!eventoId || eventoId === "undefined") {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center lg:pl-80 p-6 text-center">
-                <div className="max-w-md bg-white p-8 rounded-3xl shadow-sm border border-red-100">
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6 text-center">
+                <EventSidebar />
+                <div className={`max-w-md bg-white p-8 rounded-3xl shadow-sm border border-red-100 transition-all duration-300 ${isCollapsed ? 'lg:pl-28' : 'lg:pl-80'}`}>
                     <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
                     <h2 className="text-xl font-bold text-gray-900 mb-2">Error de Identificación</h2>
                     <p className="text-gray-500 mb-6">No se ha podido identificar el evento.</p>
@@ -241,7 +245,10 @@ export default function InvitarJuradoPage() {
             <EventSidebar />
 
             <div className="pb-[88px] lg:pb-12">
-                <header className="bg-blue-600 text-white p-6 lg:p-10 lg:pl-80" style={{ backgroundColor: userColor }}>
+                <header 
+                    className={`bg-blue-600 text-white p-6 lg:p-10 transition-all duration-300 ${isCollapsed ? 'lg:pl-28' : 'lg:pl-80'}`} 
+                    style={{ backgroundColor: userColor }}
+                >
                     <div className="max-w-7xl mx-auto">
                         <button
                             onClick={() => navigate('/eventos')}
@@ -257,7 +264,7 @@ export default function InvitarJuradoPage() {
                     </div>
                 </header>
 
-                <main className="max-w-7xl mx-auto p-6 lg:p-10 lg:pl-80 space-y-12">
+                <main className={`max-w-7xl mx-auto p-6 lg:p-10 space-y-12 transition-all duration-300 ${isCollapsed ? 'lg:pl-28' : 'lg:pl-80'}`}>
                     <section className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
                         <div className="p-6 lg:p-8 border-b border-gray-100 bg-gray-50/50">
                             <h2 className="text-xl font-heading font-bold text-gray-900 flex items-center gap-2">

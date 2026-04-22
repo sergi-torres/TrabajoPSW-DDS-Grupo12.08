@@ -23,7 +23,7 @@ namespace Votify.API.Filters
 
             if (string.IsNullOrEmpty(token))
             {
-                Console.WriteLine("[OrganizerOnlyFilter] No se encontrÃ³ token en la cabecera Authorization");
+                Console.WriteLine("[OrganizerOnlyFilter] No se encontro token en la cabecera Authorization");
                 context.Result = new UnauthorizedResult();
                 return;
             }
@@ -35,7 +35,7 @@ namespace Votify.API.Filters
                 
                 if (user == null || string.IsNullOrEmpty(user.Email))
                 {
-                    Console.WriteLine("[OrganizerOnlyFilter] Token invÃ¡lido o usuario no encontrado en Supabase Auth");
+                    Console.WriteLine("[OrganizerOnlyFilter] Token invalido o usuario no encontrado en Supabase Auth");
                     context.Result = new UnauthorizedResult();
                     return;
                 }
@@ -65,8 +65,8 @@ namespace Votify.API.Filters
 
                 if (!idEvento.HasValue)
                 {
-                    Console.WriteLine("[OrganizerOnlyFilter] No se pudo extraer IdEvento de la peticiÃ³n");
-                    context.Result = new BadRequestObjectResult("IdEvento no encontrado en la peticiÃ³n");
+                    Console.WriteLine("[OrganizerOnlyFilter] No se pudo extraer IdEvento de la peticion");
+                    context.Result = new BadRequestObjectResult("IdEvento no encontrado en la peticion");
                     return;
                 }
 
@@ -92,7 +92,7 @@ namespace Votify.API.Filters
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[OrganizerOnlyFilter] Error crÃ­tico: {ex.Message}");
+                Console.WriteLine($"[OrganizerOnlyFilter] Error crítico: {ex.Message}");
                 context.Result = new StatusCodeResult(500);
             }
         }

@@ -1,5 +1,5 @@
 import { Link, useLocation, useParams, useNavigate } from "react-router-dom";
-import { Info, FolderOpen, Trophy, Settings, ClipboardList, User, LogOut, ChevronUp } from "lucide-react";
+import { Info, FolderOpen, Trophy, Settings, ClipboardList, User, LogOut, ChevronUp, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useRef, useEffect, useContext } from "react";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -23,7 +23,7 @@ export function EventSidebar({ color: propColor }) {
     const navigate = useNavigate();
     const location = useLocation();
     const { userName, logout } = useAuth();
-    const { eventoId: contextId, userRole, userColor: activeColor } = useContext(EventContext);
+    const { eventoId: contextId, userRole, userColor: activeColor, isCollapsed, toggleSidebar } = useContext(EventContext);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const menuRef = useRef(null);
 
@@ -87,7 +87,8 @@ export function EventSidebar({ color: propColor }) {
                     "flex flex-col lg:flex-row items-center gap-1 lg:gap-3 px-3 py-2.5 lg:px-4 lg:py-3 rounded-xl transition-all duration-200",
                     isActive 
                         ? cn(activeStyle.bg, activeStyle.text, "font-semibold shadow-sm")
-                        : "text-slate-500 hover:text-slate-900 hover:bg-slate-50"
+                        : "text-slate-500 hover:text-slate-900 hover:bg-slate-50",
+                    isCollapsed && "lg:justify-center lg:px-0 lg:w-12 lg:mx-auto"
                 )}
             >
                 <Icon 
@@ -95,7 +96,8 @@ export function EventSidebar({ color: propColor }) {
                     strokeWidth={isActive ? 2.5 : 2} 
                     color={isActive ? activeColor : "currentColor"}
                 />
-                <span className="text-[11px] lg:text-sm font-medium">{link.label}</span>
+                {!isCollapsed && <span className="text-[11px] lg:text-sm font-medium">{link.label}</span>}
+                {isCollapsed && <span className="text-[11px] lg:hidden font-medium">{link.label}</span>}
             </Link>
         );
     };
@@ -104,17 +106,29 @@ export function EventSidebar({ color: propColor }) {
         <>
             {/* Desktop Sidebar (lg and up) */}
             <aside className={cn(
-                "hidden lg:flex flex-col w-64 fixed left-4 top-6 bottom-6 z-40 bg-white shadow-xl rounded-2xl transition-all duration-300",
+                "hidden lg:flex flex-col fixed left-4 top-6 bottom-6 z-40 bg-white shadow-xl rounded-2xl transition-all duration-300",
+                isCollapsed ? "w-20" : "w-64"
             )}>
+                {/* Toggle Button */}
+                <button
+                    onClick={toggleSidebar}
+                    className="absolute -right-4 top-10 h-8 w-8 bg-white border border-slate-200 rounded-full shadow-lg flex items-center justify-center text-slate-500 hover:text-slate-800 hover:scale-110 transition-all z-50 cursor-pointer"
+                >
+                    {isCollapsed ? <ChevronRight size={20} strokeWidth={2.5} /> : <ChevronLeft size={20} strokeWidth={2.5} />}
+                </button>
+
                 {/* Logo Section */}
                 <div 
-                    className="flex items-center gap-3 text-[1.25rem] font-bold font-heading tracking-tight px-4 py-8 mb-4 cursor-pointer group"
+                    className={cn(
+                        "flex items-center gap-3 text-[1.25rem] font-bold font-heading tracking-tight px-4 py-8 mb-4 cursor-pointer group",
+                        isCollapsed && "justify-center px-0"
+                    )}
                     onClick={() => navigate("/eventos")}
                 >
                     <div className="p-2 bg-slate-50 rounded-xl group-hover:bg-slate-100 transition-colors">
                         <img src={logo} alt="Votify" className="w-7 h-7 object-contain" />
                     </div>
-                    <span className="text-slate-900">Votify</span>
+                    {!isCollapsed && <span className="text-slate-900">Votify</span>}
                 </div>
 
                 <nav className="flex flex-col gap-2 flex-1">
@@ -126,28 +140,38 @@ export function EventSidebar({ color: propColor }) {
                 {/* User Profile Section (Bottom) */}
                 <div className="relative mt-auto border-t border-slate-100 pt-4 px-2" ref={menuRef}>
                     <div 
-                        className="flex items-center justify-between gap-3 cursor-pointer group hover:bg-slate-50 p-2 rounded-xl transition-all"
+                        className={cn(
+                            "flex items-center justify-between gap-3 cursor-pointer group hover:bg-slate-50 p-2 rounded-xl transition-all",
+                            isCollapsed && "justify-center"
+                        )}
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
                     >
                         <div className="flex items-center gap-3 min-w-0">
                             <div className="h-9 w-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-700 font-medium text-sm shadow-sm ring-2 ring-slate-50 group-hover:ring-slate-100 transition-all flex-shrink-0">
                                 {initials}
                             </div>
-                            <div className="flex flex-col min-w-0">
-                                <p className="text-sm font-bold truncate text-slate-900">{userName || "Usuario"}</p>
-                                <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">{userRole || "Invitado"}</p>
-                            </div>
+                            {!isCollapsed && (
+                                <div className="flex flex-col min-w-0">
+                                    <p className="text-sm font-bold truncate text-slate-900">{userName || "Usuario"}</p>
+                                    <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">{userRole || "Invitado"}</p>
+                                </div>
+                            )}
                         </div>
-                        <ChevronUp 
-                            size={16} 
-                            strokeWidth={2.5} 
-                            className={`text-slate-400 transition-transform duration-200 flex-shrink-0 ${isMenuOpen ? "rotate-180" : ""}`} 
-                        />
+                        {!isCollapsed && (
+                            <ChevronUp 
+                                size={16} 
+                                strokeWidth={2.5} 
+                                className={`text-slate-400 transition-transform duration-200 flex-shrink-0 ${isMenuOpen ? "rotate-180" : ""}`} 
+                            />
+                        )}
                     </div>
 
                     {/* Pop-up Menu */}
                     {isMenuOpen && (
-                        <div className="absolute bottom-full left-2 right-2 mb-2 bg-white border border-slate-100 rounded-2xl shadow-xl py-2 z-50 animate-in fade-in zoom-in slide-in-from-bottom-2 duration-200 text-slate-700">
+                        <div className={cn(
+                            "absolute bottom-full mb-2 bg-white border border-slate-100 rounded-2xl shadow-xl py-2 z-50 animate-in fade-in zoom-in slide-in-from-bottom-2 duration-200 text-slate-700",
+                            isCollapsed ? "left-full ml-2 w-48" : "left-2 right-2"
+                        )}>
                             <button 
                                 onClick={() => navigate("/perfil")}
                                 className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-slate-50 transition-colors"

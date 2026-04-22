@@ -10,7 +10,7 @@ import { EventSidebar } from '../components/layout/EventSidebar';
 
 const DashboardVotacionCategorias = () => {
   const navigate = useNavigate();
-  const { userRole, userColor } = useContext(EventContext);
+  const { userRole, userColor, isCollapsed } = useContext(EventContext);
   const { datos, cargando, cargarDashboard } = useVotacionDashboard();
   const [vistaActual, setVistaActual] = useState('categorias');
   const [categoriaElegida, setCategoriaElegida] = useState(null);
@@ -40,7 +40,10 @@ const DashboardVotacionCategorias = () => {
 
       <div className="pb-[88px] lg:pb-0">
         {/* HEADER - Dynamic Style - Full Width */}
-        <header className="text-white p-6 lg:p-10 lg:pl-80" style={{ backgroundColor: userColor }}>
+        <header 
+          className={`text-white p-6 lg:p-10 transition-all duration-300 ${isCollapsed ? 'lg:pl-28' : 'lg:pl-80'}`} 
+          style={{ backgroundColor: userColor }}
+        >
           <div className="max-w-7xl mx-auto">
             <button
               onClick={() => navigate('/eventos')}
@@ -70,7 +73,7 @@ const DashboardVotacionCategorias = () => {
           </div>
         </header>
 
-        <main className="max-w-7xl mx-auto p-6 lg:p-10 lg:pl-80 -mt-8 space-y-8">
+        <main className={`max-w-7xl mx-auto p-6 lg:p-10 -mt-8 space-y-8 transition-all duration-300 ${isCollapsed ? 'lg:pl-28' : 'lg:pl-80'}`}>
           {datos && (
             <>
               {/* Stats Section in a Card */}

@@ -8,6 +8,9 @@ export function EventProvider({ children }) {
     
     const [eventoId, setEventoId] = useState(() => localStorage.getItem("eventoId"));
     const [eventoNombre, setEventoNombre] = useState(() => localStorage.getItem("eventoNombre"));
+    const [isCollapsed, setIsCollapsed] = useState(() => {
+        return localStorage.getItem("sidebarCollapsed") === "true";
+    });
     const [userRole, setUserRole] = useState(() => {
         const stored = localStorage.getItem("propsRol");
         // Ahora almacenamos el rol directamente como string
@@ -22,6 +25,14 @@ export function EventProvider({ children }) {
     };
 
     const userColor = roleColors[userRole] || roleColors["Organizador"];
+
+    const toggleSidebar = () => {
+        setIsCollapsed(prev => {
+            const newValue = !prev;
+            localStorage.setItem("sidebarCollapsed", newValue);
+            return newValue;
+        });
+    };
 
     const setEventContext = (id, nombre, role) => {
         localStorage.setItem("eventoId", id);
@@ -49,6 +60,8 @@ export function EventProvider({ children }) {
             eventoNombre, 
             userRole, 
             userColor, 
+            isCollapsed,
+            toggleSidebar,
             setEventContext, 
             clearEventContext 
         }}>

@@ -16,7 +16,7 @@ import "../components/organizator_dashboard/Dashboard.css";
 export default function OrganizerDashboard() {
   const navigate = useNavigate();
   const { isPublic } = useContext(AuthContext);
-  const { eventoId: contextEventoId, userRole, userColor } = useContext(EventContext);
+  const { eventoId: contextEventoId, userRole, userColor, isCollapsed } = useContext(EventContext);
   const [toast, setToast] = useState(null);
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -138,8 +138,9 @@ export default function OrganizerDashboard() {
 
   if (loading && !dashboardData) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center font-body lg:pl-80">
-        <div className="text-center p-8 bg-white rounded-2xl shadow-sm border border-gray-100">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center font-body">
+        <EventSidebar />
+        <div className={`text-center p-8 bg-white rounded-2xl shadow-sm border border-gray-100 transition-all duration-300 ${isCollapsed ? 'lg:pl-28' : 'lg:pl-80'}`}>
           <LayoutDashboard className="w-12 h-12 text-blue-600 animate-pulse mx-auto mb-4" />
           <p className="text-lg font-medium text-gray-600">Cargando panel de control...</p>
         </div>
@@ -149,8 +150,9 @@ export default function OrganizerDashboard() {
 
   if (error || !dashboardData) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center font-body p-6 lg:pl-80">
-        <div className="max-w-md w-full text-center p-8 bg-white rounded-2xl shadow-sm border border-red-100">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center font-body p-6">
+        <EventSidebar />
+        <div className={`max-w-md w-full text-center p-8 bg-white rounded-2xl shadow-sm border border-red-100 transition-all duration-300 ${isCollapsed ? 'lg:pl-28' : 'lg:pl-80'}`}>
           <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
             <ArrowLeft className="w-8 h-8" />
           </div>
@@ -179,7 +181,10 @@ export default function OrganizerDashboard() {
       <EventSidebar />
 
       <div className="pb-[88px] lg:pb-12">
-        <header className="bg-blue-600 text-white p-6 lg:p-10 lg:pl-80" style={{ backgroundColor: userColor }}>
+        <header 
+          className={`bg-blue-600 text-white p-6 lg:p-10 transition-all duration-300 ${isCollapsed ? 'lg:pl-28' : 'lg:pl-80'}`} 
+          style={{ backgroundColor: userColor }}
+        >
           <div className="max-w-7xl mx-auto">
             {!isPublic && (
               <button
@@ -231,7 +236,7 @@ export default function OrganizerDashboard() {
           </div>
         )}
 
-        <main className="max-w-7xl mx-auto p-6 lg:p-10 lg:pl-80 -mt-10 space-y-8">
+        <main className={`max-w-7xl mx-auto p-6 lg:p-10 -mt-10 space-y-8 transition-all duration-300 ${isCollapsed ? 'lg:pl-28' : 'lg:pl-80'}`}>
           <section className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
             <div className="flex items-center gap-2 mb-6">
               <Target className="w-6 h-6 text-blue-600" style={{ color: userColor }} />
