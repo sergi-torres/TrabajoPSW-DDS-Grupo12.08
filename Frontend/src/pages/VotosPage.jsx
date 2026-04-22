@@ -92,24 +92,52 @@ export default function ParticipantDashboard() {
       
       if (dataVoto && dataVoto.length > 0) {
         setVotaciones(dataVoto);
+
+
+        // FUTURA EXPANSIÓN: MOSTRAR VARIOS COMENTARIOS DE VOTOS DISTINTOS 
+        //>>
+
+
+
         const idVotacion = dataVoto[0].id; // ID de la primera votación
-        
-        // 2. Obtener comentarios por votación
+       
         const comentariosRes = await fetch(`http://localhost:5245/api/comentarios?idVotacion=${idVotacion}`);
 
         if (!comentariosRes.ok) throw new Error("Error al cargar comentarios");
 
         const data = await comentariosRes.json();
 
-        const mapped = (data ?? []).map((c) => ({
-          id: c.id,
-          author: c.nombreUsuario || c.email || "Anónimo",
-          comment: c.comentario,
-          timestamp: new Date(c.fecha).toLocaleString(),
-          likes: c.likes || 0
-        }));
+        console.log("Comentarios obtenidos:", data);
+
+        
+        let mapped = [];
+
+        if (data && data.length > 0) {
+
+            mapped = data.map((c) => ({
+                id: c.id,
+                author: "Anónimo",
+                comment: c.comentario,
+                timestamp: new Date(c.fecha).toLocaleString(),
+                likes: c.likes ?? 0
+            }));
+
+        } else if (dataVoto) {
+
+            mapped = [{
+                id: idVotacion,
+                author: "Anónimo",
+                comment: dataVoto[0].comentario,
+                timestamp: new Date(dataVoto[0].fecha).toLocaleString(),
+                likes: 0
+            }];
+
+        }
+
+        //<<
 
         setPublicComments(mapped);
+
       } else {
         console.log("No hay votaciones para este proyecto");
         setVotaciones([]);
