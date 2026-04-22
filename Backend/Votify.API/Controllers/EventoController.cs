@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Votify.API.Services;
+using Votify.API.Models.DTOs;
 
 namespace Votify.API.Controllers
 {
@@ -35,6 +36,41 @@ namespace Votify.API.Controllers
             {
                 var evento = await _eventoService.JoinEventoPorCodigoAsync(pin);
                 return Ok(evento);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.InnerException?.Message ?? ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Obtener detalle completo de un evento (baremos, criterios, categorías)
+        /// para el formulario de edición.
+        /// </summary>
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetEventoDetalleAsync(int id)
+        {
+            try
+            {
+                var detalle = await _eventoService.GetEventoDetalleAsync(id);
+                return Ok(detalle);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.InnerException?.Message ?? ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Actualizar un evento existente. Bloquea edición de baremos si está en votación.
+        /// </summary>
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateEventoAsync(int id, [FromBody] UpdateEventDto dto)
+        {
+            try
+            {
+                var eventoActualizado = await _eventoService.UpdateEventoAsync(id, dto);
+                return Ok(eventoActualizado);
             }
             catch (Exception ex)
             {

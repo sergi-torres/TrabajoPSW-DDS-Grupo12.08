@@ -1,8 +1,11 @@
 using Supabase.Postgrest.Attributes;
 using System.Runtime.Serialization;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace Votify.API.Models.Domain
 {
+    [JsonConverter(typeof(StringEnumConverter))]
     public enum TipoCriterioEnum
     {
         [EnumMember(Value = "Numerico")]

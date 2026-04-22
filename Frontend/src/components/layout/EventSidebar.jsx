@@ -25,6 +25,9 @@ export function EventSidebar({ userRole, color = "var(--color-org)" }) {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const menuRef = useRef(null);
 
+    // Usar eventId de params o fallback a localStorage
+    const resolvedEventId = eventId || localStorage.getItem("eventoId");
+
     // Dynamic role styles mapping
     const roleStyles = {
         "var(--color-org)": { text: "text-blue-600", bg: "bg-blue-50" },
@@ -56,9 +59,9 @@ export function EventSidebar({ userRole, color = "var(--color-org)" }) {
 
     // Secciones comunes
     const commonLinks = [
-        { label: "General", path: `/eventos/${eventId}`, icon: Info },
-        { label: "Proyectos", path: `/eventos/${eventId}/proyectos`, icon: FolderOpen },
-        { label: "Ranking", path: `/eventos/${eventId}/ranking`, icon: Trophy },
+        { label: "General", path: `/eventos/${resolvedEventId}`, icon: Info },
+        { label: "Proyectos", path: `/eventos/${resolvedEventId}/proyectos`, icon: FolderOpen },
+        { label: "Ranking", path: `/eventos/${resolvedEventId}/ranking`, icon: Trophy },
     ];
 
     // Secciones por rol
@@ -66,11 +69,11 @@ export function EventSidebar({ userRole, color = "var(--color-org)" }) {
     const normalizedRole = userRole?.toLowerCase();
     
     if (normalizedRole === "organizador") {
-        roleLinks.push({ label: "Ajustes", path: `/eventos/${eventId}/settings`, icon: Settings });
+        roleLinks.push({ label: "Ajustes", path: `/edit-event/${resolvedEventId}`, icon: Settings });
     } else if (normalizedRole === "jurado") {
-        roleLinks.push({ label: "Evaluaciones", path: `/eventos/${eventId}/evaluations`, icon: ClipboardList });
+        roleLinks.push({ label: "Evaluaciones", path: `/eventos/${resolvedEventId}/evaluations`, icon: ClipboardList });
     } else if (normalizedRole === "participante") {
-        roleLinks.push({ label: "Mi Proyecto", path: `/eventos/${eventId}/my-project`, icon: User });
+        roleLinks.push({ label: "Mi Proyecto", path: `/eventos/${resolvedEventId}/my-project`, icon: User });
     }
 
     const allLinks = [...commonLinks, ...roleLinks];
