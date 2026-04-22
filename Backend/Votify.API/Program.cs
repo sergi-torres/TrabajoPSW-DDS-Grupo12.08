@@ -36,6 +36,7 @@ builder.Services.AddScoped<Votify.API.Services.IComentarioCualitativoService, Vo
 builder.Services.AddScoped<Votify.API.Services.IVotoService, Votify.API.Services.VotoService>();
 builder.Services.AddScoped<Votify.API.Services.IComentarioCualitativoService, Votify.API.Services.ComentarioCualitativoService>();
 builder.Services.AddScoped<Votify.API.Services.IOrgDashboardService, Votify.API.Services.OrgDashboardService>();
+builder.Services.AddScoped<Votify.API.Services.ICategoriaService, Votify.API.Services.CategoriaService>();
 
 builder.Services.AddCors(options =>
 {
