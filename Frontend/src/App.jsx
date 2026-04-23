@@ -27,6 +27,7 @@ function App() {
 
               <Route element={<ProtectedRoute />}>
                 <Route path="/create-event" element={<CreateEvent />} />
+                <Route path="/eventos/:eventoId/ajustes" element={<CreateEvent />} />
                 <Route path="/eventos" element={<DashboardPage />} />
                 <Route path="/eventos/:eventoId" element={<OrganizerDashboard />} />
                 <Route path="/eventos/:eventoId/jurado" element={<InvitarJuradoPage />} />

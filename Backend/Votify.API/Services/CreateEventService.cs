@@ -1,4 +1,4 @@
-﻿using Votify.API.Factories;
+using Votify.API.Factories;
 using Votify.API.Models.Domain;
 using Votify.API.Models.DTOs;
 
@@ -50,6 +50,26 @@ namespace Votify.API.Services
             };
 
             await _supabaseClient.From<EventoUsuario>().Insert(relacion);
+
+            // Insertar Baremos y Criterios si existen
+            if (NuevoEvento.Baremos != null && NuevoEvento.Baremos.Any())
+            {
+                foreach (var baremo in NuevoEvento.Baremos)
+                {
+                    baremo.IdEvento = eventoCreado.Id;
+                    var baremoResponse = await _supabaseClient.From<Baremo>().Insert(baremo);
+                    var baremoCreado = baremoResponse.Models.First();
+
+                    if (baremo.Criterios != null && baremo.Criterios.Any())
+                    {
+                        foreach (var criterio in baremo.Criterios)
+                        {
+                            criterio.IdBaremo = baremoCreado.Id;
+                            await _supabaseClient.From<Criterio>().Insert(criterio);
+                        }
+                    }
+                }
+            }
 
             return eventoCreado;
         }

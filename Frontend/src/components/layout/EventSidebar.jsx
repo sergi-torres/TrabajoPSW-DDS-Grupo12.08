@@ -69,7 +69,7 @@ export function EventSidebar({ color: propColor }) {
     
     if (normalizedRole === "organizador") {
         roleLinks.push({ label: "Jurado", path: `/eventos/${eventoId}/jurado`, icon: ClipboardList });
-        roleLinks.push({ label: "Ajustes", path: `/eventos/${eventoId}/settings`, icon: Settings });
+        roleLinks.push({ label: "Ajustes", path: `/eventos/${eventoId}/ajustes`, icon: Settings });
     } else if (normalizedRole === "jurado") {
         roleLinks.push({ label: "Evaluaciones", path: `/eventos/${eventoId}/evaluations`, icon: ClipboardList });
     } else if (normalizedRole === "participante") {
