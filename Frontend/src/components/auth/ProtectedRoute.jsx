@@ -7,7 +7,7 @@ const ProtectedRoute = () => {
     const location = useLocation();
 
     // Las rutas de votación pueden ser accedidas por usuarios autenticados O por público con PIN
-    const isVotingRoute = location.pathname === "/dashboard-votacion-categorias" || location.pathname === "/votos";
+    const isVotingRoute = location.pathname.includes("/votar") || location.pathname === "/dashboard-votacion-categorias" || location.pathname === "/votos";
 
     if (isPublic && isVotingRoute) {
         return <Outlet />;

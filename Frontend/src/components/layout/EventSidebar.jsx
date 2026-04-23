@@ -28,6 +28,8 @@ export function EventSidebar({ color: propColor }) {
     const menuRef = useRef(null);
 
     const eventoId = paramId || contextId;
+
+    if (userRole === "Público") return null;
     
     // Dynamic role styles mapping para iconos y estados activos
     const roleStyles = {

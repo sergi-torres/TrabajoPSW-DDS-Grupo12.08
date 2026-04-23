@@ -15,8 +15,8 @@ import "../components/organizator_dashboard/Dashboard.css";
 
 export default function OrganizerDashboard() {
   const navigate = useNavigate();
-  const { isPublic } = useContext(AuthContext);
-  const { eventoId: contextEventoId, userRole, userColor, isCollapsed } = useContext(EventContext);
+  const { isPublic, logout } = useContext(AuthContext);
+  const { eventoId: contextEventoId, userRole, userColor, isCollapsed, clearEventContext } = useContext(EventContext);
   const [toast, setToast] = useState(null);
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -99,6 +99,12 @@ export default function OrganizerDashboard() {
     }
   };
 
+  const handleLogout = () => {
+    logout();
+    clearEventContext();
+    navigate('/login');
+  };
+
   const handleViewDetails = (item) => showToast(`Viendo: ${item.title}`, "info");
 
   const buildStats = (stats) => [
@@ -136,11 +142,13 @@ export default function OrganizerDashboard() {
     },
   ];
 
+  const isPublicRole = userRole === "Público";
+
   if (loading && !dashboardData) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center font-body">
         <EventSidebar />
-        <div className={`text-center p-8 bg-white rounded-2xl shadow-sm border border-gray-100 transition-all duration-300 ${isCollapsed ? 'lg:pl-28' : 'lg:pl-80'}`}>
+        <div className={`text-center p-8 bg-white rounded-2xl shadow-sm border border-gray-100 transition-all duration-300 ${isPublicRole ? 'lg:pl-10' : (isCollapsed ? 'lg:pl-28' : 'lg:pl-80')}`}>
           <LayoutDashboard className="w-12 h-12 text-blue-600 animate-pulse mx-auto mb-4" />
           <p className="text-lg font-medium text-gray-600">Cargando panel de control...</p>
         </div>
@@ -152,7 +160,7 @@ export default function OrganizerDashboard() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center font-body p-6">
         <EventSidebar />
-        <div className={`max-w-md w-full text-center p-8 bg-white rounded-2xl shadow-sm border border-red-100 transition-all duration-300 ${isCollapsed ? 'lg:pl-28' : 'lg:pl-80'}`}>
+        <div className={`max-w-md w-full text-center p-8 bg-white rounded-2xl shadow-sm border border-red-100 transition-all duration-300 ${isPublicRole ? 'lg:pl-10' : (isCollapsed ? 'lg:pl-28' : 'lg:pl-80')}`}>
           <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
             <ArrowLeft className="w-8 h-8" />
           </div>
@@ -182,19 +190,33 @@ export default function OrganizerDashboard() {
 
       <div className="pb-[88px] lg:pb-12">
         <header 
-          className={`bg-blue-600 text-white p-6 lg:p-10 transition-all duration-300 ${isCollapsed ? 'lg:pl-28' : 'lg:pl-80'}`} 
+          className={`bg-blue-600 text-white p-6 lg:p-10 transition-all duration-300 ${isPublicRole ? 'lg:pl-10' : (isCollapsed ? 'lg:pl-28' : 'lg:pl-80')}`} 
           style={{ backgroundColor: userColor }}
         >
           <div className="max-w-7xl mx-auto">
-            {!isPublic && (
-              <button
-                onClick={() => navigate('/eventos')}
-                className="inline-flex items-center gap-2 mb-6 px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-xl transition-all duration-200 border border-white/10 font-heading font-semibold text-sm group"
-              >
-                <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" strokeWidth={2.5} />
-                Volver a eventos
-              </button>
-            )}
+            <div className="flex justify-between items-start mb-6">
+              {!isPublicRole ? (
+                <button
+                  onClick={() => navigate('/eventos')}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-xl transition-all duration-200 border border-white/10 font-heading font-semibold text-sm group"
+                >
+                  <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" strokeWidth={2.5} />
+                  Volver a eventos
+                </button>
+              ) : (
+                <div /> // Spacer
+              )}
+
+              {isPublicRole && (
+                <button
+                  onClick={handleLogout}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-rose-500/20 hover:bg-rose-500/30 backdrop-blur-sm rounded-xl transition-all duration-200 border border-white/10 font-heading font-semibold text-sm group"
+                >
+                  <LogOut className="w-4 h-4" strokeWidth={2.5} />
+                  Salir
+                </button>
+              )}
+            </div>
 
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
               <div className="max-w-2xl">
@@ -236,7 +258,7 @@ export default function OrganizerDashboard() {
           </div>
         )}
 
-        <main className={`max-w-7xl mx-auto p-6 lg:p-10 -mt-10 space-y-8 transition-all duration-300 ${isCollapsed ? 'lg:pl-28' : 'lg:pl-80'}`}>
+        <main className={`max-w-7xl mx-auto p-6 lg:p-10 -mt-10 space-y-8 transition-all duration-300 ${isPublicRole ? 'lg:pl-10' : (isCollapsed ? 'lg:pl-28' : 'lg:pl-80')}`}>
           <section className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
             <div className="flex items-center gap-2 mb-6">
               <Target className="w-6 h-6 text-blue-600" style={{ color: userColor }} />

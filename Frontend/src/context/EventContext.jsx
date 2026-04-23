@@ -1,4 +1,4 @@
-import { createContext, useState, useContext } from "react";
+import { createContext, useState, useContext, useEffect } from "react";
 import { AuthContext } from "./AuthContext";
 
 const EventContext = createContext(null);
@@ -12,10 +12,19 @@ export function EventProvider({ children }) {
         return localStorage.getItem("sidebarCollapsed") === "true";
     });
     const [userRole, setUserRole] = useState(() => {
+        if (isPublic) return "Público";
         const stored = localStorage.getItem("propsRol");
-        // Ahora almacenamos el rol directamente como string
-        return stored || (isPublic ? "Público" : "Organizador");
+        return stored || "Organizador";
     });
+
+    // Sincronizar rol cuando cambia isPublic (ej: al entrar con PIN)
+    useEffect(() => {
+        if (isPublic) {
+            setUserRole("Público");
+            setEventoId(localStorage.getItem("eventoId"));
+            setEventoNombre(localStorage.getItem("eventoNombre"));
+        }
+    }, [isPublic]);
 
     const roleColors = {
         "Organizador": "var(--color-org)",

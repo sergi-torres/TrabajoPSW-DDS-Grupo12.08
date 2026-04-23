@@ -31,6 +31,7 @@ function App() {
                 <Route path="/eventos/:eventoId" element={<OrganizerDashboard />} />
                 <Route path="/eventos/:eventoId/jurado" element={<InvitarJuradoPage />} />
                 <Route path="/eventos/:eventoId/ranking" element={<DashboardVotacionCategorias />} />
+                <Route path="/eventos/:eventoId/votar" element={<DashboardVotacionCategorias />} />
                 <Route path="/votos" element={<VotosPage />} />
                 <Route path="/dashboard-votacion-categorias" element={<DashboardVotacionCategorias />} />
               </Route>
