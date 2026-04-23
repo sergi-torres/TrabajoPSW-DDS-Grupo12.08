@@ -60,5 +60,59 @@ namespace Votify.API.Repositories
                 IdEvento = c.IdEvento
             }).ToList();
         }
+
+
+        //!a parir los asñadiste tu brad 
+        //Deberiamos tener siempre el ID de categoria pero por asegurar
+        public async Task<Categoria?> ObtenerPorIdAsync(int id)
+        {
+            var response = await _supabase
+                .From<Categoria>()
+                .Where(c => c.Id == id)
+                .Select("*")
+                .Get();
+
+            return response.Models.FirstOrDefault();
+        }
+
+        public async Task<bool> ActualizarAsync(Categoria categoria)
+        {
+            try
+            {
+               
+                var response = await _supabase
+                    .From<Categoria>()
+                    .Update(categoria);
+
+                // Si ResponseMessage es null, devuelve false. 
+                // Si no es null, devuelve el valor de IsSuccessStatusCode.
+                return response.ResponseMessage?.IsSuccessStatusCode ?? false;
+            }
+            catch (Exception ex)
+            {
+                // Loguear el error si es necesario
+                Console.WriteLine($"Error en Supabase: {ex.Message}");
+                return false;
+            }
+        }
+
+        public async Task<List<ConfigTiemposCategoriasDto>> ObtenerPorEventoIdConFechasAsync(int eventoId)
+        {
+            var response = await _supabase
+                .From<Categoria>()
+                .Where(c => c.IdEvento == eventoId)
+                .Select("*")
+                .Get();
+
+            return response.Models.Select(c => new ConfigTiemposCategoriasDto
+            {   
+                EventoId = c.IdEvento,
+                CategoriaId = c.Id,
+                Nombre = c.Nombre,
+                FechaIni = c.FechaIni,
+                FechaFin = c.FechaFin,
+            }).ToList();
+        }
+
     }
 }

@@ -54,11 +54,11 @@ namespace Votify.API.Models.DTOs
     public class ConfigTiemposCategoriasDto //sirve como request como responses
     {
 
-        public bool AutomatizacionActiva {get ; set;}
-
         public int? EventoId {get; set;}
 
-        public int? CategoriaId {get; set;}
+        public int CategoriaId {get; set;}
+
+        public required string Nombre {get; set;}
 
         public DateTime? FechaIni {get; set;}
 

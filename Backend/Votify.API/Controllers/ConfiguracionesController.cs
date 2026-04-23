@@ -24,11 +24,10 @@ namespace Votify.API.Controllers
         {
             try 
             {
-        
                 var resultado = await _eventoService.ListarConfiguracionesTiempoAsync(eventoId);
                 return Ok(resultado);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500, "Error al recuperar la configuración");
             }
@@ -37,7 +36,7 @@ namespace Votify.API.Controllers
         [HttpPost("configurar")]
         public async Task<IActionResult> ConfigurarTiempos([FromBody] ConfigTiemposCategoriasDto request)
         {
-            if (request.CategoriaId == null) return BadRequest("El ID de categoría es obligatorio.");
+            if (request.CategoriaId <= 0) return BadRequest("El ID de categoría es obligatorio.");
 
             try
             {

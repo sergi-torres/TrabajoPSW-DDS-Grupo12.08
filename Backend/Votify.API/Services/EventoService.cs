@@ -1,5 +1,6 @@
 using Votify.API.Models.Domain;
 using Votify.API.Models.DTOs;
+using Votify.API.Repositories;
 
 namespace Votify.API.Services
 {
@@ -7,9 +8,13 @@ namespace Votify.API.Services
     {
         private readonly Supabase.Client _supabase;
 
-        public EventoService(Supabase.Client supabase)
+        private readonly ICategoriaRepository _categoriaRepository;
+
+
+        public EventoService(Supabase.Client supabase, ICategoriaRepository categoriaRepository)
         {
             _supabase = supabase;
+            _categoriaRepository = categoriaRepository;
         }
 
         public async Task<List<EventoResponseDto>> GetEventosByUsuarioAsync(int userId)
@@ -83,5 +88,39 @@ namespace Votify.API.Services
                 throw new Exception("Error al validar el PIN del evento", ex);
             }
         }
+    
+        public async Task<IEnumerable<ConfigTiemposCategoriasDto>> ListarConfiguracionesTiempoAsync(int eventoId)
+        {
+        
+            var categorias = await _categoriaRepository.ObtenerPorEventoIdConFechasAsync(eventoId);
+
+            return categorias.Select(c => new ConfigTiemposCategoriasDto
+            {
+                EventoId = c.EventoId,
+                CategoriaId = c.CategoriaId,
+                Nombre = c.Nombre,
+                FechaIni = c.FechaIni,
+                FechaFin = c.FechaFin
+            });
+        }
+
+        public async Task<bool> ActualizarTiemposAsync(ConfigTiemposCategoriasDto request)
+        {
+           
+            var categoria = await _categoriaRepository.ObtenerPorIdAsync(request.CategoriaId);
+
+            if (categoria == null)
+            {
+                return false; // El controlador devolverá un 404
+            }
+            
+            categoria.FechaIni = request.FechaIni;
+            categoria.FechaFin = request.FechaFin;
+           
+            return await _categoriaRepository.ActualizarAsync(categoria);
+        }
     }
 }
+
+
+

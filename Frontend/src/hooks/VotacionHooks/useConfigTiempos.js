@@ -7,13 +7,11 @@ export const useConfigTiempos = () => {
   const [cargandoCategorias, setCargandoCategorias] = useState(false);
   const [estaGuardando, setEstaGuardando] = useState(false);
 
-  // 1. Obtener categorías filtradas por el ID del evento
   const obtenerCategoriasPorEvento = useCallback(async (eventoId) => {
     if (!eventoId) return;
     
     setCargandoCategorias(true);
     try {
-      // CORRECCIÓN: Usamos el método directamente del objeto importado
       const datos = await ConfigTiemposVotacion.obtenerPorEvento(eventoId);
       setCategorias(datos);
     } catch (error) {
@@ -24,11 +22,10 @@ export const useConfigTiempos = () => {
     }
   }, []);
 
-  // 2. Enviar la configuración (Guardar o Desactivar)
+  //Enviar la configuración (Guardar o Desactivar)
   const guardarConfiguracion = useCallback(async (datosDto, esDesactivacion = false) => {
     setEstaGuardando(true);
     try {
-      // CORRECCIÓN: Usamos el método del objeto importado
       await ConfigTiemposVotacion.guardarConfiguracion(datosDto);
       
       toast.success(esDesactivacion 
