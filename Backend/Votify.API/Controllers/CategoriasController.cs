@@ -63,6 +63,33 @@ namespace Votify.API.Controllers
             }
         }
 
+        // GET: api/categorias/evento/1
+        [HttpGet("id/{categoriaId}")]
+        public async Task<IActionResult> GetById(int categoriaId)
+        {
+            try
+            {
+                var categoria = await _categoriaRepository.ObtenerPorIdAsync(categoriaId);
+                if (categoria == null)
+                {
+                    return NotFound();
+                }
+
+                var dto = new CategoriaResponseDto
+                {
+                    Id = categoria.Id,
+                    Nombre = categoria.Nombre,
+                    IdEvento = categoria.IdEvento
+                };
+
+                return Ok(dto);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
         // POST: api/categorias
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateCategoriaDto dto)
@@ -96,5 +123,6 @@ namespace Votify.API.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+
     }
 }

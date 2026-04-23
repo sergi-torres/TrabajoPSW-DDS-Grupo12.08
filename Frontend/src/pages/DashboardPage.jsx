@@ -7,6 +7,7 @@ import { EventCard } from "../components/eventos/EventCard";
 import { getMisEventos } from "../api/eventosApi";
 import { AuthContext } from "../context/AuthContext";
 import { getProyectosByParticipante } from "../api/proyectoApi";
+import { categoriasApi } from "../api/categoriasApi";
 
 /**
  * EventDashboardPage — Página principal con la lista de eventos.
@@ -129,6 +130,8 @@ export default function DashboardPage() {
                                                             localStorage.setItem("proyectoId", proyecto.id);
                                                             localStorage.setItem("proyectoNombre", proyecto.nombre);
                                                             localStorage.setItem("proyectoDescripcion", proyecto.descripcion);
+                                                            localStorage.setItem("categoriaProyecto", proyecto.idCategoria);
+
 
                                                             navigate("/votos");
 
