@@ -61,6 +61,7 @@
         public string EventName { get; set; } = string.Empty;
         public string Phase { get; set; } = "Votación Abierta";
         public DateTime? FechaFin { get; set; }
+        public string EventCode { get; set; } = string.Empty;
     }
 
     /// <summary>

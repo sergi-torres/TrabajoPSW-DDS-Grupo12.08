@@ -242,6 +242,7 @@ export default function OrganizerDashboard() {
                   <LiveHeader
                     eventName={liveInfo.eventName}
                     phase={liveInfo.phase}
+                    eventCode={liveInfo.eventCode}
                     onExtend={handleExtend}
                     onClose={handleClose}
                     minimal={true}
