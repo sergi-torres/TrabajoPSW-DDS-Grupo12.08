@@ -1,10 +1,10 @@
 // src/components/dashboard/LiveHeader.jsx
 import { useState, useEffect } from "react";
-import { Clock, AlertTriangle, TimerReset } from "lucide-react";
+import { Clock, AlertTriangle, TimerReset, Hash } from "lucide-react";
 
 const INITIAL_SECONDS = 0; // mock: tiempo agotado
 
-export default function LiveHeader({ eventName, phase, onExtend, onClose, minimal = false }) {
+export default function LiveHeader({ eventName, phase, eventCode, onExtend, onClose, minimal = false }) {
   const [seconds, setSeconds] = useState(INITIAL_SECONDS);
   const [running, setRunning] = useState(false); // mock: parado
 
@@ -28,10 +28,23 @@ export default function LiveHeader({ eventName, phase, onExtend, onClose, minima
   if (minimal) {
     return (
       <div className="flex flex-col sm:flex-row items-center gap-6 bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20">
+        {/* Event Code Section */}
+        <div className="flex items-center gap-3 border-r border-white/20 pr-6 mr-2 last:border-0 last:mr-0 last:pr-0">
+          <div className="p-2 bg-emerald-500/20 text-emerald-300 rounded-xl">
+            <Hash size={20} strokeWidth={2.5} />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[10px] uppercase font-bold text-emerald-200 leading-none mb-1 tracking-wider">Código Evento</span>
+            <span className="text-2xl font-heading font-black tracking-widest leading-none text-white">
+              {eventCode || "000000"}
+            </span>
+          </div>
+        </div>
+
         <div className="flex items-center gap-3 border-r border-white/20 pr-6 mr-2 last:border-0 last:mr-0 last:pr-0">
           <Clock size={20} className="text-blue-200" />
           <div className="flex flex-col">
-            <span className="text-[10px] uppercase font-bold text-blue-200 leading-none mb-1">Tiempo Restante</span>
+            <span className="text-[10px] uppercase font-bold text-blue-200 leading-none mb-1 tracking-wider">Tiempo Restante</span>
             <span className="text-2xl font-heading font-bold tabular-nums leading-none">
               {hh}:{mm}:{ss}
             </span>
@@ -69,6 +82,10 @@ export default function LiveHeader({ eventName, phase, onExtend, onClose, minima
           <h1 className="live-header__event">{eventName}</h1>
           <span className="live-header__sep" aria-hidden="true">|</span>
           <span className="live-header__phase">{phase}</span>
+          <span className="live-header__sep" aria-hidden="true">|</span>
+          <span className="live-header__code" style={{ fontWeight: 'bold', color: 'var(--color-pub)', marginLeft: '10px' }}>
+            <Hash size={16} inline /> {eventCode}
+          </span>
         </div>
       </div>
 

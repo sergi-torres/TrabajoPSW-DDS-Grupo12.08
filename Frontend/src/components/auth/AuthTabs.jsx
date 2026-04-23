@@ -10,7 +10,7 @@ import { AuthForm } from "./AuthForm";
  * Utiliza Framer Motion para lograr una transición visual premium en el 
  * botón activo y anima la entrada/salida de los formularios (<AuthForm />).
  */
-export function AuthTabs() {
+export function AuthTabs({ invitationToken = null }) {
     // ESTADO: Guarda qué pestaña está activa en este momento.
     // Por defecto es "login".
     const [activeTab, setActiveTab] = useState("login");
@@ -66,7 +66,7 @@ export function AuthTabs() {
                     transition={{ duration: 0.2, ease: "easeInOut" }}
                 >
                     {/* Le pasamos al componente AuthForm el modo actual para que dibuje o esconda campos */}
-                    <AuthForm mode={activeTab} />
+                    <AuthForm mode={activeTab} invitationToken={invitationToken} />
                 </Motion.div>
             </AnimatePresence>
         </div>

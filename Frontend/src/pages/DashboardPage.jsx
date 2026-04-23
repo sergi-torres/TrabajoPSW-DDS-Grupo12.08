@@ -6,12 +6,14 @@ import { MobileNav } from "../components/eventos/MobileNav";
 import { EventCard } from "../components/eventos/EventCard";
 import { getMisEventos } from "../api/eventosApi";
 import { AuthContext } from "../context/AuthContext";
+import { EventContext } from "../context/EventContext";
 
 /**
  * EventDashboardPage — Página principal con la lista de eventos.
  */
 export default function DashboardPage() {
     const { userId } = useContext(AuthContext);
+    const { setEventContext } = useContext(EventContext);
     const navigate = useNavigate();
     const [misEventos, setMisEventos] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -101,29 +103,11 @@ export default function DashboardPage() {
                                             {...evento}
                                             onClick={
                                                 () => {
-                                                    const rol = JSON.parse(localStorage.getItem("propsRol")).label;
-
-                                                    if (rol === "Participante") {
-                                                        localStorage.setItem("eventoId", evento.id);
-                                                        localStorage.setItem("eventoNombre", evento.nombre);
-                                                        navigate("/votos");
-
-                                                        localStorage.setItem("eventoDescripcion", evento.descripcion);
-                                                    }
+                                                    // Usar el rol que viene del backend en el DTO
+                                                    setEventContext(evento.id, evento.nombre, evento.rol || "Participante");
                                                     
-                                                    if(rol === "Jurado") {
-                                                        localStorage.setItem("eventoId", evento.id);
-                                                        localStorage.setItem("eventoNombre", evento.nombre);
-                                                        localStorage.setItem("eventoDescripcion", evento.descripcion);
-                                                        navigate("/dashboard-votacion-categorias");
-                                                    }
-                                                    if(rol === "Organizador") {
-                                                        localStorage.setItem("eventoId", evento.id);
-                                                        localStorage.setItem("eventoNombre", evento.nombre);
-                                                        localStorage.setItem("eventoDescripcion", evento.descripcion);
-                                                        navigate("/organizador-dashboard");
-                                                    }
-                                                    
+                                                    // Ahora todos van a la misma ruta base del evento
+                                                    navigate(`/eventos/${evento.id}`);
                                                 }
                                             }
                                         />
