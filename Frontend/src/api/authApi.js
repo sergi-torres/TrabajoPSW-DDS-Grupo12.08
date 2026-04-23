@@ -1,10 +1,10 @@
 ﻿const API_URL = "http://localhost:5245/api/Auth";
 
-export async function loginUser(email, password) {
+export async function loginUser(email, password, invitationToken = null) {
     const response = await fetch(`${API_URL}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, invitationToken }),
     });
 
     if (!response.ok) {
@@ -15,11 +15,11 @@ export async function loginUser(email, password) {
     return response.json();
 }
 
-export async function registerUser({ nombreCompleto, nombreUsuario, email, password, rol = "Organizador" }) {
+export async function registerUser({ nombreCompleto, nombreUsuario, email, password, invitationToken = null }) {
     const response = await fetch(`${API_URL}/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nombreCompleto, nombreUsuario, email, password, rol }),
+        body: JSON.stringify({ nombreCompleto, nombreUsuario, email, password, invitationToken }),
     });
 
     if (!response.ok) {

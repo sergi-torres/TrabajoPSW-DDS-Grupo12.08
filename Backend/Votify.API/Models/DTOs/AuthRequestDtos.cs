@@ -24,6 +24,8 @@ namespace Votify.API.Models.DTOs
         [MaxLength(60)]
         [MinLength(4)]
         public string? NombreUsuario { get; set; } = string.Empty;
+
+        public string? InvitationToken { get; set; }
     }
 
     // DTO para hacer Login
@@ -39,5 +41,7 @@ namespace Votify.API.Models.DTOs
         [MaxLength(60)]
         [MinLength(6)]
         public string Password { get; set; } = string.Empty;
+
+        public string? InvitationToken { get; set; }
     }
 }
