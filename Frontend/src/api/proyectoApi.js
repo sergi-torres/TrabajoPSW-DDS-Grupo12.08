@@ -1,4 +1,4 @@
-﻿const BASE_URL = "http://localhost:5245/api/proyecto";
+﻿const BASE_URL = "http://localhost:5245/api/proyectos";
 
 // Obtener todos los proyectos
 export async function getProyectos() {

@@ -7,17 +7,23 @@ using Votify.API.Repositories;
 namespace Votify.API.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
-    public class ProyectoController : ControllerBase
+    [Route("api/proyectos")]
+    public class ProyectosController : ControllerBase
     {
         private readonly IProyectoRepository _proyectoRepository;
 
-        public ProyectoController(IProyectoRepository proyectoRepository)
+        public ProyectosController(IProyectoRepository proyectoRepository)
         {
             _proyectoRepository = proyectoRepository;
         }
 
-        // GET: api/proyecto
+        [HttpGet("test")]
+        public IActionResult Test()
+        {
+            return Ok("ProyectosController is working");
+        }
+
+        // GET: api/proyectos
         [HttpGet]
         public async Task<ActionResult<List<Proyecto>>> ObtenerTodos()
         {
@@ -25,7 +31,7 @@ namespace Votify.API.Controllers
             return Ok(proyectos);
         }
 
-        // GET: api/proyecto/{id}
+        // GET: api/proyectos/{id}
         [HttpGet("{id}")]
         public async Task<ActionResult<Proyecto>> ObtenerPorId(int id)
         {
@@ -37,7 +43,7 @@ namespace Votify.API.Controllers
             return Ok(proyecto);
         }
 
-        // GET: api/proyecto/categoria/{categoriaId}
+        // GET: api/proyectos/categoria/{categoriaId}
         [HttpGet("categoria/{categoriaId}")]
         public async Task<ActionResult<List<Proyecto>>> ObtenerPorCategoria(int categoriaId)
         {
@@ -45,11 +51,16 @@ namespace Votify.API.Controllers
             return Ok(proyectos);
         }
 
-        // GET: api/proyecto/participante/{id}
+        // GET: api/proyectos/participante/{id}
         [HttpGet("participante/{id}")]
-        public async Task<ActionResult<List<Proyecto>>> ObtenerPorParticipante(int id)
+        public async Task<ActionResult<List<ProyectoRequestDto>>> ObtenerPorParticipante(int id)
         {
             var proyectos = await _proyectoRepository.ObtenerPorIdParticipanteAsync(id);
+
+            if (proyectos == null)
+            {
+                return Ok(new List<ProyectoRequestDto>());
+            }
 
             var response = proyectos.Select(p => new ProyectoRequestDto
             {
@@ -67,7 +78,7 @@ namespace Votify.API.Controllers
             return Ok(response);
         }
 
-        // GET: api/proyecto/evento/{eventoId}
+        // GET: api/proyectos/evento/{eventoId}
         [HttpGet("evento/{eventoId}")]
         public async Task<ActionResult<List<Proyecto>>> ObtenerPorEvento(int eventoId)
         {
@@ -83,8 +94,6 @@ namespace Votify.API.Controllers
             {
                 return BadRequest("El proyecto no puede ser null");
             }
-
-            //Console.WriteLine($"Recibido: Nombre={proyecto.Nombre}, Descripcion={proyecto.Descripcion}");
 
             var creado = await _proyectoRepository.CrearAsync(proyecto);
 
@@ -106,8 +115,6 @@ namespace Votify.API.Controllers
                 Estado = creado.Estado ?? "disponible",
                 IdMiembros = creado.IdMiembros ?? new List<int>()
             };
-
-            //Console.WriteLine($"Creado: ID={creado.Id}, Nombre={response.Nombre}");
 
             return Ok(response);
         }
