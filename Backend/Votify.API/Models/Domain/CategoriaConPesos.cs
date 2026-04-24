@@ -11,4 +11,4 @@
         public int VotosRestantes { get; set; } = 3;
         public string Estado { get; set; } = "pendiente"; // "pendiente" o "completado"
     }
-}
+} 

@@ -83,5 +83,239 @@ namespace Votify.API.Services
                 throw new Exception("Error al validar el PIN del evento", ex);
             }
         }
+
+        public async Task<EventoDetalleDto> GetEventoDetalleAsync(int eventoId)
+        {
+            try
+            {
+                // Obtener el evento básico
+                var eventoResponse = await _supabase
+                    .From<EventoLite>()
+                    .Filter("id", Supabase.Postgrest.Constants.Operator.Equals, eventoId.ToString())
+                    .Get();
+
+                var evento = eventoResponse.Models.FirstOrDefault()
+                    ?? throw new Exception("Evento no encontrado.");
+
+                // Obtener baremos del evento
+                var baremosResponse = await _supabase
+                    .From<Baremo>()
+                    .Filter("idevento", Supabase.Postgrest.Constants.Operator.Equals, eventoId.ToString())
+                    .Get();
+
+                var baremosDto = new List<BaremoDetalleDto>();
+                foreach (var baremo in baremosResponse.Models)
+                {
+                    // Obtener criterios de cada baremo
+                    var criteriosResponse = await _supabase
+                        .From<Criterio>()
+                        .Filter("idbaremo", Supabase.Postgrest.Constants.Operator.Equals, baremo.Id.ToString())
+                        .Get();
+
+                    baremosDto.Add(new BaremoDetalleDto
+                    {
+                        Id = baremo.Id,
+                        Nombre = baremo.Nombre,
+                        Criterios = criteriosResponse.Models.Select(c => new CriterioDetalleDto
+                        {
+                            Id = c.Id,
+                            Nombre = c.Nombre,
+                            Peso = c.Peso,
+                            TipoCriterio = c.TipoCriterio.ToString()
+                        }).ToList()
+                    });
+                }
+
+                // Obtener categorías del evento
+                var categoriasResponse = await _supabase
+                    .From<Categoria>()
+                    .Filter("idevento", Supabase.Postgrest.Constants.Operator.Equals, eventoId.ToString())
+                    .Get();
+
+                var categoriasDto = new List<CategoriaDetalleDto>();
+                foreach (var cat in categoriasResponse.Models)
+                {
+                    // Obtener pesos de cada categoría
+                    var pesosResponse = await _supabase
+                        .From<PesoCategoriaRol>()
+                        .Filter("idcategoria", Supabase.Postgrest.Constants.Operator.Equals, cat.Id.ToString())
+                        .Get();
+
+                    categoriasDto.Add(new CategoriaDetalleDto
+                    {
+                        Id = cat.Id,
+                        Nombre = cat.Nombre,
+                        Pesos = pesosResponse.Models.Select(p => new PesoRolDetalleDto
+                        {
+                            RolVotante = p.RolVotante,
+                            Peso = p.Peso
+                        }).ToList()
+                    });
+                }
+
+                return new EventoDetalleDto
+                {
+                    Id = evento.Id,
+                    Nombre = evento.Nombre,
+                    Descripcion = evento.Descripcion,
+                    FechaInicio = evento.FechaInicio,
+                    FechaFin = evento.FechaFin,
+                    TipoEvento = evento.TipoEvento,
+                    Estado = evento.Estado,
+                    CodEvento = evento.CodEvento,
+                    IdOrganizador = evento.IdOrganizador,
+                    Baremos = baremosDto,
+                    Categorias = categoriasDto
+                };
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error al obtener el detalle del evento", ex);
+            }
+        }
+
+        public async Task<EventoDetalleDto> UpdateEventoAsync(int eventoId, UpdateEventDto dto)
+        {
+            try
+            {
+                // Verificar que el evento existe
+                var eventoResponse = await _supabase
+                    .From<EventoLite>()
+                    .Filter("id", Supabase.Postgrest.Constants.Operator.Equals, eventoId.ToString())
+                    .Get();
+
+                var evento = eventoResponse.Models.FirstOrDefault()
+                    ?? throw new Exception("Evento no encontrado.");
+
+                // Verificar si el evento está en votación (bloquear edición de baremos)
+                bool enVotacion = evento.Estado == "Activo" || evento.Estado == "EnVotacion";
+
+                // Actualizar campos básicos del evento
+                await _supabase
+                    .From<EventoLite>()
+                    .Filter("id", Supabase.Postgrest.Constants.Operator.Equals, eventoId.ToString())
+                    .Set(e => e.Nombre, dto.Nombre)
+                    .Set(e => e.Descripcion, dto.Descripcion)
+                    .Set(e => e.FechaInicio, dto.FechaInicio)
+                    .Set(e => e.FechaFin, dto.FechaFin)
+                    .Set(e => e.TipoEvento, dto.TipoEvento)
+                    .Update();
+
+                // Solo actualizar baremos/criterios si NO está en votación
+                if (!enVotacion && dto.Baremos != null)
+                {
+                    // Borrar criterios existentes de los baremos del evento
+                    var baremosExistentes = await _supabase
+                        .From<Baremo>()
+                        .Filter("idevento", Supabase.Postgrest.Constants.Operator.Equals, eventoId.ToString())
+                        .Get();
+
+                    foreach (var baremo in baremosExistentes.Models)
+                    {
+                        // Borrar criterios del baremo
+                        await _supabase
+                            .From<Criterio>()
+                            .Filter("idbaremo", Supabase.Postgrest.Constants.Operator.Equals, baremo.Id.ToString())
+                            .Delete();
+                    }
+
+                    // Borrar baremos existentes
+                    await _supabase
+                        .From<Baremo>()
+                        .Filter("idevento", Supabase.Postgrest.Constants.Operator.Equals, eventoId.ToString())
+                        .Delete();
+
+                    // Crear nuevos baremos con sus criterios
+                    foreach (var baremoDto in dto.Baremos)
+                    {
+                        var nuevoBaremo = new Baremo
+                        {
+                            Nombre = baremoDto.Nombre,
+                            IdEvento = eventoId
+                        };
+
+                        var baremoCreado = await _supabase.From<Baremo>().Insert(nuevoBaremo);
+                        var baremoId = baremoCreado.Models.First().Id;
+
+                        if (baremoDto.Criterios != null)
+                        {
+                            foreach (var criterioDto in baremoDto.Criterios)
+                            {
+                                var tipoCriterio = Enum.Parse<TipoCriterioEnum>(criterioDto.TipoCriterio, ignoreCase: true);
+
+                                var nuevoCriterio = new Criterio
+                                {
+                                    Nombre = criterioDto.Nombre,
+                                    Peso = (float)criterioDto.Peso,
+                                    TipoCriterio = tipoCriterio,
+                                    IdBaremo = baremoId
+                                };
+
+                                await _supabase.From<Criterio>().Insert(nuevoCriterio);
+                            }
+                        }
+                    }
+                }
+
+                // Actualizar categorías si se proporcionan y NO está en votación
+                if (!enVotacion && dto.Categorias != null)
+                {
+                    // Borrar pesos de categorías existentes
+                    var categoriasExistentes = await _supabase
+                        .From<Categoria>()
+                        .Filter("idevento", Supabase.Postgrest.Constants.Operator.Equals, eventoId.ToString())
+                        .Get();
+
+                    foreach (var cat in categoriasExistentes.Models)
+                    {
+                        await _supabase
+                            .From<PesoCategoriaRol>()
+                            .Filter("idcategoria", Supabase.Postgrest.Constants.Operator.Equals, cat.Id.ToString())
+                            .Delete();
+                    }
+
+                    // Borrar categorías existentes
+                    await _supabase
+                        .From<Categoria>()
+                        .Filter("idevento", Supabase.Postgrest.Constants.Operator.Equals, eventoId.ToString())
+                        .Delete();
+
+                    // Crear nuevas categorías
+                    foreach (var catDto in dto.Categorias)
+                    {
+                        var nuevaCat = new Categoria
+                        {
+                            Nombre = catDto.Nombre,
+                            IdEvento = eventoId
+                        };
+
+                        var catCreada = await _supabase.From<Categoria>().Insert(nuevaCat);
+                        var catId = catCreada.Models.First().Id;
+
+                        if (catDto.Pesos != null)
+                        {
+                            foreach (var pesoDto in catDto.Pesos)
+                            {
+                                var nuevoPeso = new PesoCategoriaRol
+                                {
+                                    IdCategoria = catId,
+                                    RolVotante = pesoDto.RolVotante,
+                                    Peso = (float)pesoDto.Peso
+                                };
+
+                                await _supabase.From<PesoCategoriaRol>().Insert(nuevoPeso);
+                            }
+                        }
+                    }
+                }
+
+                // Devolver el evento actualizado
+                return await GetEventoDetalleAsync(eventoId);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error al actualizar el evento", ex);
+            }
+        }
     }
 }

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 
 using Votify.API.Models.Domain;
 using Votify.API.Models.DTOs;
@@ -13,11 +13,15 @@ namespace Votify.API.Controllers
     {
         private readonly ICategoriaRepository _categoriaRepository;
         private readonly ICategoriaService _categoriaService;
-
-        public CategoriasController(ICategoriaRepository categoriaRepository, ICategoriaService categoriaService)
+        private readonly Supabase.Client _supabase;
+        
+  
+        public CategoriasController(ICategoriaRepository categoriaRepository, ICategoriaService categoriaService, Supabase.Client supabase)
         {
             _categoriaRepository = categoriaRepository;
             _categoriaService = categoriaService;
+            _supabase = supabase;
+
         }
 
         // GET: api/categorias
@@ -109,6 +113,20 @@ namespace Votify.API.Controllers
                 // Insert en Supabase
                 var response = await _categoriaRepository
                     .CrearAsync(categoria);
+
+                if (dto.Pesos != null && dto.Pesos.Any())
+                {
+                    foreach (var peso in dto.Pesos)
+                    {
+                        var nuevoPeso = new PesoCategoriaRol
+                        {
+                            IdCategoria = response.Id,
+                            RolVotante = peso.RolVotante,
+                            Peso = peso.Peso
+                        };
+                        await _supabase.From<PesoCategoriaRol>().Insert(nuevoPeso);
+                    }
+                }
 
                 return Ok(new CategoriaResponseDto
                 {

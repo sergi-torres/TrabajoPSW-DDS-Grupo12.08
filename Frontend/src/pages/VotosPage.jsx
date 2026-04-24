@@ -1,6 +1,7 @@
 ﻿import { useNavigate } from "react-router-dom";
 import { useEffect, useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
+import { EventContext } from "../context/EventContext";
 import { EventSidebar } from "../components/layout/EventSidebar";
 import { obtenerVotosPorProyecto } from "../api/votacionApi";
 import { categoriasApi } from "../api/categoriasApi";
@@ -62,6 +63,7 @@ export default function ParticipantDashboard() {
   const navigate = useNavigate();
   const { isPublic, userName } = useContext(AuthContext);
   const [categoria, setCategoria] = useState(null);  
+  const { isCollapsed } = useContext(EventContext);
 
   // Determinar rol (ya que esta página es para participantes, pero puede ser público)
   const userRole = isPublic ? "Público" : "Participante";
@@ -179,6 +181,8 @@ export default function ParticipantDashboard() {
     { name: "Diseño", score: 92, maxScore: 100 }
   ];
 
+  const isPublicRole = userRole === "Público";
+
   return (
     <div className="min-h-screen bg-gray-50 font-body relative">
       <EventSidebar userRole={userRole} color={roleColor} />
@@ -186,7 +190,9 @@ export default function ParticipantDashboard() {
       <div className="pb-[88px] lg:pb-0">
        <EventSidebar userRole={userRole} color={roleColor} />
         {/* HEADER - Participant Style (Purple) - Full Width */}
-        <header className="bg-purple-600 text-white p-6 lg:p-10 lg:pl-80">
+        <header 
+          className={`bg-purple-600 text-white p-6 lg:p-10 transition-all duration-300 ${isPublicRole ? 'lg:pl-10' : (isCollapsed ? 'lg:pl-28' : 'lg:pl-80')}`}
+        >
           <div className="max-w-7xl mx-auto">
             {!isPublic && (
               <button
@@ -224,7 +230,7 @@ export default function ParticipantDashboard() {
           </div>
         </header>
 
-        <main className="max-w-7xl mx-auto p-6 lg:p-10 lg:pl-80 -mt-10 space-y-8">
+        <main className={`max-w-7xl mx-auto p-6 lg:p-10 -mt-10 space-y-8 transition-all duration-300 ${isPublicRole ? 'lg:pl-10' : (isCollapsed ? 'lg:pl-28' : 'lg:pl-80')}`}>
 
           {/* PROYECTO Y RESUMEN */}
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">

@@ -68,6 +68,11 @@ export function AuthProvider({ children }) {
      */
     const logout = () => {
         localStorage.clear(); // Limpieza total para seguridad
+        // También limpiar el evento seleccionado si se usa fuera de este contexto
+        localStorage.removeItem("eventoId");
+        localStorage.removeItem("eventoNombre");
+        localStorage.removeItem("propsRol");
+        
         setToken(null);
         setUserId(null);
         setUserName(null);

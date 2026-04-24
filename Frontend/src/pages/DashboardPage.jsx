@@ -8,12 +8,14 @@ import { getMisEventos } from "../api/eventosApi";
 import { AuthContext } from "../context/AuthContext";
 import { getProyectosByParticipante } from "../api/proyectoApi";
 import { categoriasApi } from "../api/categoriasApi";
+import { EventContext } from "../context/EventContext";
 
 /**
  * EventDashboardPage — Página principal con la lista de eventos.
  */
 export default function DashboardPage() {
     const { userId } = useContext(AuthContext);
+    const { setEventContext } = useContext(EventContext);
     const navigate = useNavigate();
     const [misEventos, setMisEventos] = useState([]);
     const [misProyectos, setMisProyectos] = useState([]);
@@ -154,7 +156,11 @@ export default function DashboardPage() {
                                                         localStorage.setItem("eventoDescripcion", evento.descripcion);
                                                         navigate("/organizador-dashboard");
                                                     }
+                                                    // Usar el rol que viene del backend en el DTO
+                                                    setEventContext(evento.id, evento.nombre, evento.rol || "Participante");
                                                     
+                                                    // Ahora todos van a la misma ruta base del evento
+                                                    navigate(`/eventos/${evento.id}`);
                                                 }
                                             }
                                         />
