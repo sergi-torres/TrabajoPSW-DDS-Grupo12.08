@@ -1,0 +1,44 @@
+﻿// Controllers/UsuarioController.cs
+using Microsoft.AspNetCore.Mvc;
+using Votify.API.Models.Domain;
+using Supabase;
+
+namespace Votify.API.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class UsuarioController : ControllerBase
+    {
+        private readonly Client _supabase;
+
+        public UsuarioController(Client supabase)
+        {
+            _supabase = supabase;
+        }
+
+        [HttpGet("email/{email}")]
+        public async Task<IActionResult> GetByEmail(string email)
+        {
+            try
+            {
+                var response = await _supabase
+                    .From<Usuario>()
+                    .Where(u => u.Email == email)
+                    .Get();
+
+                var usuario = response.Models.FirstOrDefault();
+
+                if (usuario == null)
+                {
+                    return NotFound(new { message = "Usuario no encontrado" });
+                }
+
+                return Ok(new { id = usuario.Id, email = usuario.Email });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message });
+            }
+        }
+    }
+}

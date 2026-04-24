@@ -38,6 +38,7 @@ builder.Services.AddScoped<Votify.API.Services.IComentarioCualitativoService, Vo
 builder.Services.AddScoped<Votify.API.Services.IVotoService, Votify.API.Services.VotoService>();
 builder.Services.AddScoped<Votify.API.Services.IComentarioCualitativoService, Votify.API.Services.ComentarioCualitativoService>();
 builder.Services.AddScoped<Votify.API.Services.IOrgDashboardService, Votify.API.Services.OrgDashboardService>();
+builder.Services.AddScoped<Votify.API.Services.ICategoriaService, Votify.API.Services.CategoriaService>();
 builder.Services.AddScoped<Votify.API.Services.IJuradoService, Votify.API.Services.JuradoService>();
 builder.Services.AddScoped<Votify.API.Services.IEmailService, Votify.API.Services.ResendEmailService>();
 builder.Services.AddScoped<Votify.API.Filters.OrganizerOnlyFilter>();

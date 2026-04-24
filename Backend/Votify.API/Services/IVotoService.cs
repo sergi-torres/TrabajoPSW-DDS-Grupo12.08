@@ -6,5 +6,6 @@ namespace Votify.API.Services
     {
         Task<DashboardResponseDto> ObtenerDashboardAsync(int eventoId, int? idUsuario = null, string? sessionId = null);
         Task<DashboardResponseDto> ProcesarVotoAsync(VotoRequestDto request, int? idUsuario = null, string? sessionId = null);
+        Task<IEnumerable<VotoResponseDto>> ObtenerVotosPorProyectoAsync(int proyectoId);
     }
 }

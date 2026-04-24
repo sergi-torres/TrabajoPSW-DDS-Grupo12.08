@@ -45,6 +45,16 @@ namespace Votify.API.Repositories
             return insertado;
         }
 
+        public async Task<Categoria> ObtenerPorIdAsync(int id)
+        {
+            var response = await _supabase
+                .From<Categoria>()
+                .Where(c => c.Id == id)
+                .Select("*")
+                .Get();
+            return response.Models.FirstOrDefault();
+        }
+
         public async Task<List<CategoriaResponseDto>> ObtenerPorEventoIdAsync(int eventoId)
         {
             var response = await _supabase
