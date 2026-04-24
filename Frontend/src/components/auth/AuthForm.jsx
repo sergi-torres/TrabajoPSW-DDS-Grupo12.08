@@ -10,7 +10,7 @@ import { useAuth } from "../../hooks/useAuth";
  * 
  * Toda la lógica de red y estado global vive en useAuth().
  */
-export function AuthForm({ mode = "login", isMobile = false }) {
+export function AuthForm({ mode = "login", isMobile = false, invitationToken = null }) {
     const { handleLogin, handleRegister } = useAuth();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -22,9 +22,9 @@ export function AuthForm({ mode = "login", isMobile = false }) {
         e.preventDefault();
 
         if (mode === "login") {
-            await handleLogin(email, password);
+            await handleLogin(email, password, invitationToken);
         } else {
-            await handleRegister({ nombreCompleto, nombreUsuario, email, password });
+            await handleRegister({ nombreCompleto, nombreUsuario, email, password }, invitationToken);
         }
     };
 

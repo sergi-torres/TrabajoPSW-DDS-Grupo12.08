@@ -2,16 +2,22 @@
 {
     public class ProyectoRequestDto
     {
-        public string Nombre { get; set; } = string.Empty;
+        public int Id { get; set; }
 
-        public string Descripcion { get; set; } = string.Empty;
+        public string? Nombre { get; set; }
+
+        public string? Descripcion { get; set; }
 
         public string? UrlMultimedia { get; set; }
 
-        public int IdEvento { get; set; }
+        public int? IdEvento { get; set; }
 
         public int IdParticipante { get; set; }
 
-        public int IdCategoria { get; set; }
+        public int? IdCategoria { get; set; }
+
+        public string? Estado { get; set; }
+
+        public List<int>? IdMiembros { get; set; }
     }
 }

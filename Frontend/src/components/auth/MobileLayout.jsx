@@ -30,7 +30,7 @@ export function MobileLayout() {
                 const newSessionId = crypto.randomUUID();
 
                 loginPublic(data.id, data.nombre || "Evento", newSessionId);
-                navigate("/dashboard-votacion-categorias");
+                navigate(`/eventos/${data.id}/votar`);
             } catch (error) {
                 console.error("Error validando PIN:", error);
                 alert(error.message);

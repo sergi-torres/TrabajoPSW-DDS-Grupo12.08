@@ -1,4 +1,4 @@
-using Votify.API.Models.DTOs;
+﻿using Votify.API.Models.DTOs;
 
 namespace Votify.API.Services
 {
@@ -10,5 +10,7 @@ namespace Votify.API.Services
         Task<IEnumerable<ConfigTiemposCategoriasDto>> ListarConfiguracionesTiempoAsync(int eventoId);
 
         Task<bool> ActualizarTiemposAsync(ConfigTiemposCategoriasDto request);
+        Task<EventoDetalleDto> GetEventoDetalleAsync(int eventoId);
+        Task<EventoDetalleDto> UpdateEventoAsync(int eventoId, UpdateEventDto dto);
     }
 }

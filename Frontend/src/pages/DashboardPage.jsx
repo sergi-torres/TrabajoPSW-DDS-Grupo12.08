@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useContext } from "react";
+﻿import { useState, useEffect, useMemo, useContext } from "react";
 import { Plus, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { DesktopHeader } from "../components/eventos/DesktopHeader";
@@ -6,14 +6,19 @@ import { MobileNav } from "../components/eventos/MobileNav";
 import { EventCard } from "../components/eventos/EventCard";
 import { getMisEventos } from "../api/eventosApi";
 import { AuthContext } from "../context/AuthContext";
+import { getProyectosByParticipante } from "../api/proyectoApi";
+import { categoriasApi } from "../api/categoriasApi";
+import { EventContext } from "../context/EventContext";
 
 /**
  * EventDashboardPage — Página principal con la lista de eventos.
  */
 export default function DashboardPage() {
     const { userId } = useContext(AuthContext);
+    const { setEventContext } = useContext(EventContext);
     const navigate = useNavigate();
     const [misEventos, setMisEventos] = useState([]);
+    const [misProyectos, setMisProyectos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [searchQuery, setSearchQuery] = useState("");
@@ -25,6 +30,10 @@ export default function DashboardPage() {
                 const mis = await getMisEventos(userId);
                 setMisEventos(mis);
                 localStorage.setItem("misEventosCache", JSON.stringify(mis));
+                const proyectos = await getProyectosByParticipante(userId); 
+                setMisProyectos(proyectos);
+                //console.log("proyectos del participante:", proyectos);
+
             } catch (err) {
                 console.error("Error cargando eventos:", err);
                 setError(err.message);
@@ -103,12 +112,36 @@ export default function DashboardPage() {
                                                 () => {
                                                     const rol = JSON.parse(localStorage.getItem("propsRol")).label;
 
+                                                    //Participante
                                                     if (rol === "Participante") {
                                                         localStorage.setItem("eventoId", evento.id);
                                                         localStorage.setItem("eventoNombre", evento.nombre);
-                                                        navigate("/votos");
 
-                                                        localStorage.setItem("eventoDescripcion", evento.descripcion);
+                                                        const misProyectosDelEvento = new Array();
+                                                        for(let i=0; i<misProyectos.length; i++)
+                                                        {
+                                                            if(misProyectos[i].idEvento === evento.id){
+                                                                misProyectosDelEvento.push(misProyectos[i]);
+                                                            }
+                                                        }
+                                                        //console.log(evento.id, misProyectos[0].idEvento);
+                                                        //console.log("proyectos del evento:", misProyectosDelEvento);
+
+                                                        if (misProyectosDelEvento.length > 0) {
+                                                            const proyecto = misProyectosDelEvento[0]; // normalmente 1 por participante
+                                                            localStorage.setItem("proyectoId", proyecto.id);
+                                                            localStorage.setItem("proyectoNombre", proyecto.nombre);
+                                                            localStorage.setItem("proyectoDescripcion", proyecto.descripcion);
+                                                            localStorage.setItem("categoriaProyecto", proyecto.idCategoria);
+
+
+                                                            navigate("/votos");
+
+                                                        }else{
+                                                            localStorage.setItem("eventoDescripcion", evento.descripcion);                                                            
+                                                            navigate("/participantRegister");
+                                                        }
+                                                        
                                                     }
                                                     
                                                     if(rol === "Jurado") {
@@ -123,7 +156,11 @@ export default function DashboardPage() {
                                                         localStorage.setItem("eventoDescripcion", evento.descripcion);
                                                         navigate("/organizador-dashboard");
                                                     }
+                                                    // Usar el rol que viene del backend en el DTO
+                                                    setEventContext(evento.id, evento.nombre, evento.rol || "Participante");
                                                     
+                                                    // Ahora todos van a la misma ruta base del evento
+                                                    navigate(`/eventos/${evento.id}`);
                                                 }
                                             }
                                         />

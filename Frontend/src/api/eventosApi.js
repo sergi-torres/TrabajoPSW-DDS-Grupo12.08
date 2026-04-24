@@ -38,3 +38,35 @@ export async function getMisEventos(userId) {
     return response.json();
 }
 
+/**
+ * Obtener detalle completo de un evento (baremos, criterios, categorías)
+ * para prellenar el formulario de edición.
+ */
+export async function getEventoDetalle(eventoId) {
+    const response = await fetch(`${API_URL}/${eventoId}`);
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || "Error al obtener el detalle del evento");
+    }
+    return response.json();
+}
+
+/**
+ * Actualizar un evento existente.
+ */
+export async function updateEvento(eventoId, data) {
+    const response = await fetch(`${API_URL}/${eventoId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || "Error al actualizar el evento");
+    }
+
+    return response.json();
+}
+
+

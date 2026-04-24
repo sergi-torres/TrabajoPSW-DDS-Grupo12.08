@@ -1,8 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 
 using Votify.API.Models.Domain;
 using Votify.API.Models.DTOs;
 using Votify.API.Repositories;
+using Votify.API.Services;
 
 namespace Votify.API.Controllers
 {
@@ -11,10 +12,16 @@ namespace Votify.API.Controllers
     public class CategoriasController : ControllerBase
     {
         private readonly ICategoriaRepository _categoriaRepository;
-
-        public CategoriasController(ICategoriaRepository categoriaRepository)
+        private readonly ICategoriaService _categoriaService;
+        private readonly Supabase.Client _supabase;
+        
+  
+        public CategoriasController(ICategoriaRepository categoriaRepository, ICategoriaService categoriaService, Supabase.Client supabase)
         {
             _categoriaRepository = categoriaRepository;
+            _categoriaService = categoriaService;
+            _supabase = supabase;
+
         }
 
         // GET: api/categorias
@@ -60,6 +67,33 @@ namespace Votify.API.Controllers
             }
         }
 
+        // GET: api/categorias/evento/1
+        [HttpGet("id/{categoriaId}")]
+        public async Task<IActionResult> GetById(int categoriaId)
+        {
+            try
+            {
+                var categoria = await _categoriaRepository.ObtenerPorIdAsync(categoriaId);
+                if (categoria == null)
+                {
+                    return NotFound();
+                }
+
+                var dto = new CategoriaResponseDto
+                {
+                    Id = categoria.Id,
+                    Nombre = categoria.Nombre,
+                    IdEvento = categoria.IdEvento
+                };
+
+                return Ok(dto);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
         // POST: api/categorias
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateCategoriaDto dto)
@@ -80,6 +114,20 @@ namespace Votify.API.Controllers
                 var response = await _categoriaRepository
                     .CrearAsync(categoria);
 
+                if (dto.Pesos != null && dto.Pesos.Any())
+                {
+                    foreach (var peso in dto.Pesos)
+                    {
+                        var nuevoPeso = new PesoCategoriaRol
+                        {
+                            IdCategoria = response.Id,
+                            RolVotante = peso.RolVotante,
+                            Peso = peso.Peso
+                        };
+                        await _supabase.From<PesoCategoriaRol>().Insert(nuevoPeso);
+                    }
+                }
+
                 return Ok(new CategoriaResponseDto
                 {
                     Id = response.Id,
@@ -93,5 +141,6 @@ namespace Votify.API.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+
     }
 }

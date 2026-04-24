@@ -11,9 +11,9 @@ export function useAuth() {
     const { token, userId, userName, isAuthenticated, login, logout } = useContext(AuthContext);
     const navigate = useNavigate();
 
-    const handleLogin = async (email, password) => {
+    const handleLogin = async (email, password, invitationToken = null) => {
         try {
-            const data = await loginUser(email, password);
+            const data = await loginUser(email, password, invitationToken);
             login(data.token, data.userId, data.nombreUsuario);
             toast.success("¡Bienvenido/a a Votify!");
             navigate("/eventos");
@@ -24,9 +24,9 @@ export function useAuth() {
         }
     };
 
-    const handleRegister = async (formData) => {
+    const handleRegister = async (formData, invitationToken = null) => {
         try {
-            const data = await registerUser(formData);
+            const data = await registerUser({ ...formData, invitationToken });
             login(data.token, data.userId, data.nombreUsuario);
             toast.success("Cuenta creada exitosamente", { description: "¡Bienvenido/a a Votify!" });
             navigate("/eventos");

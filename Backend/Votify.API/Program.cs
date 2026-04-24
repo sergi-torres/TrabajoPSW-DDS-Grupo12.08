@@ -1,4 +1,4 @@
-﻿using DotNetEnv;
+using DotNetEnv;
 
 // Cargar las variables del .env situado en la raíz del repositorio
 Env.Load(Path.Combine(Directory.GetCurrentDirectory(), "..", "..", ".env"));
@@ -28,6 +28,8 @@ builder.Services.AddScoped<Votify.API.Repositories.ICategoriaRepository, Votify.
 builder.Services.AddScoped<Votify.API.Repositories.IProyectoRepository, Votify.API.Repositories.ProyectoRepository>();
 builder.Services.AddScoped<Votify.API.Repositories.IVotoRepository, Votify.API.Repositories.VotoRepository>();
 builder.Services.AddScoped<Votify.API.Repositories.IUsuarioRepository, Votify.API.Repositories.UsuarioRepository>();
+builder.Services.AddScoped<Votify.API.Repositories.IEventoUsuarioRepository, Votify.API.Repositories.EventoUsuarioRepository>();
+builder.Services.AddScoped<Votify.API.Repositories.IInvitacionPendienteRepository, Votify.API.Repositories.InvitacionPendienteRepository>();
 builder.Services.AddScoped<Votify.API.Factories.VotoPublicoFactory>();
 builder.Services.AddScoped<Votify.API.Factories.VotoJuradoFactory>();
 builder.Services.AddScoped<Votify.API.Services.IAuthService, Votify.API.Services.AuthService>();
@@ -36,6 +38,24 @@ builder.Services.AddScoped<Votify.API.Services.IComentarioCualitativoService, Vo
 builder.Services.AddScoped<Votify.API.Services.IVotoService, Votify.API.Services.VotoService>();
 builder.Services.AddScoped<Votify.API.Services.IComentarioCualitativoService, Votify.API.Services.ComentarioCualitativoService>();
 builder.Services.AddScoped<Votify.API.Services.IOrgDashboardService, Votify.API.Services.OrgDashboardService>();
+builder.Services.AddScoped<Votify.API.Services.ICategoriaService, Votify.API.Services.CategoriaService>();
+builder.Services.AddScoped<Votify.API.Services.IJuradoService, Votify.API.Services.JuradoService>();
+builder.Services.AddScoped<Votify.API.Services.IEmailService, Votify.API.Services.ResendEmailService>();
+builder.Services.AddScoped<Votify.API.Filters.OrganizerOnlyFilter>();
+
+var resendApiKey = Environment.GetEnvironmentVariable("RESEND_API_KEY");
+if (!string.IsNullOrEmpty(resendApiKey))
+{
+    builder.Services.AddOptions();
+    builder.Services.AddHttpClient<Resend.ResendClient>();
+    builder.Services.Configure<Resend.ResendClientOptions>(options => options.ApiToken = resendApiKey);
+    builder.Services.AddTransient<Resend.IResend, Resend.ResendClient>();
+}
+else
+{
+    // Fallback or warning
+    Console.WriteLine("Warning: RESEND_API_KEY not found. Email service may not work.");
+}
 
 builder.Services.AddCors(options =>
 {

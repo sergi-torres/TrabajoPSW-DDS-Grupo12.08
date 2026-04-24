@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Votify.API.Models.DTOs
 {
@@ -64,4 +64,15 @@ namespace Votify.API.Models.DTOs
 
         public DateTime? FechaFin {get; set;} 
     }
+    
+
+    public class VotoResponseDto
+    {
+            public int Id { get; set; }
+            public int ProyectoId { get; set; }
+            public int CategoriaId { get; set; }
+            public string? Comentario { get; set; }
+            public DateTime Fecha { get; set; }
+    }
+
 }
