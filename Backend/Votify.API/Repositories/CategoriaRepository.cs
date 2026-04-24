@@ -82,17 +82,7 @@ namespace Votify.API.Repositories
 
         //!a parir los asñadiste tu brad 
         //Deberiamos tener siempre el ID de categoria pero por asegurar
-        public async Task<Categoria?> ObtenerPorIdAsync(int id)
-        {
-            var response = await _supabase
-                .From<Categoria>()
-                .Where(c => c.Id == id)
-                .Select("*")
-                .Get();
-
-            return response.Models.FirstOrDefault();
-        }
-
+        
         public async Task<bool> ActualizarAsync(Categoria categoria)
         {
             try
