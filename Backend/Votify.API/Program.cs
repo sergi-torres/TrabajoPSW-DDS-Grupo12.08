@@ -1,4 +1,4 @@
-﻿using DotNetEnv;
+using DotNetEnv;
 
 // Cargar las variables del .env situado en la raíz del repositorio
 Env.Load(Path.Combine(Directory.GetCurrentDirectory(), "..", "..", ".env"));
@@ -50,7 +50,7 @@ if (!string.IsNullOrEmpty(resendApiKey))
     builder.Services.Configure<Resend.ResendClientOptions>(options => options.ApiToken = resendApiKey);
     builder.Services.AddTransient<Resend.IResend, Resend.ResendClient>();
 }
-else 
+else
 {
     // Fallback or warning
     Console.WriteLine("Warning: RESEND_API_KEY not found. Email service may not work.");

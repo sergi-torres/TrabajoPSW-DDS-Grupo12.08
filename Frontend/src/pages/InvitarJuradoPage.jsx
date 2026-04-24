@@ -3,11 +3,12 @@ import { useParams, useNavigate } from "react-router-dom";
 import { 
     ArrowLeft, Users, UserPlus, Trash2, Mail, Loader2, 
     CheckCircle2, AlertCircle, Send, FileText, RefreshCw, 
-    ShieldCheck, Clock, X, AlertTriangle
+    ShieldCheck, Clock, X, AlertTriangle, LogOut
 } from "lucide-react";
 import { motion as Motion, AnimatePresence } from "motion/react";
 import { EventSidebar } from "../components/layout/EventSidebar";
 import { EventContext } from "../context/EventContext";
+import { AuthContext } from "../context/AuthContext";
 import { getJuradosEvento, asignarJurado, eliminarJurado, reenviarInvitacion } from "../api/juradoApi";
 import { getDashboard } from "../api/orgDashboardApi";
 import logoVotify from "../assets/LogoVotify.png";

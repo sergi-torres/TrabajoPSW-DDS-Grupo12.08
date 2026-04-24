@@ -83,8 +83,8 @@ namespace Votify.API.Filters
 
                 if (relacion == null || relacion.Rol != "Organizador")
                 {
-                    Console.WriteLine($"[OrganizerOnlyFilter] Usuario {user.Email} (ID: {dbUserResponse.Id}) no es Organizador del evento {idEvento.Value}. Rol actual: {relacion?.Rol ?? "Ningo"}");
-                    context.Result = new ForbidResult();
+                    Console.WriteLine($"[OrganizerOnlyFilter] Usuario {user.Email} (ID: {dbUserResponse.Id}) no es Organizador del evento {idEvento.Value}. Rol actual: {relacion?.Rol ?? "Ninguno"}");
+                    context.Result = new ObjectResult(new { message = "No tienes permisos de organizador para este evento." }) { StatusCode = 403 };
                     return;
                 }
 
