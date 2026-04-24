@@ -48,11 +48,19 @@ namespace Votify.API.Repositories
         public async Task<Categoria> ObtenerPorIdAsync(int id)
         {
             var response = await _supabase
-                .From<Categoria>()
-                .Where(c => c.Id == id)
-                .Select("*")
-                .Get();
-            return response.Models.FirstOrDefault();
+                    .From<Categoria>()
+                    .Where(c => c.Id == id)
+                    .Select("*")
+                    .Get();
+
+            var categoria = response.Models.FirstOrDefault();
+
+            if (categoria == null)
+            {
+                throw new KeyNotFoundException($"Categoría con ID {id} no encontrada");
+            }
+
+            return categoria;
         }
 
         public async Task<List<CategoriaResponseDto>> ObtenerPorEventoIdAsync(int eventoId)
