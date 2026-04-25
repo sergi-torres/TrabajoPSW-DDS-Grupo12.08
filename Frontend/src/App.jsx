@@ -1,4 +1,4 @@
-﻿﻿import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+﻿import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { AuthProvider } from './context/AuthContext'
 import { EventProvider } from './context/EventContext'
@@ -16,6 +16,7 @@ import AcceptInvitePage from './pages/AcceptInvitePage'
 import ParticipantRegister from './pages/ParticipantRegister'
 import { VotingProvider } from "./context/VotingContext";
 import CreateProject from './pages/CreateProject'
+import ConfigTiempoVotacionPage from './pages/ConfigTiempoVotacion'
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
               <Route element={<ProtectedRoute />}>
                 <Route path="/create-event" element={<CreateEvent />} />
                 <Route path="/eventos/:eventoId/ajustes" element={<CreateEvent />} />
+                <Route path="/eventos/:eventoId/configuraciones" element={<ConfigTiempoVotacionPage />} />
                 <Route path="/eventos" element={<DashboardPage />} />
                 <Route path="/eventos/:eventoId" element={<OrganizerDashboard />} />
                 <Route path="/eventos/:eventoId/jurado" element={<InvitarJuradoPage />} />
