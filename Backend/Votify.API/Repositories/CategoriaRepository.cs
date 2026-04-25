@@ -1,5 +1,6 @@
 ﻿using Votify.API.Models.Domain;
 using Votify.API.Models.DTOs;
+using static Supabase.Postgrest.Constants;
 
 namespace Votify.API.Repositories
 {
@@ -109,6 +110,7 @@ namespace Votify.API.Repositories
             var response = await _supabase
                 .From<Categoria>()
                 .Where(c => c.IdEvento == eventoId)
+                .Filter("estado", Supabase.Postgrest.Constants.Operator.NotEqual, "Finalizada")
                 .Select("*")
                 .Get();
 
@@ -121,6 +123,26 @@ namespace Votify.API.Repositories
                 FechaFin = c.FechaFin,
             }).ToList();
         }
+
+        public async Task<List<CategoriaResponseActualizadoDto>> ObtenerTodosCamposAsync(int eventoId)
+        {
+            var response = await _supabase
+                .From<Categoria>()
+                .Where(c => c.IdEvento == eventoId)
+                .Select("*")
+                .Get();
+
+            return response.Models.Select(c => new CategoriaResponseActualizadoDto
+            {
+                Id = c.Id,
+                Nombre = c.Nombre,
+                IdEvento = c.IdEvento,
+                FechaIni = c.FechaIni,
+                FechaFin = c.FechaFin,
+                Estado = c.Estado
+            }).ToList();
+        }
+
 
     }
 }

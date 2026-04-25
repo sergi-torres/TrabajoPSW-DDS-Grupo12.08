@@ -14,5 +14,7 @@ namespace Votify.API.Repositories
         Task<bool> ActualizarAsync(Categoria categoria);
 
         Task<List<ConfigTiemposCategoriasDto>> ObtenerPorEventoIdConFechasAsync(int eventoId);
+
+        Task<List<CategoriaResponseActualizadoDto>> ObtenerTodosCamposAsync(int eventoId);
     }
 }
