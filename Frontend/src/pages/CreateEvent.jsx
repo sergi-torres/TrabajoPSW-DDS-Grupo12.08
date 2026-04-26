@@ -38,7 +38,8 @@ const CreateEvent = () => {
   const [votacion, setVotacion] = useState({
     votoPublicoHabilitado: true,
     pesoJurado: 70,
-    categorias: []
+    categorias: [],
+    comentariosObligatorios: false
   });
 
   const [reglas, setReglas] = useState({
@@ -77,6 +78,7 @@ const CreateEvent = () => {
           votoPublicoHabilitado: pesoPublico > 0,
           pesoJurado: pesoJurado,
           categorias: categorias.length > 0 && categorias[0] !== "Global" ? categorias : [],
+          comentariosObligatorios: data.comentariosObligatorios ?? false,
         });
 
         // Prellenar reglas/baremos
@@ -212,6 +214,7 @@ const CreateEvent = () => {
           })),
           votoPublicoHabilitado: votacion.votoPublicoHabilitado,
           pesoJurado: votacion.pesoJurado,
+          comentariosObligatorios: votacion.comentariosObligatorios,
         };
 
         await updateEvento(eventoId, updateBody);
@@ -257,6 +260,7 @@ const CreateEvent = () => {
         tipoEvento,
         idOrganizador: userId,
         codEvento: Math.floor(100000 + Math.random() * 900000),
+        comentariosObligatorios: votacion.comentariosObligatorios,
         baremos,
         categorias: [] //  NO duplicar creación
       };

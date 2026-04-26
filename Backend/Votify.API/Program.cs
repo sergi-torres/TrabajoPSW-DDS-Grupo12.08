@@ -22,7 +22,15 @@ builder.Services.AddScoped<Supabase.Client>(_ =>
     new Supabase.Client(supabaseUrl, supabaseKey, new Supabase.SupabaseOptions { AutoConnectRealtime = true })
 );
 
-builder.Services.AddScoped<Votify.API.Services.IVotoService, Votify.API.Services.VotoService>();
+// Registro con Decorator para VotoService
+builder.Services.AddScoped<Votify.API.Services.VotoService>();
+builder.Services.AddScoped<Votify.API.Services.IVotoService>(provider => 
+{
+    var baseService = provider.GetRequiredService<Votify.API.Services.VotoService>();
+    var supabase = provider.GetRequiredService<Supabase.Client>();
+    return new Votify.API.Decorators.VotoServiceValidationDecorator(baseService, supabase);
+});
+
 builder.Services.AddScoped<Votify.API.Services.IAuthService, Votify.API.Services.AuthService>();
 builder.Services.AddScoped<Votify.API.Repositories.ICategoriaRepository, Votify.API.Repositories.CategoriaRepository>();
 builder.Services.AddScoped<Votify.API.Repositories.IProyectoRepository, Votify.API.Repositories.ProyectoRepository>();
@@ -35,7 +43,7 @@ builder.Services.AddScoped<Votify.API.Factories.VotoJuradoFactory>();
 builder.Services.AddScoped<Votify.API.Services.IAuthService, Votify.API.Services.AuthService>();
 builder.Services.AddScoped<Votify.API.Services.IEventoService, Votify.API.Services.EventoService>();
 builder.Services.AddScoped<Votify.API.Services.IComentarioCualitativoService, Votify.API.Services.ComentarioCualitativoService>();
-builder.Services.AddScoped<Votify.API.Services.IVotoService, Votify.API.Services.VotoService>();
+// El servicio IVotoService ya está registrado arriba con el Decorator
 builder.Services.AddScoped<Votify.API.Services.IComentarioCualitativoService, Votify.API.Services.ComentarioCualitativoService>();
 builder.Services.AddScoped<Votify.API.Services.IOrgDashboardService, Votify.API.Services.OrgDashboardService>();
 builder.Services.AddScoped<Votify.API.Services.IJuradoService, Votify.API.Services.JuradoService>();

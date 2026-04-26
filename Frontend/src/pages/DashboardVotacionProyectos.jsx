@@ -3,7 +3,7 @@ import ProyectosLista from '../components/votacion/votacionProyectos/ProyectosLi
 import OpcionesSeleccionado from '../components/votacion/votacionProyectos/OpcionesSeleccionado';
 import { useEnviarVoto } from '../hooks/VotacionHooks/useEnvioVoto';
 
-const DashboardVotacionProyectos = ({ categoria, alVolver }) => {
+const DashboardVotacionProyectos = ({ categoria, alVolver, comentariosObligatorios }) => {
   const { enviarVoto, cargando, error } = useEnviarVoto();
   
   // Estado local ascendido
@@ -12,6 +12,13 @@ const DashboardVotacionProyectos = ({ categoria, alVolver }) => {
 
   const handleConfirmar = async () => {
     if (!seleccionado) return;
+
+    if (comentariosObligatorios && !comentario.trim()) {
+      import('sonner').then(module => {
+         module.toast.error("El comentario es obligatorio para evaluar en este evento.");
+      });
+      return;
+    }
 
     const eventoId = parseInt(localStorage.getItem('eventoId'));
     const userIdRaw = localStorage.getItem('userId');
@@ -60,6 +67,7 @@ const DashboardVotacionProyectos = ({ categoria, alVolver }) => {
         seleccionado={seleccionado}
         comentario={comentario}
         setComentario={setComentario}
+        comentariosObligatorios={comentariosObligatorios}
       />
 
       {/* Botones Globales (Movidos aquí) */}

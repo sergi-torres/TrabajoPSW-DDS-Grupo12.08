@@ -1,4 +1,4 @@
-﻿import { Users, Scale } from "lucide-react";
+import { Users, Scale, MessageSquare } from "lucide-react";
 import { useState } from "react";
 
 const maxCategorias = 10; // Definimos un máximo de categorías
@@ -8,6 +8,7 @@ const ParentComponent = () => {
     pesoJurado: 50,
     votoPublicoHabilitado: true,
     categorias: [],
+    comentariosObligatorios: false
     
   });
 
@@ -130,6 +131,29 @@ const StepVotaciones = ({ data, onChange }) => {
                         <p className="text-xs text-muted-foreground text-right">Calculado automáticamente</p>
                     </div>
                 )}
+
+                <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-info/10 flex items-center justify-center">
+                            <MessageSquare className="w-5 h-5 text-info" strokeWidth={1.75} />
+                        </div>
+                        <div>
+                            <label className="text-sm font-medium text-foreground">Comentarios Obligatorios</label>
+                            <p className="text-xs text-muted-foreground">
+                                {data.comentariosObligatorios ? "Los votantes deberán dejar un comentario" : "Los comentarios son opcionales"}
+                            </p>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        role="switch"
+                        aria-checked={data.comentariosObligatorios}
+                        onClick={() => onChange({ ...data, comentariosObligatorios: !data.comentariosObligatorios })}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${data.comentariosObligatorios ? 'bg-info' : 'bg-muted'}`}
+                    >
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${data.comentariosObligatorios ? 'translate-x-6' : 'translate-x-1'}`} />
+                    </button>
+                </div>
             </div>
 
             {/*Categorías, concretamente, botón de añadir, y hasta un máximo de 5*/}

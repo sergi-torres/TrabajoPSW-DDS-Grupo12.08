@@ -9,6 +9,7 @@ namespace Votify.API.Models.DTOs
         public int VotosGlobalesMaximos { get; set; }
         public int ProyectosActivos { get; set; }
         public string TiempoRestante { get; set; } = "00:00";
+        public bool ComentariosObligatorios { get; set; } = false;
         public List<CategoriaResumenDto> Categorias { get; set; } = new();
     }
 
