@@ -1,5 +1,5 @@
 import { Link, useLocation, useParams, useNavigate } from "react-router-dom";
-import { Info, FolderOpen, Trophy, Settings, ClipboardList, User, LogOut, ChevronUp, ChevronLeft, ChevronRight } from "lucide-react";
+import { Info, FolderOpen, Trophy, Settings, ClipboardList, User, LogOut, ChevronUp, ChevronLeft, ChevronRight, Vote, Timer } from "lucide-react";
 import { useState, useRef, useEffect, useContext } from "react";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -69,9 +69,11 @@ export function EventSidebar({ color: propColor }) {
     
     if (normalizedRole === "organizador") {
         roleLinks.push({ label: "Jurado", path: `/eventos/${eventoId}/jurado`, icon: ClipboardList });
+        roleLinks.push({ label: "Configuraciones", path: `/eventos/${eventoId}/configuraciones`, icon: Timer });
         roleLinks.push({ label: "Ajustes", path: `/eventos/${eventoId}/ajustes`, icon: Settings });
     } else if (normalizedRole === "jurado") {
         roleLinks.push({ label: "Evaluaciones", path: `/eventos/${eventoId}/evaluations`, icon: ClipboardList });
+        roleLinks.push({ label: "Votaciones", path: `/eventos/${eventoId}/votar`, icon: Vote });
     } else if (normalizedRole === "participante") {
         roleLinks.push({ label: "Mi Proyecto", path: `/eventos/${eventoId}/my-project`, icon: User });
     }

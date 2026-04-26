@@ -1,5 +1,6 @@
 ﻿using Votify.API.Models.Domain;
 using Votify.API.Models.DTOs;
+using static Supabase.Postgrest.Constants;
 
 namespace Votify.API.Repositories
 {
@@ -78,5 +79,70 @@ namespace Votify.API.Repositories
                 IdEvento = c.IdEvento
             }).ToList();
         }
+
+
+        //!a parir los asñadiste tu brad 
+        //Deberiamos tener siempre el ID de categoria pero por asegurar
+        
+        public async Task<bool> ActualizarAsync(Categoria categoria)
+        {
+            try
+            {
+               
+                var response = await _supabase
+                    .From<Categoria>()
+                    .Update(categoria);
+
+                // Si ResponseMessage es null, devuelve false. 
+                // Si no es null, devuelve el valor de IsSuccessStatusCode.
+                return response.ResponseMessage?.IsSuccessStatusCode ?? false;
+            }
+            catch (Exception ex)
+            {
+                // Loguear el error si es necesario
+                Console.WriteLine($"Error en Supabase: {ex.Message}");
+                return false;
+            }
+        }
+
+        public async Task<List<ConfigTiemposCategoriasDto>> ObtenerPorEventoIdConFechasAsync(int eventoId)
+        {
+            var response = await _supabase
+                .From<Categoria>()
+                .Where(c => c.IdEvento == eventoId)
+                .Filter("estado", Supabase.Postgrest.Constants.Operator.NotEqual, "Finalizada")
+                .Select("*")
+                .Get();
+
+            return response.Models.Select(c => new ConfigTiemposCategoriasDto
+            {   
+                EventoId = c.IdEvento,
+                CategoriaId = c.Id,
+                Nombre = c.Nombre,
+                FechaIni = c.FechaIni,
+                FechaFin = c.FechaFin,
+            }).ToList();
+        }
+
+        public async Task<List<CategoriaResponseActualizadoDto>> ObtenerTodosCamposAsync(int eventoId)
+        {
+            var response = await _supabase
+                .From<Categoria>()
+                .Where(c => c.IdEvento == eventoId)
+                .Select("*")
+                .Get();
+
+            return response.Models.Select(c => new CategoriaResponseActualizadoDto
+            {
+                Id = c.Id,
+                Nombre = c.Nombre,
+                IdEvento = c.IdEvento,
+                FechaIni = c.FechaIni,
+                FechaFin = c.FechaFin,
+                Estado = c.Estado
+            }).ToList();
+        }
+
+
     }
 }
