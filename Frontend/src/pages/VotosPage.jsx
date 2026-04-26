@@ -1,8 +1,10 @@
-import { useNavigate } from "react-router-dom";
+﻿import { useNavigate } from "react-router-dom";
 import { useEffect, useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { EventContext } from "../context/EventContext";
 import { EventSidebar } from "../components/layout/EventSidebar";
+import { obtenerVotosPorProyecto } from "../api/votacionApi";
+import { categoriasApi } from "../api/categoriasApi";
 import {
   ArrowLeft,
   Target,
@@ -56,8 +58,11 @@ const CommentCard = ({ author, comment, timestamp, likes }) => (
 // --- COMPONENTE PRINCIPAL ---
 
 export default function ParticipantDashboard() {
+
+  const [votaciones, setVotaciones] = useState([]);
   const navigate = useNavigate();
   const { isPublic, userName } = useContext(AuthContext);
+  const [categoria, setCategoria] = useState(null);  
   const { isCollapsed } = useContext(EventContext);
 
   // Determinar rol (ya que esta página es para participantes, pero puede ser público)
@@ -67,45 +72,103 @@ export default function ParticipantDashboard() {
   // STATE BIEN COLOCADO
   const [publicComments, setPublicComments] = useState([]);
 
+  const VotosPage = () => {
+  // Todos los Hooks al principio, sin condiciones
+  const [categoria, setCategoria] = useState(null);
+  const [votaciones, setVotaciones] = useState([]);
+  const [comentarios, setComentarios] = useState([]);
+  } 
+
+
   // FETCH DE COMENTARIOS
   useEffect(() => {
-    const fetchComments = async () => {
+  const fetchComments = async () => {
+    const idProyecto = localStorage.getItem("proyectoId");
 
-        const idEventoRaw = localStorage.getItem("eventoId");
+    if (!idProyecto) {
+      console.log("No hay proyectoId en localStorage");
+      return;
+    }
+
+    try {
+      // 1. Obtener votaciones por proyecto
+      const votoRes = await fetch(`http://localhost:5245/api/votacion/porProyecto?proyectoId=${idProyecto}`);
+
+      if (!votoRes.ok) {
+        throw new Error("Error al obtener votaciones");
+      }
+
+      const dataVoto = await votoRes.json();
+      console.log("Votaciones obtenidas:", dataVoto);
       
+      if (dataVoto && dataVoto.length > 0) {
+        setVotaciones(dataVoto);
 
-      try {
-        const idVotacion = idEventoRaw; 
-
-        if (!idVotacion) {
-          console.warn("No hay idVotacion en localStorage");
-          return;
-        }
-
-        const res = await fetch(
-        `http://localhost:5245/api/comentarios?idVotacion=${idVotacion}`
+        // 2. Obtener comentarios de TODAS las votaciones del proyecto
+        const comentariosPromises = dataVoto.map(voto => 
+          fetch(`http://localhost:5245/api/comentarios?idVotacion=${voto.id}`)
+            .then(res => res.ok ? res.json() : [])
+            .catch(() => [])
         );
 
-        if (!res.ok) throw new Error("Error al cargar comentarios");
+        const resultadosComentarios = await Promise.all(comentariosPromises);
+        const todosLosComentarios = resultadosComentarios.flat();
 
-        const data = await res.json();
+        let mapped = [];
 
-        const mapped = (data ?? []).map((c) => ({
-          id: c.id,
-          author: "Anónimo",
-          comment: c.comentario,
-          timestamp: new Date(c.fecha).toLocaleString(),
-          likes: 0
-        }));
+        if (todosLosComentarios && todosLosComentarios.length > 0) {
+          // Hay comentarios reales
+          mapped = todosLosComentarios.map((c) => ({
+            id: c.id,
+            author: c.nombreUsuario || c.email || "Anónimo",
+            comment: c.comentario,
+            timestamp: new Date(c.fecha).toLocaleString(),
+            likes: c.likes ?? 0
+          }));
+        } else {
+          // No hay comentarios en la API, mostrar comentarios de los votos (si existen)
+          mapped = dataVoto
+            .filter(voto => voto.comentario && voto.comentario.trim() !== "")
+            .map((voto) => ({
+              id: voto.id,
+              author: "Participante",
+              comment: voto.comentario,
+              timestamp: new Date(voto.fecha).toLocaleString(),
+              likes: 0
+            }));
+        }
 
         setPublicComments(mapped);
-      } catch (err) {
-        console.error("Error cargando comentarios:", err);
+        
+      } else {
+        console.log("No hay votaciones para este proyecto");
+        setVotaciones([]);
+        setPublicComments([]);
       }
-    };
+      
+    } catch (err) {
+      console.error("Error cargando comentarios:", err);
+      setPublicComments([]);
+    }
 
-    fetchComments();
-  }, []);
+    const idCategoria = localStorage.getItem("categoriaProyecto");
+
+    if (idCategoria) {
+        console.log("Obteniendo categoría con ID:", idCategoria);
+        try {
+        const categoriaData = await categoriasApi.getById(parseInt(idCategoria));
+
+        setCategoria(categoriaData);
+
+        console.log("Categoría obtenida:", categoriaData);
+        } catch (err) {
+            console.error("Error al obtener categoría:", err);
+        }
+    }
+  };
+
+  fetchComments();
+}, []);
 
   const state = {
     participantName: userName || localStorage.getItem("userName") || "Usuario",
@@ -125,6 +188,7 @@ export default function ParticipantDashboard() {
       <EventSidebar userRole={userRole} color={roleColor} />
 
       <div className="pb-[88px] lg:pb-0">
+       <EventSidebar userRole={userRole} color={roleColor} />
         {/* HEADER - Participant Style (Purple) - Full Width */}
         <header 
           className={`bg-purple-600 text-white p-6 lg:p-10 transition-all duration-300 ${isPublicRole ? 'lg:pl-10' : (isCollapsed ? 'lg:pl-28' : 'lg:pl-80')}`}
@@ -177,9 +241,16 @@ export default function ParticipantDashboard() {
                 </div>
                 <h2 className="text-xl font-heading font-bold text-gray-900">Sobre tu Proyecto</h2>
               </div>
-
+              <div className="flex flex-col space-y-3 mb-4">
+                    <p className="text-xl font-heading font-bold text-gray-900">
+                        <span className="text-purple-600">Nombre:</span> {localStorage.getItem("proyectoNombre")}
+                    </p>
+                    <p className="text-xl font-heading font-bold text-gray-900">
+                        <span className="text-blue-600">Categoría:</span> {categoria?.nombre || "Global"}
+                    </p>
+              </div>
               <p className="text-gray-600 text-lg leading-relaxed">
-                {localStorage.getItem("eventoDescripcion") || "Sin descripción disponible para este proyecto."}
+                <span className="text-pink-600">Descripción:</span> {localStorage.getItem("proyectoDescripcion") || "Sin descripción disponible para este proyecto."}
               </p>
             </article>
 

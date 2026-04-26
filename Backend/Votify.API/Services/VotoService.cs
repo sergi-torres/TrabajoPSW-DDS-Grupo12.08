@@ -14,16 +14,11 @@ namespace Votify.API.Services
         private readonly VotoJuradoFactory _votoJuradoFactory;
         private readonly IComentarioCualitativoService _comentarioService;
 
-        // Cache por evento durante la sesión de votación (categorías y proyectos no cambian durante votación)
-        private static readonly Dictionary<int, (List<CategoriaConPesos> categorias, List<Proyecto> proyectos, DateTime timestamp)> _eventosCache = new();
-        // Cache por 4 horas, esto dependerá del limite que querramos dejar para todas las votaciones 
-        private static readonly TimeSpan CacheDuration = TimeSpan.FromHours(4);
-        
         // Votos segregados por clave de sesión:
         // Jurado => "U:{idUsuario}"
         // Público => "P:{sessionId}"
         private static readonly Dictionary<string, List<(int CategoriaId, int ProyectoId)>> VotosRealizadosPorUsuario = new();
-        
+
         // Track último usuario activo para detectar cambio de sesión (nuevo Jurado = reset a zero)
         private static int? _ultimoIdUsuarioActivo = null;
 
@@ -73,43 +68,40 @@ namespace Votify.API.Services
         }
 
         private async Task<(List<CategoriaConPesos> categorias, List<Proyecto> proyectos)>
-        ObtenerDatosEventoCacheAsync(int eventoId)
+        ObtenerDatosEventoAsync(int eventoId)
         {
-            if (!_eventosCache.ContainsKey(eventoId) ||
-                DateTime.Now - _eventosCache[eventoId].timestamp > CacheDuration)
+            var categoriasDb = await _categoriaRepository.ObtenerTodosCamposAsync(eventoId);
+
+            var categorias = categoriasDb.Select(c => new CategoriaConPesos
             {
-                var categoriasDb = await _categoriaRepository.ObtenerPorEventoIdAsync(eventoId);
+                Id = c.Id,
+                Nombre = c.Nombre,
+                IdEvento = c.IdEvento,
+                FechaIni = c.FechaIni,
+                FechaFin = c.FechaFin,
+                Estado = c.Estado,
+                VotosRestantes = 3,
+                PesosPorRol = new List<PesoCategoriaRol>()
+            }).ToList();
 
-                var categorias = categoriasDb.Select(c => new CategoriaConPesos
-                {
-                    Id = c.Id,
-                    Nombre = c.Nombre,
-                    VotosRestantes = 3,
-                    Estado = "pendiente",
-                    PesosPorRol = new List<PesoCategoriaRol>()
-                }).ToList();
+            var proyectos = new List<Proyecto>();
 
-                var proyectos = new List<Proyecto>();
+            foreach (var categoria in categorias)
+            {
+                var proyectosCategoria =
+                    await _proyectoRepository.ObtenerPorCategoriaIdAsync(categoria.Id);
 
-                foreach (var categoria in categorias)
-                {
-                    var proyectosCategoria =
-                        await _proyectoRepository.ObtenerPorCategoriaIdAsync(categoria.Id);
-
-                    proyectos.AddRange(proyectosCategoria);
-                }
-
-                _eventosCache[eventoId] = (categorias, proyectos, DateTime.Now);
+                proyectos.AddRange(proyectosCategoria);
             }
 
-            return (_eventosCache[eventoId].categorias, _eventosCache[eventoId].proyectos);
+            return (categorias, proyectos);
         }
 
         public async Task<DashboardResponseDto> ObtenerDashboardAsync(int eventoId, int? idUsuario = null, string? sessionId = null)
         {
             try
             {
-            var claveSesion = ObtenerClaveSesion(idUsuario, sessionId);
+                var claveSesion = ObtenerClaveSesion(idUsuario, sessionId);
 
                 // Detectar cambio de usuario (nuevo Jurado = reset a zero state)
                 if (idUsuario.HasValue && idUsuario != _ultimoIdUsuarioActivo)
@@ -129,19 +121,20 @@ namespace Votify.API.Services
                     _ultimoIdUsuarioActivo = null;
                 }
 
-                // Obtener datos del evento (con cache inteligente)
-                var (categoriasDelEvento, todosProyectos) = await ObtenerDatosEventoCacheAsync(eventoId);
+                // Obtener datos del evento (sin cache)
+                var (categoriasDelEvento, todosProyectos) = await ObtenerDatosEventoAsync(eventoId);
 
                 // Obtener votos realizados por este usuario (o PIN si es anónimo)
-                var votosUsuario = VotosRealizadosPorUsuario.ContainsKey(claveSesion) 
-                    ? VotosRealizadosPorUsuario[claveSesion] 
+                var votosUsuario = VotosRealizadosPorUsuario.ContainsKey(claveSesion)
+                    ? VotosRealizadosPorUsuario[claveSesion]
                     : new List<(int CategoriaId, int ProyectoId)>();
 
                 var categoriasResumen = new List<CategoriaResumenDto>();
+                var now = DateTime.Now;
 
                 foreach (var cat in categoriasDelEvento)
                 {
-                    // Filtrar proyectos de esta categoría desde el cache
+                    // Filtrar proyectos de esta categoría
                     var proyectosCategoria = todosProyectos.Where(p => p.IdCategoria == cat.Id).ToList();
 
                     // Convertir proyectos a DTO y marcar estado basado en votos de sesión
@@ -155,14 +148,50 @@ namespace Votify.API.Services
 
                     var votosEnCategoria = votosUsuario.Count(v => v.CategoriaId == cat.Id);
                     var votosRestantes = 3 - votosEnCategoria; // Usar valor inicial 3
-                    var estadoCategoria = votosRestantes <= 0 ? "completado" : "pendiente";
+
+                    // Calcular el estado dinámico basado en las fechas
+                    bool isActiva = true;
+                    if (cat.FechaIni.HasValue && now < cat.FechaIni.Value) isActiva = false;
+                    if (cat.FechaFin.HasValue && now > cat.FechaFin.Value) isActiva = false;
+
+                    string estadoReal = "Activa";
+                    if (!isActiva)
+                    {
+                        if (cat.FechaIni.HasValue && now < cat.FechaIni.Value)
+                            estadoReal = "Pendiente";
+                        else
+                            estadoReal = "Finalizada";
+                    }
+
+                    // Si el estado real en base a tiempo difiere del que está en BD, lo actualizamos
+                    if (cat.Estado != estadoReal)
+                    {
+                        cat.Estado = estadoReal;
+                        // Actualizar la categoría en base de datos para mantener consistencia
+                        await _categoriaRepository.ActualizarAsync(new Categoria
+                        {
+                            Id = cat.Id,
+                            Nombre = cat.Nombre,
+                            IdEvento = cat.IdEvento,
+                            FechaIni = cat.FechaIni,
+                            FechaFin = cat.FechaFin,
+                            Estado = cat.Estado
+                        });
+                    }
+
+                    // Calcular estado final para el frontend. Si no le quedan votos, es "completado" sin importar la fecha (a menos que esté finalizada/pendiente en cuyo caso también se bloquea).
+                    string estadoFrontend = estadoReal.ToLower(); // "activa", "pendiente", "finalizada"
+                    if (estadoReal == "Activa" && votosRestantes <= 0)
+                    {
+                        estadoFrontend = "completado";
+                    }
 
                     categoriasResumen.Add(new CategoriaResumenDto
                     {
                         Id = cat.Id,
                         Titulo = cat.Nombre,
                         VotosRestantes = Math.Max(0, votosRestantes),
-                        Estado = estadoCategoria,
+                        Estado = estadoFrontend,
                         Proyectos = proyectosDto
                     });
                 }
@@ -191,7 +220,8 @@ namespace Votify.API.Services
 
             var categoria = dashboard.Categorias.FirstOrDefault(c => c.Id == request.CategoriaId);
 
-            if (categoria != null && categoria.VotosRestantes > 0)
+            // Solo permitir voto si la categoría está activa y quedan votos. Si el frontend envía un voto en estado completado o finalizada, lo rechazamos.
+            if (categoria != null && categoria.VotosRestantes > 0 && categoria.Estado == "activa")
             {
                 var factory = await ObtenerFactoryPorRolAsync(request.EventoId, idUsuario);
 
@@ -229,6 +259,22 @@ namespace Votify.API.Services
             }
 
             return await ObtenerDashboardAsync(request.EventoId, idUsuario, sessionId);
+        }
+
+        public async Task<IEnumerable<VotoResponseDto>> ObtenerVotosPorProyectoAsync(int proyectoId)
+        {
+            var votos = await _votoRepository.ObtenerPorProyectoIdAsync(proyectoId);
+
+            var votosPorProyecto = votos.Select(v => new VotoResponseDto
+            {
+                Id = v.Id,
+                ProyectoId = v.IdProyecto,
+                CategoriaId = v.IdCategoria,
+                Comentario = v.Comentario,
+                Fecha = v.FechaVoto,
+            });
+
+            return votosPorProyecto;
         }
     }
 }

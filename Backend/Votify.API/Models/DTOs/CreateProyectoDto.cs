@@ -1,8 +1,10 @@
-﻿namespace Votify.API.Models.DTOs
+﻿using System;
+using System.Collections.Generic;
+
+namespace Votify.API.Models.DTOs
 {
-    public class ProyectoRequestDto
+    public class CreateProyectoDto
     {
-        public int Id { get; set; }
 
         public string? Nombre { get; set; }
 
@@ -16,7 +18,7 @@
 
         public int? IdCategoria { get; set; }
 
-        public string? Estado { get; set; }
+        public string Estado { get; set; } = "disponible";
 
         public List<int>? IdMiembros { get; set; }
     }

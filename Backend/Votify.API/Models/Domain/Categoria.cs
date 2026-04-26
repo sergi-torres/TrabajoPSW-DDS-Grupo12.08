@@ -13,5 +13,14 @@ namespace Votify.API.Models.Domain
 
         [Column("idevento")]
         public int IdEvento { get; set; }
+
+        [Column("fechaini")]
+        public DateTime? FechaIni { get; set; }
+
+        [Column("fechafin")]
+        public DateTime? FechaFin { get; set; }
+
+        [Column("estado")]
+        public string Estado { get; set; } = "Pendiente"; // Pendiente,Activa, Finalizada 
     }
 }

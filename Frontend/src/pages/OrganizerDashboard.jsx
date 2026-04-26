@@ -1,4 +1,4 @@
-// src/pages/OrganizerDashboard.jsx
+﻿// src/pages/OrganizerDashboard.jsx
 import { useState, useEffect, useContext, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Target, Award, TrendingUp, LayoutDashboard, Clock } from "lucide-react";

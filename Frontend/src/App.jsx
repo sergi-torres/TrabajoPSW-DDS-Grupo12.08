@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+﻿import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { AuthProvider } from './context/AuthContext'
 import { EventProvider } from './context/EventContext'
@@ -13,6 +13,10 @@ import VotosPage from './pages/VotosPage'
 import DashboardVotacionCategorias from './pages/DashboardVotacionCategorias'
 import InvitarJuradoPage from './pages/InvitarJuradoPage'
 import AcceptInvitePage from './pages/AcceptInvitePage'
+import ParticipantRegister from './pages/ParticipantRegister'
+import { VotingProvider } from "./context/VotingContext";
+import CreateProject from './pages/CreateProject'
+import ConfigTiempoVotacionPage from './pages/ConfigTiempoVotacion'
 
 function App() {
   return (
@@ -20,6 +24,7 @@ function App() {
       <Toaster position="bottom-right" richColors />
       <AuthProvider>
         <EventProvider>
+         <VotingProvider>
           <BrowserRouter>
             <Routes>
               <Route path="/login" element={<LoginPage />} />
@@ -28,6 +33,7 @@ function App() {
               <Route element={<ProtectedRoute />}>
                 <Route path="/create-event" element={<CreateEvent />} />
                 <Route path="/eventos/:eventoId/ajustes" element={<CreateEvent />} />
+                <Route path="/eventos/:eventoId/configuraciones" element={<ConfigTiempoVotacionPage />} />
                 <Route path="/eventos" element={<DashboardPage />} />
                 <Route path="/eventos/:eventoId" element={<OrganizerDashboard />} />
                 <Route path="/eventos/:eventoId/jurado" element={<InvitarJuradoPage />} />
@@ -35,12 +41,16 @@ function App() {
                 <Route path="/eventos/:eventoId/votar" element={<DashboardVotacionCategorias />} />
                 <Route path="/votos" element={<VotosPage />} />
                 <Route path="/dashboard-votacion-categorias" element={<DashboardVotacionCategorias />} />
+                <Route path="/participantRegister" element={<ParticipantRegister />} />
+                <Route path="/create-project" element={<CreateProject />} />
+                  
               </Route>
 
               <Route path="/" element={<Navigate to="/login" replace />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
+         </VotingProvider>
         </EventProvider>
       </AuthProvider>
     </>

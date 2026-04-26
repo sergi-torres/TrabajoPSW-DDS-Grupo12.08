@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Votify.API.Models.Domain;
 using Votify.API.Models.DTOs;
 using Votify.API.Repositories;
+using Votify.API.Services;
 
 namespace Votify.API.Controllers
 {
@@ -11,12 +12,16 @@ namespace Votify.API.Controllers
     public class CategoriasController : ControllerBase
     {
         private readonly ICategoriaRepository _categoriaRepository;
+        private readonly ICategoriaService _categoriaService;
         private readonly Supabase.Client _supabase;
-
-        public CategoriasController(ICategoriaRepository categoriaRepository, Supabase.Client supabase)
+        
+  
+        public CategoriasController(ICategoriaRepository categoriaRepository, ICategoriaService categoriaService, Supabase.Client supabase)
         {
             _categoriaRepository = categoriaRepository;
+            _categoriaService = categoriaService;
             _supabase = supabase;
+
         }
 
         // GET: api/categorias
@@ -53,6 +58,33 @@ namespace Votify.API.Controllers
                     Nombre = c.Nombre,
                     IdEvento = c.IdEvento
                 });
+
+                return Ok(dto);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        // GET: api/categorias/evento/1
+        [HttpGet("id/{categoriaId}")]
+        public async Task<IActionResult> GetById(int categoriaId)
+        {
+            try
+            {
+                var categoria = await _categoriaRepository.ObtenerPorIdAsync(categoriaId);
+                if (categoria == null)
+                {
+                    return NotFound();
+                }
+
+                var dto = new CategoriaResponseDto
+                {
+                    Id = categoria.Id,
+                    Nombre = categoria.Nombre,
+                    IdEvento = categoria.IdEvento
+                };
 
                 return Ok(dto);
             }
@@ -109,5 +141,6 @@ namespace Votify.API.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+
     }
 }
