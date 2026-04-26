@@ -1,11 +1,11 @@
 import { useState, useEffect, useContext, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { 
-    ArrowLeft, Users, UserPlus, Trash2, Mail, Loader2, 
+    ArrowLeft, Users, Trash2, Mail, Loader2, 
     CheckCircle2, AlertCircle, Send, FileText, RefreshCw, 
     ShieldCheck, Clock, X, AlertTriangle, LogOut
 } from "lucide-react";
-import { motion as Motion, AnimatePresence } from "motion/react";
+import { motion as Motion, AnimatePresence } from "framer-motion";
 import { EventSidebar } from "../components/layout/EventSidebar";
 import { EventContext } from "../context/EventContext";
 import { AuthContext } from "../context/AuthContext";
@@ -16,7 +16,7 @@ import logoVotify from "../assets/LogoVotify.png";
 /**
  * Componente interno para el Modal de Confirmación
  */
-function ConfirmModal({ isOpen, onClose, onConfirm, title, message, isLoading }) {
+function ConfirmModal({ isOpen, onClose, onConfirm, title, message, isLoading }: any) {
     if (!isOpen) return null;
 
     return (
@@ -67,32 +67,32 @@ function ConfirmModal({ isOpen, onClose, onConfirm, title, message, isLoading })
 }
 
 export default function InvitarJuradoPage() {
-    const { eventoId: paramEventoId } = useParams();
+    const { eventoId: paramEventoId } = useParams<{ eventoId: string }>();
     const navigate = useNavigate();
-    const { logout } = useContext(AuthContext);
-    const { eventoId: contextId, userRole, userColor, isCollapsed, clearEventContext } = useContext(EventContext);
-    const [jurados, setJurados] = useState([]);
+    const { logout } = useContext(AuthContext)!;
+    const { eventoId: contextId, userRole, userColor, isCollapsed, clearEventContext } = useContext(EventContext)!;
+    const [jurados, setJurados] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [eventInfo, setEventInfo] = useState(null);
+    const [eventInfo, setEventInfo] = useState<any>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [toast, setToast] = useState(null);
+    const [toast, setToast] = useState<any>(null);
 
     // Estado para el modal de eliminación
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const [juradoToDelete, setJuradoToDelete] = useState(null);
+    const [juradoToDelete, setJuradoToDelete] = useState<any>(null);
     const [isDeleting, setIsDeleting] = useState(false);
 
     // Estado para reenvío
-    const [isResending, setIsResending] = useState(null); 
+    const [isResending, setIsResending] = useState<string | null>(null); 
 
-    const eventoId = paramEventoId || contextId;
+    const eventoId = paramEventoId || (contextId ? contextId.toString() : null);
 
     // Estados del formulario
     const [emailInput, setEmailInput] = useState("");
-    const [emailsList, setEmailsList] = useState([]); 
+    const [emailsList, setEmailsList] = useState<string[]>([]); 
     const [customMessage, setCustomMessage] = useState("");
 
-    const showToast = useCallback((message, type = "success") => {
+    const showToast = useCallback((message: string, type: "success" | "error" = "success") => {
         setToast({ message, type });
         setTimeout(() => setToast(null), 4000);
     }, []);
@@ -103,7 +103,7 @@ export default function InvitarJuradoPage() {
         navigate('/login');
     };
 
-    const handleKeyDown = (e) => {
+    const handleKeyDown = (e: React.KeyboardEvent) => {
         if (["Enter", ",", " "].includes(e.key)) {
             e.preventDefault();
             addEmail();
@@ -122,16 +122,16 @@ export default function InvitarJuradoPage() {
         }
     }, [emailInput, emailsList]);
 
-    const removeEmail = (emailToRemove) => {
+    const removeEmail = (emailToRemove: string) => {
         setEmailsList(prev => prev.filter(email => email !== emailToRemove));
     };
 
     const fetchJurados = useCallback(async () => {
         if (!eventoId || eventoId === "undefined") return;
         try {
-            const data = await getJuradosEvento(eventoId);
+            const data = await getJuradosEvento(Number(eventoId));
             setJurados(data);
-        } catch (err) {
+        } catch (err: any) {
             console.error("Error cargando jurados:", err);
             showToast("Error al cargar la lista de jurados", "error");
         }
@@ -140,7 +140,7 @@ export default function InvitarJuradoPage() {
     const fetchEventInfo = useCallback(async () => {
         if (!eventoId || eventoId === "undefined") return;
         try {
-            const data = await getDashboard(eventoId);
+            const data = await getDashboard(Number(eventoId));
             setEventInfo(data.liveInfo);
         } catch (err) {
             console.error("Error cargando info del evento:", err);
@@ -155,7 +155,7 @@ export default function InvitarJuradoPage() {
         }
     }, [eventoId, fetchJurados, fetchEventInfo]);
 
-    const handleAsignar = async (e) => {
+    const handleAsignar = async (e: React.FormEvent) => {
         e.preventDefault();
         let finalEmails = [...emailsList];
         if (emailInput.trim()) {
@@ -165,52 +165,53 @@ export default function InvitarJuradoPage() {
                 finalEmails.push(trimmedEmail);
             }
         }
-        if (finalEmails.length === 0) return;
+        if (finalEmails.length === 0 || !eventoId) return;
         setIsSubmitting(true);
         try {
             for (const email of finalEmails) {
                 // Pasamos el mensaje personalizado
-                await asignarJurado(eventoId, email, customMessage);
+                await asignarJurado(Number(eventoId), email, customMessage);
             }
             showToast("Invitaciones enviadas correctamente", "success");
             setEmailInput("");
             setEmailsList([]); 
             setCustomMessage("");
             fetchJurados();
-        } catch (err) {
+        } catch (err: any) {
             showToast(err.message, "error");
         } finally {
             setIsSubmitting(false);
         }
     };
 
-    const handleReenviar = async (email) => {
+    const handleReenviar = async (email: string) => {
+        if (!eventoId) return;
         setIsResending(email);
         try {
-            await reenviarInvitacion(eventoId, email);
+            await reenviarInvitacion(Number(eventoId), email);
             showToast(`Invitación reenviada a ${email}`, "success");
-        } catch (err) {
+        } catch (err: any) {
             showToast(err.message, "error");
         } finally {
             setIsResending(null);
         }
     };
 
-    const handleOpenDeleteModal = (jurado) => {
+    const handleOpenDeleteModal = (jurado: any) => {
         setJuradoToDelete(jurado);
         setIsDeleteModalOpen(true);
     };
 
     const handleConfirmDelete = async () => {
-        if (!juradoToDelete) return;
+        if (!juradoToDelete || !eventoId) return;
         setIsDeleting(true);
         const isInvitation = juradoToDelete.id < 0;
         try {
-            await eliminarJurado(eventoId, juradoToDelete.id);
+            await eliminarJurado(Number(eventoId), juradoToDelete.id);
             showToast(isInvitation ? "Invitación eliminada" : "Jurado eliminado", "success");
             fetchJurados();
             setIsDeleteModalOpen(false);
-        } catch (err) {
+        } catch (err: any) {
             showToast(err.message, "error");
         } finally {
             setIsDeleting(false);
@@ -257,7 +258,7 @@ export default function InvitarJuradoPage() {
             <div className="pb-[88px] lg:pb-12">
                 <header 
                     className={`bg-blue-600 text-white p-6 lg:p-10 transition-all duration-300 ${isPublicRole ? 'lg:pl-10' : (isCollapsed ? 'lg:pl-28' : 'lg:pl-80')}`} 
-                    style={{ backgroundColor: userColor }}
+                    style={{ backgroundColor: userColor || undefined }}
                 >
                     <div className="max-w-7xl mx-auto">
                         <div className="flex justify-between items-start mb-6">
@@ -430,7 +431,7 @@ export default function InvitarJuradoPage() {
                                             placeholder="Añade un saludo o instrucciones específicas para tus jurados..."
                                             value={customMessage}
                                             onChange={(e) => setCustomMessage(e.target.value)}
-                                            rows="4"
+                                            rows={4}
                                             className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all outline-none text-sm"
                                         />
                                         <p className="text-[11px] text-gray-400 mt-2 ml-1 flex items-center gap-1">

@@ -1,6 +1,4 @@
 import { useSearchParams } from "react-router-dom";
-import { MobileLayout } from "../components/auth/MobileLayout";
-import { DesktopLayout } from "../components/auth/DesktopLayout";
 import { AuthTabs } from "../components/auth/AuthTabs";
 import logo from "../assets/LogoSinTexto.png";
 

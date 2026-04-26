@@ -11,11 +11,11 @@ import { EventSidebar } from '../components/layout/EventSidebar';
 
 const DashboardVotacionCategorias = () => {
   const navigate = useNavigate();
-  const { logout } = useContext(AuthContext);
-  const { userRole, userColor, isCollapsed, clearEventContext } = useContext(EventContext);
+  const { logout } = useContext(AuthContext) as any;
+  const { userRole, userColor, isCollapsed, clearEventContext } = useContext(EventContext) as any;
   const { datos, cargando, cargarDashboard } = useVotacionDashboard();
   const [vistaActual, setVistaActual] = useState('categorias');
-  const [categoriaElegida, setCategoriaElegida] = useState(null);
+  const [categoriaElegida, setCategoriaElegida] = useState<any>(null);
 
   useEffect(() => {
     if (vistaActual === 'categorias') {
@@ -32,7 +32,7 @@ const DashboardVotacionCategorias = () => {
       <DashboardVotacionProyectos
         categoria={categoriaElegida}
         alVolver={() => setVistaActual('categorias')}
-        comentariosObligatorios={datos?.comentariosObligatorios ?? false}
+        comentariosObligatorios={(datos as any)?.comentariosObligatorios ?? false}
       />
     );
   }
@@ -109,7 +109,7 @@ const DashboardVotacionCategorias = () => {
                   <Target className="w-6 h-6" style={{ color: userColor }} />
                   <h2 className="text-xl font-heading font-bold text-gray-900">Resumen de Votación</h2>
                 </div>
-                <StatsBar config={datos} />
+                <StatsBar config={datos as any} />
               </section>
 
               {/* Categories Grid */}
@@ -119,7 +119,7 @@ const DashboardVotacionCategorias = () => {
                   <h2 className="text-xl font-heading font-bold text-gray-900">Categorías Disponibles</h2>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {datos.categorias.map(cat => (
+                  {(datos.categorias as any[]).map(cat => (
                     <div key={cat.id} className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 p-1">
                       <CategoriaCard
                         categoria={cat}

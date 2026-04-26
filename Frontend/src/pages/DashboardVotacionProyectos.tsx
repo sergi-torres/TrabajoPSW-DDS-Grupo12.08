@@ -3,11 +3,17 @@ import ProyectosLista from '../components/votacion/votacionProyectos/ProyectosLi
 import OpcionesSeleccionado from '../components/votacion/votacionProyectos/OpcionesSeleccionado';
 import { useEnviarVoto } from '../hooks/VotacionHooks/useEnvioVoto';
 
-const DashboardVotacionProyectos = ({ categoria, alVolver, comentariosObligatorios }) => {
-  const { enviarVoto, cargando, error } = useEnviarVoto();
+interface Props {
+  categoria: any;
+  alVolver: () => void;
+  comentariosObligatorios: boolean;
+}
+
+const DashboardVotacionProyectos: React.FC<Props> = ({ categoria, alVolver, comentariosObligatorios }) => {
+  const { enviarVoto, cargando } = useEnviarVoto();
   
   // Estado local ascendido
-  const [seleccionado, setSeleccionado] = useState(null);
+  const [seleccionado, setSeleccionado] = useState<any>(null);
   const [comentario, setComentario] = useState("");
 
   const handleConfirmar = async () => {
@@ -20,7 +26,8 @@ const DashboardVotacionProyectos = ({ categoria, alVolver, comentariosObligatori
       return;
     }
 
-    const eventoId = parseInt(localStorage.getItem('eventoId'));
+    const eventoIdRaw = localStorage.getItem('eventoId');
+    const eventoId = eventoIdRaw ? parseInt(eventoIdRaw) : 0;
     const userIdRaw = localStorage.getItem('userId');
     const idUsuario = userIdRaw ? parseInt(userIdRaw) : null;
     const sessionId = localStorage.getItem('votacionSessionId');
@@ -30,11 +37,16 @@ const DashboardVotacionProyectos = ({ categoria, alVolver, comentariosObligatori
       categoriaId: categoria.id,
       proyectoId: seleccionado.id,
       comentario: comentario,
-      idUsuario: Number.isNaN(idUsuario) ? null : idUsuario,
-      sessionId: sessionId || null
+      idUsuario: idUsuario === null || Number.isNaN(idUsuario) ? null : idUsuario,
+      sessionId: sessionId || null,
+      valor: 0, // default
+      idcriterio: null,
+      idproyecto: seleccionado.id,
+      idevaluador: idUsuario,
+      idcategoria: categoria.id
     };
 
-    const exito = await enviarVoto(votoDto);
+    const exito = await enviarVoto(votoDto as any);
     if (exito) {
       alVolver(); // Solo volvemos atrás si el voto resultó ser exitoso.
     }

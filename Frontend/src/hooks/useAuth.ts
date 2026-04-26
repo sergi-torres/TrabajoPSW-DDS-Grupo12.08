@@ -18,7 +18,7 @@ export const useAuth = () => {
     try {
       await contextLogin(credentials);
       toast.success("¡Bienvenido!");
-      navigate("/dashboard");
+      navigate("/eventos");
     } catch (error: any) {
       toast.error(error.message || "Error al iniciar sesión");
       throw error;

@@ -16,9 +16,9 @@ const steps = [
 ];
 
 const CreateEvent = () => {
-  const { userId } = useContext(AuthContext);
+  const { userId } = useContext(AuthContext) as any;
   const navigate = useNavigate();
-  const { eventoId } = useParams();
+  const { eventoId } = useParams<{ eventoId: string }>();
 
   // Modo edición si hay un eventoId en la URL
   const isEditMode = Boolean(eventoId);
@@ -27,7 +27,7 @@ const CreateEvent = () => {
   const [loadingEvento, setLoadingEvento] = useState(false);
   const [eventoEstado, setEventoEstado] = useState("");
 
-  const [detalles, setDetalles] = useState({
+  const [detalles, setDetalles] = useState<any>({
     nombre: "",
     descripcion: "",
     fechaInicio: "",
@@ -35,14 +35,14 @@ const CreateEvent = () => {
     imagen: null,
   });
 
-  const [votacion, setVotacion] = useState({
+  const [votacion, setVotacion] = useState<any>({
     votoPublicoHabilitado: true,
     pesoJurado: 70,
     categorias: [],
     comentariosObligatorios: false
   });
 
-  const [reglas, setReglas] = useState({
+  const [reglas, setReglas] = useState<any>({
     plantilla: "",
     baremoNombre: "",
     dimensiones: [],
@@ -51,12 +51,12 @@ const CreateEvent = () => {
 
   // Cargar datos del evento en modo edición
   useEffect(() => {
-    if (!isEditMode) return;
+    if (!isEditMode || !eventoId) return;
 
     const loadEvento = async () => {
       try {
         setLoadingEvento(true);
-        const data = await getEventoDetalle(eventoId);
+        const data: any = await getEventoDetalle(eventoId as any);
 
         setEventoEstado(data.estado);
 
@@ -64,15 +64,15 @@ const CreateEvent = () => {
         setDetalles({
           nombre: data.nombre || "",
           descripcion: data.descripcion || "",
-          fechaInicio: data.fechaInicio ? new Date(data.fechaInicio).toISOString().slice(0, 16) : "",
-          fechaFin: data.fechaFin ? new Date(data.fechaFin).toISOString().slice(0, 16) : "",
+          fechaInicio: (data.fechaInicio || data.fechaini) ? new Date(data.fechaInicio || data.fechaini).toISOString().slice(0, 16) : "",
+          fechaFin: (data.fechaFin || data.fechafin) ? new Date(data.fechaFin || data.fechafin).toISOString().slice(0, 16) : "",
           imagen: null,
         });
 
         // Prellenar votación
-        const categorias = (data.categorias || []).map(c => c.nombre);
-        const pesoJurado = data.categorias?.[0]?.pesos?.find(p => p.rolVotante === "Jurado")?.peso ?? 70;
-        const pesoPublico = data.categorias?.[0]?.pesos?.find(p => p.rolVotante === "Publico")?.peso ?? 30;
+        const categorias = (data.categorias || []).map((c: any) => c.nombre);
+        const pesoJurado = data.categorias?.[0]?.pesos?.find((p: any) => p.rolVotante === "Jurado")?.peso ?? 70;
+        const pesoPublico = data.categorias?.[0]?.pesos?.find((p: any) => p.rolVotante === "Publico")?.peso ?? 30;
 
         setVotacion({
           votoPublicoHabilitado: pesoPublico > 0,
@@ -84,7 +84,7 @@ const CreateEvent = () => {
         // Prellenar reglas/baremos
         const baremo = data.baremos?.[0];
         if (baremo) {
-          const dimensiones = (baremo.criterios || []).map(c => ({
+          const dimensiones = (baremo.criterios || []).map((c: any) => ({
             id: crypto.randomUUID(),
             nombre: c.nombre,
             peso: c.peso,
@@ -103,7 +103,7 @@ const CreateEvent = () => {
             analisisAutomatico: false,
           });
         }
-      } catch (err) {
+      } catch (err: any) {
         toast.error("Error al cargar el evento", { description: err.message });
         navigate("/eventos");
       } finally {
@@ -165,7 +165,7 @@ const CreateEvent = () => {
 
       // Validar que las dimensiones sumen 100% si hay alguna
       if (reglas.dimensiones.length > 0) {
-        const totalPeso = reglas.dimensiones.reduce((sum, d) => sum + d.peso, 0);
+        const totalPeso = reglas.dimensiones.reduce((sum: number, d: any) => sum + d.peso, 0);
         if (totalPeso !== 100) {
           throw new Error(`La suma de los pesos de las dimensiones debe ser 100% (actual: ${totalPeso}%).`);
         }
@@ -178,13 +178,13 @@ const CreateEvent = () => {
         : "Feria";
 
       // MODO EDICIÓN: Actualizar evento existente
-      if (isEditMode) {
+      if (isEditMode && eventoId) {
         // Construir baremos con criterios
         const baremoNombre = reglas.baremoNombre || reglas.plantilla || "Personalizado";
         const baremos = reglas.dimensiones.length > 0
           ? [{
               nombre: baremoNombre,
-              criterios: reglas.dimensiones.map(d => ({
+              criterios: reglas.dimensiones.map((d: any) => ({
                 nombre: d.nombre,
                 tipoCriterio: "Numerico",
                 peso: d.peso,
@@ -204,7 +204,7 @@ const CreateEvent = () => {
           fechaFin: fin.toISOString(),
           tipoEvento,
           baremos,
-          categorias: categoriasFinales.map(nombre => ({
+          categorias: (categoriasFinales as string[]).map(nombre => ({
             nombre,
             idEvento: parseInt(eventoId),
             pesos: [
@@ -217,7 +217,7 @@ const CreateEvent = () => {
           comentariosObligatorios: votacion.comentariosObligatorios,
         };
 
-        await updateEvento(eventoId, updateBody);
+        await updateEvento(eventoId as any, updateBody);
 
         toast.success("Evento actualizado exitosamente", {
           description: `Los cambios en "${detalles.nombre}" se han guardado.`,
@@ -243,7 +243,7 @@ const CreateEvent = () => {
       const baremos = reglas.dimensiones.length > 0
         ? [{
             nombre: baremoNombre,
-            criterios: reglas.dimensiones.map(d => ({
+            criterios: reglas.dimensiones.map((d: any) => ({
               nombre: d.nombre,
               tipoCriterio: "Numerico",
               peso: d.peso,
@@ -286,7 +286,7 @@ const CreateEvent = () => {
       const newEventoId = data.id;
 
       // 2. CREAR CATEGORÍAS
-      for (const nombre of categoriasFinales) {
+      for (const nombre of (categoriasFinales as string[])) {
         const catResponse = await fetch(
           "http://localhost:5245/api/categorias",
           {
@@ -332,7 +332,7 @@ const CreateEvent = () => {
 
       navigate("/eventos");
 
-    } catch (error) {
+    } catch (error: any) {
       toast.error(isEditMode ? "Error al actualizar el evento" : "Error al crear el evento", {
         description: error.message,
       });
@@ -381,10 +381,9 @@ const CreateEvent = () => {
 
         <div className="flex justify-between items-center mt-6">
           <button
-            onClick={() => currentStep === 1 ? navigate(isEditMode ? "/organizador-dashboard" : "/eventos") : handlePrev()}
+            onClick={() => currentStep === 1 ? (isEditMode ? navigate(`/eventos/${eventoId}`) : navigate("/eventos")) : handlePrev()}
             className="flex items-center gap-2 h-12 px-6 rounded-md font-heading font-semibold border border-border bg-background text-foreground hover:bg-muted transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
+          >            <ArrowLeft className="w-4 h-4" />
             {currentStep === 1 ? "Cancelar" : "Anterior"}
           </button>
 

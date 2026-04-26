@@ -6,7 +6,7 @@ import { AuthContext } from "../context/AuthContext";
 const NotFound = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { isAuthenticated } = useContext(AuthContext);
+    const { isAuthenticated } = useContext(AuthContext)!;
 
     useEffect(() => {
         console.error("404 Error: Ruta no encontrada:", location.pathname);

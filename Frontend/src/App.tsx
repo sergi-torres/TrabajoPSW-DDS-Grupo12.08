@@ -1,4 +1,4 @@
-﻿import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { AuthProvider } from './context/AuthContext'
 import { EventProvider } from './context/EventContext'
@@ -32,18 +32,19 @@ function App() {
 
               <Route element={<ProtectedRoute />}>
                 <Route path="/create-event" element={<CreateEvent />} />
-                <Route path="/eventos/:eventoId/ajustes" element={<CreateEvent />} />
-                <Route path="/eventos/:eventoId/configuraciones" element={<ConfigTiempoVotacionPage />} />
                 <Route path="/eventos" element={<DashboardPage />} />
+                
+                {/* Rutas de Evento */}
                 <Route path="/eventos/:eventoId" element={<OrganizerDashboard />} />
+                <Route path="/eventos/:eventoId/configuraciones" element={<ConfigTiempoVotacionPage />} />
+                <Route path="/eventos/:eventoId/ajustes" element={<CreateEvent />} />
                 <Route path="/eventos/:eventoId/jurado" element={<InvitarJuradoPage />} />
-                <Route path="/eventos/:eventoId/ranking" element={<DashboardVotacionCategorias />} />
                 <Route path="/eventos/:eventoId/votar" element={<DashboardVotacionCategorias />} />
-                <Route path="/votos" element={<VotosPage />} />
-                <Route path="/dashboard-votacion-categorias" element={<DashboardVotacionCategorias />} />
+                <Route path="/eventos/:eventoId/ranking" element={<DashboardVotacionCategorias />} />
+                <Route path="/eventos/:eventoId/proyectos" element={<VotosPage />} />
+                
                 <Route path="/participantRegister" element={<ParticipantRegister />} />
                 <Route path="/create-project" element={<CreateProject />} />
-                  
               </Route>
 
               <Route path="/" element={<Navigate to="/login" replace />} />

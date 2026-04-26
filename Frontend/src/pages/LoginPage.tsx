@@ -1,8 +1,8 @@
-﻿import { MobileLayout } from "../components/auth/MobileLayout";
+import { MobileLayout } from "../components/auth/MobileLayout";
 import { DesktopLayout } from "../components/auth/DesktopLayout";
 
 /**
- * LoginPage.jsx
+ * LoginPage.tsx
  * 
  * Punto de entrada principal (Ruta `/login`).
  * Es un contenedor inteligente que, basándose en el ancho de la pantalla,

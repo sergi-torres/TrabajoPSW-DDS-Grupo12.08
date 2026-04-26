@@ -7,8 +7,8 @@ import { useAuth } from "../hooks/useAuth";
 import { ArrowLeft, LogOut, Clock } from "lucide-react";
 import { getDashboard } from "../api/orgDashboardApi";
 
-const ConfigTiempoVotacionPage = () => {
-  const { eventoId } = useParams();
+const ConfigTiempoVotacionPage: React.FC = () => {
+  const { eventoId } = useParams<{ eventoId: string }>();
   const {
     categorias,
     obtenerCategoriasPorEvento,
@@ -18,19 +18,19 @@ const ConfigTiempoVotacionPage = () => {
   } = useConfigTiempos();
 
   // --- ESTADOS DEL FORMULARIO ---
-  const [categoriaSel, setCategoriaSel] = useState("");
-  const [fechaIni, setFechaIni] = useState("");
-  const [fechaFin, setFechaFin] = useState("");
+  const [categoriaSel, setCategoriaSel] = useState<string>("");
+  const [fechaIni, setFechaIni] = useState<string>("");
+  const [fechaFin, setFechaFin] = useState<string>("");
 
   // --- ESTADOS DE CONTROL ---
-  const [categoriaTieneDatos, setCategoriaTieneDatos] = useState(false);
-  const [mostrarModalBorrado, setMostrarModalBorrado] = useState(false);
-  const [huboIntentoGuardar, setHuboIntentoGuardar] = useState(false);
+  const [categoriaTieneDatos, setCategoriaTieneDatos] = useState<boolean>(false);
+  const [mostrarModalBorrado, setMostrarModalBorrado] = useState<boolean>(false);
+  const [huboIntentoGuardar, setHuboIntentoGuardar] = useState<boolean>(false);
 
   const navigate = useNavigate();
   const { logout } = useAuth();
-  const { userRole, userColor, isCollapsed, clearEventContext } = useContext(EventContext);
-  const [eventInfo, setEventInfo] = useState(null);
+  const { userRole, userColor, isCollapsed, clearEventContext } = useContext(EventContext) as any;
+  const [eventInfo, setEventInfo] = useState<any>(null);
 
   const isPublicRole = userRole === "Público";
 
@@ -38,7 +38,7 @@ const ConfigTiempoVotacionPage = () => {
   const fetchEventInfo = useCallback(async () => {
     if (!eventoId || eventoId === "undefined") return;
     try {
-      const data = await getDashboard(eventoId);
+      const data: any = await getDashboard(eventoId as any);
       setEventInfo(data.liveInfo);
     } catch (err) {
       console.error("Error cargando info del evento:", err);
@@ -59,7 +59,7 @@ const ConfigTiempoVotacionPage = () => {
   };
 
   // --- MANEJO DE SELECCIÓN DE CATEGORÍA ---
-  const manejarCambioCategoria = (e) => {
+  const manejarCambioCategoria = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const idSeleccionado = e.target.value;
     setCategoriaSel(idSeleccionado);
     setHuboIntentoGuardar(false); // Limpiamos errores previos
@@ -70,12 +70,11 @@ const ConfigTiempoVotacionPage = () => {
     }
 
     // Buscamos la categoría en los datos que trajo la API
-    const categoriaEncontrada = categorias.find(c => c.categoriaId?.toString() === idSeleccionado || c.CategoriaId?.toString() === idSeleccionado);
+    const categoriaEncontrada = categorias.find((c: any) => c.categoriaId?.toString() === idSeleccionado || c.CategoriaId?.toString() === idSeleccionado);
 
     // Si la categoría existe y tiene fechas, rellenamos los inputs
-    // Nota: Las APIs en .NET suelen devolver JSON en camelCase (fechaIni), verificamos ambos por seguridad
-    const fechaInicioBd = categoriaEncontrada?.fechaIni || categoriaEncontrada?.FechaIni;
-    const fechaFinBd = categoriaEncontrada?.fechaFin || categoriaEncontrada?.FechaFin;
+    const fechaInicioBd = (categoriaEncontrada as any)?.fechaIni || (categoriaEncontrada as any)?.FechaIni || (categoriaEncontrada as any)?.fechaInicio;
+    const fechaFinBd = (categoriaEncontrada as any)?.fechaFin || (categoriaEncontrada as any)?.FechaFin || (categoriaEncontrada as any)?.fechaTermino;
 
     if (fechaInicioBd && fechaFinBd) {
       // Formateamos para el input datetime-local (YYYY-MM-DDThh:mm)
@@ -124,13 +123,15 @@ const ConfigTiempoVotacionPage = () => {
   const botonGuardarDeshabilitado = faltanDatos || !!errorFechas || estaGuardando;
 
   // Obtenemos el título para mostrarlo en el modal
-  const tituloCategoriaSel = categorias.find(c => c.categoriaId?.toString() === categoriaSel || c.CategoriaId?.toString() === categoriaSel)?.nombre ||
-    categorias.find(c => c.categoriaId?.toString() === categoriaSel || c.CategoriaId?.toString() === categoriaSel)?.Nombre || "";
+  const tituloCategoriaSel = (categorias.find((c: any) => c.categoriaId?.toString() === categoriaSel || c.CategoriaId?.toString() === categoriaSel) as any)?.nombre ||
+    (categorias.find((c: any) => c.categoriaId?.toString() === categoriaSel || c.CategoriaId?.toString() === categoriaSel) as any)?.Nombre || "";
 
   // --- ACCIONES ---
   const ejecutarGuardado = async () => {
     setHuboIntentoGuardar(true);
     if (botonGuardarDeshabilitado) return;
+
+    if (!eventoId) return;
 
     // Los nombres deben coincidir con tu ConfigTiemposRequestDto
     const dto = {
@@ -141,15 +142,16 @@ const ConfigTiempoVotacionPage = () => {
       FechaFin: fechaFin
     };
 
-    const exito = await guardarConfiguracion(dto);
+    const exito = await (guardarConfiguracion as any)(dto);
     if (exito) {
       setCategoriaTieneDatos(true);
       // Volvemos a pedir las categorías para actualizar el estado global si es necesario
-      if (eventoId) obtenerCategoriasPorEvento(eventoId);
+      obtenerCategoriasPorEvento(eventoId);
     }
   };
 
   const ejecutarBorrado = async () => {
+    if (!eventoId) return;
     const dtoNulo = {
       EventoId: parseInt(eventoId),
       CategoriaId: parseInt(categoriaSel),
@@ -158,11 +160,11 @@ const ConfigTiempoVotacionPage = () => {
       FechaFin: null
     };
 
-    const exito = await guardarConfiguracion(dtoNulo, true);
+    const exito = await (guardarConfiguracion as any)(dtoNulo, true);
     if (exito) {
       limpiarCamposFechas();
       setMostrarModalBorrado(false);
-      if (eventoId) obtenerCategoriasPorEvento(eventoId);
+      obtenerCategoriasPorEvento(eventoId);
     }
   };
 
@@ -263,7 +265,7 @@ const ConfigTiempoVotacionPage = () => {
                     className={`w-full p-4 bg-gray-50 border-2 rounded-2xl outline-none transition-all appearance-none cursor-pointer ${huboIntentoGuardar && !categoriaSel ? 'border-red-200 bg-red-50' : 'border-transparent focus:border-blue-500'}`}
                   >
                     <option value="">{cargandoCategorias ? "Cargando categorías..." : "-- Elige una categoría --"}</option>
-                    {categorias.map(cat => (
+                    {categorias.map((cat: any) => (
                       <option key={cat.categoriaId || cat.CategoriaId} value={cat.categoriaId || cat.CategoriaId}>
                         {cat.nombre || cat.Nombre}
                       </option>

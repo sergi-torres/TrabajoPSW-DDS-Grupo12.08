@@ -1,14 +1,30 @@
-// src/data/mockDashboard.js
+// src/data/mockDashboard.ts
 // Datos mock para el dashboard del organizador — reemplazar con API calls cuando el backend esté listo
 
-export const mockEventInfo = {
+export interface MockEventInfo {
+  name: string;
+  phase: string;
+  isLive: boolean;
+  initialTime: number;
+}
+
+export const mockEventInfo: MockEventInfo = {
   name: "Hackathon Innova 2026",
   phase: "Fase de Votación",
   isLive: true,
   initialTime: 0, // segundos restantes (0 = tiempo agotado en el mock)
 };
 
-export const mockStats = [
+export interface MockStat {
+  id: string;
+  label: string;
+  value: string | number;
+  total: number | null;
+  icon: string;
+  color: string;
+}
+
+export const mockStats: MockStat[] = [
   {
     id: "projects",
     label: "Proyectos Subidos",
@@ -43,7 +59,18 @@ export const mockStats = [
   },
 ];
 
-export const mockRanking = [
+export interface MockRankingEntry {
+  id: number;
+  position: number;
+  name: string;
+  team: string;
+  score: number;
+  juryScore: number;
+  publicScore: number;
+  trend: "up" | "down" | "stable";
+}
+
+export const mockRanking: MockRankingEntry[] = [
   {
     id: 1,
     position: 1,
@@ -96,7 +123,16 @@ export const mockRanking = [
   },
 ];
 
-export const mockFeed = [
+export interface MockFeedEntry {
+  id: number;
+  type: string;
+  title: string;
+  team: string;
+  minutesAgo: number;
+  status: "ready" | "pending" | "reviewing";
+}
+
+export const mockFeed: MockFeedEntry[] = [
   {
     id: 1,
     type: "pdf",

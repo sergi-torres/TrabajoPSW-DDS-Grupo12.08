@@ -9,6 +9,6 @@
 
         // Propiedades no mapeadas (se asignan valores en Service)
         public int VotosRestantes { get; set; } = 3;
-        public string Estado { get; set; } = "pendiente"; // "pendiente" o "completado"
+        public new string Estado { get; set; } = "pendiente"; // "pendiente" o "completado"
     }
 } 

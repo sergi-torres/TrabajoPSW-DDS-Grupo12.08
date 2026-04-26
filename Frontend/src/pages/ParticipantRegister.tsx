@@ -1,5 +1,3 @@
-﻿// JavaScript source code
-
 import { ArrowLeft, Check, Target, Calendar, Users, Upload, X, Image as ImageIcon } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useState, useEffect } from "react"; 
@@ -9,15 +7,12 @@ import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import { toast } from "sonner";
 import { createProyecto } from "../api/proyectoApi";
-import { usuarioApi } from "../api/usuarioApi";
-
-var totalMembers = 1; // Incluye al creador del proyecto
 
 export default function RegisterParticipant() {
   const navigate = useNavigate();
   const { categories, eventConfig } = useVoting();
-  const [selectedCategory, setSelectedCategory] = useState(null);
-  const [projectData, setProjectData] = useState({
+  const [selectedCategory, setSelectedCategory] = useState<any>(null);
+  const [projectData, setProjectData] = useState<any>({
     name: "",
     description: "",
     team: 1,
@@ -27,29 +22,29 @@ export default function RegisterParticipant() {
   useEffect(() => {
   const userId = localStorage.getItem("userId");
   if (userId && projectData.memberIds.length === 0) {
-    setProjectData(prev => ({
+    setProjectData((prev: any) => ({
       ...prev,
       memberIds: [parseInt(userId)]
     }));
   }
-  }, []);
+  }, [projectData.memberIds.length]);
 
-  const [imagePreview, setImagePreview] = useState(null);
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [projectCreated, setProjectCreated] = useState(false);
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setProjectData(prev => ({ ...prev, [name]: value }));
+    setProjectData((prev: any) => ({ ...prev, [name]: value }));
   };
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (file) {
       setSelectedImage(file);
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImagePreview(reader.result);
+        setImagePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
     }
@@ -61,7 +56,6 @@ export default function RegisterParticipant() {
       return;
     }
     setProjectCreated(true);
-    console.log(totalMembers);
   };
 
   const handleRegister = async () => {
@@ -84,10 +78,9 @@ export default function RegisterParticipant() {
       const res = await createProyecto(newProject);
       console.log("Proyecto creado:", res);
       
-      toast.success(`Proyecto registrado exitosamente!\n\nProyecto: ${projectData.name}\nCategoría: ${categories.find(c => c.id === selectedCategory)?.name}`);
-      {/*` Cambiar a eventos*/}
+      toast.success(`Proyecto registrado exitosamente!\n\nProyecto: ${projectData.name}\nCategoría: ${categories.find((c: any) => c.id === selectedCategory)?.name}`);
       navigate("/eventos");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error al crear el proyecto:", error);
       toast.error("Error al crear proyecto", { description: error.message });
     }
@@ -105,7 +98,6 @@ export default function RegisterParticipant() {
             onClick={
                 () => 
                 {   navigate("/eventos");
-                    totalMembers = 1; // Reiniciar conteo de miembros al volver
                 }
             }
             className="flex items-center gap-2 mb-4 hover:opacity-80 transition-opacity"
@@ -184,7 +176,7 @@ export default function RegisterParticipant() {
                     value={projectData.description}
                     onChange={handleInputChange}
                     placeholder="Describe tu proyecto..."
-                    rows="4"
+                    rows={4}
                     className="w-full px-4 py-2 border border-purple-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
                 </div>
@@ -211,7 +203,7 @@ export default function RegisterParticipant() {
   </div>
 
   {/* Lista de participantes adicionales */}
-  {projectData.additionalMembers?.map((member, index) => (
+  {projectData.additionalMembers?.map((member: any, index: number) => (
     <div key={index} className="flex items-center gap-2 mb-2 p-2 bg-gray-50 rounded-lg border border-gray-200">
       <div className="w-8 h-8 rounded-full bg-gray-400 flex items-center justify-center text-white text-sm">
         {member.email?.charAt(0).toUpperCase() || "M"}
@@ -225,7 +217,7 @@ export default function RegisterParticipant() {
         onClick={() => {
           const newMembers = [...projectData.additionalMembers];
           newMembers.splice(index, 1);
-          setProjectData(prev => ({ ...prev, additionalMembers: newMembers }));
+          setProjectData((prev: any) => ({ ...prev, additionalMembers: newMembers }));
         }}
         className="text-red-500 hover:text-red-700"
       >
@@ -240,7 +232,7 @@ export default function RegisterParticipant() {
       type="email"
       placeholder="correo@ejemplo.com"
       value={projectData.newMemberEmail || ""}
-      onChange={(e) => setProjectData(prev => ({ ...prev, newMemberEmail: e.target.value }))}
+      onChange={(e) => setProjectData((prev: any) => ({ ...prev, newMemberEmail: e.target.value }))}
       
       className="flex-1 px-3 py-2 text-sm border border-purple-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
     />
@@ -256,14 +248,13 @@ export default function RegisterParticipant() {
       
                 if (!response.ok) {
                     toast.error("Usuario no encontrado", { description: "El correo no está registrado" });
-                    console.log(projectData);
                     return;
                 }
       
                 const usuario = await response.json();
       
                 // Verificar si ya está en la lista
-                const yaExiste = projectData.additionalMembers?.some(m => m.id === usuario.id);
+                const yaExiste = projectData.additionalMembers?.some((m: any) => m.id === usuario.id);
                 if (yaExiste) {
                   toast.error("Usuario ya agregado");
                   return;
@@ -278,7 +269,7 @@ export default function RegisterParticipant() {
                   email: usuario.email || projectData.newMemberEmail 
                 }];
       
-                setProjectData(prev => ({ 
+                setProjectData((prev: any) => ({ 
                 ...prev, 
                  additionalMembers: newMembers,
                 newMemberEmail: "" 
@@ -345,14 +336,13 @@ export default function RegisterParticipant() {
                     <p className="text-gray-700 mb-3">{projectData.description}</p>
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <Users className="w-4 h-4" />
-                      <span>{totalMembers } miembros</span>
+                      <span>{1 + (projectData.additionalMembers?.length || 0)} miembros</span>
                     </div>
                   </div>
                   <button
                     onClick={() => {
                       setProjectCreated(false);
-                      totalMembers = 1; // Reiniciar conteo de miembros al editar
-                      setProjectData({ name: "", description: "", team: 1 });
+                      setProjectData({ name: "", description: "", team: 1, memberIds: projectData.memberIds });
                       setImagePreview(null);
                       setSelectedImage(null);
                     }}
@@ -383,7 +373,7 @@ export default function RegisterParticipant() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {categories.map((category) => (
+                {(categories as any[]).map((category) => (
                   <div
                     key={category.id}
                     onClick={() => setSelectedCategory(category.id)}
@@ -440,7 +430,7 @@ export default function RegisterParticipant() {
                     <div className="flex items-center gap-2">
                       <Target className="w-5 h-5 text-purple-600" />
                       <span className="font-medium">Categoría:</span>
-                      <span className="text-gray-700">{categories.find(c => c.id === selectedCategory)?.name}</span>
+                      <span className="text-gray-700">{(categories as any[]).find((c: any) => c.id === selectedCategory)?.name}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Calendar className="w-5 h-5 text-purple-600" />

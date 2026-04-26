@@ -70,3 +70,5 @@ conductor/
 # Superpowers
 docs/superpowers/
 .superpowers/
+
+.worktrees/

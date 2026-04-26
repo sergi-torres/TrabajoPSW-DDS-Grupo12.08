@@ -46,21 +46,25 @@ export interface ConfiguracionCategoria extends Categoria {
 }
 
 export interface OrgDashboardData {
-  evento: any;
-  proyectos: any[];
-  estadisticas: {
-    totalVotos: number;
-    totalParticipantes: number;
-    promedioPuntuacion: number;
+  liveInfo: {
+    eventName: string;
+    phase: string;
+    eventCode: number;
+  };
+  stats: {
+    totalVotes: number;
+    participation: number;
+    activeProjects: number;
+    avgScore: number;
   };
   ranking: any[];
+  feed: any[];
 }
 
 export interface VotacionDashboardData {
-  evento: any;
-  proyectos: Proyecto[];
-  categorias: Categoria[];
-  misVotos?: any[];
+  eventInfo: any;
+  categorias: any[];
+  comentariosObligatorios?: boolean;
 }
 
 export interface Jurado {

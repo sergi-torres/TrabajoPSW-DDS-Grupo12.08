@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useMemo, useContext } from "react";
+import { useState, useEffect, useMemo, useContext } from "react";
 import { Plus, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { DesktopHeader } from "../components/eventos/DesktopHeader";
@@ -7,20 +7,19 @@ import { EventCard } from "../components/eventos/EventCard";
 import { getMisEventos } from "../api/eventosApi";
 import { AuthContext } from "../context/AuthContext";
 import { getProyectosByParticipante } from "../api/proyectoApi";
-import { categoriasApi } from "../api/categoriasApi";
 import { EventContext } from "../context/EventContext";
 
 /**
  * EventDashboardPage — Página principal con la lista de eventos.
  */
 export default function DashboardPage() {
-    const { userId } = useContext(AuthContext);
-    const { setEventContext } = useContext(EventContext);
+    const { userId } = useContext(AuthContext) as any;
+    const { setEventContext } = useContext(EventContext) as any;
     const navigate = useNavigate();
-    const [misEventos, setMisEventos] = useState([]);
-    const [misProyectos, setMisProyectos] = useState([]);
+    const [misEventos, setMisEventos] = useState<any[]>([]);
+    const [misProyectos, setMisProyectos] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [error, setError] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState("");
 
     useEffect(() => {
@@ -32,9 +31,7 @@ export default function DashboardPage() {
                 localStorage.setItem("misEventosCache", JSON.stringify(mis));
                 const proyectos = await getProyectosByParticipante(userId); 
                 setMisProyectos(proyectos);
-                //console.log("proyectos del participante:", proyectos);
-
-            } catch (err) {
+            } catch (err: any) {
                 console.error("Error cargando eventos:", err);
                 setError(err.message);
             } finally {
@@ -110,57 +107,40 @@ export default function DashboardPage() {
                                             {...evento}
                                             onClick={
                                                 () => {
-                                                    const rol = JSON.parse(localStorage.getItem("propsRol")).label;
-
-                                                    //Participante
-                                                    if (rol === "Participante") {
-                                                        localStorage.setItem("eventoId", evento.id);
-                                                        localStorage.setItem("eventoNombre", evento.nombre);
-
-                                                        const misProyectosDelEvento = new Array();
-                                                        for(let i=0; i<misProyectos.length; i++)
-                                                        {
-                                                            if(misProyectos[i].idEvento === evento.id){
-                                                                misProyectosDelEvento.push(misProyectos[i]);
-                                                            }
+                                                    const propsRolRaw = localStorage.getItem("propsRol");
+                                                    let rol = "Participante";
+                                                    
+                                                    try {
+                                                        if (propsRolRaw) {
+                                                            rol = JSON.parse(propsRolRaw).label;
                                                         }
-                                                        //console.log(evento.id, misProyectos[0].idEvento);
-                                                        //console.log("proyectos del evento:", misProyectosDelEvento);
+                                                    } catch (e) {
+                                                        console.error("Error parsing propsRol", e);
+                                                    }
+
+                                                    // Sincronizar contexto
+                                                    setEventContext({
+                                                        eventoId: evento.id,
+                                                        userRole: rol,
+                                                        userColor: rol === "Organizador" ? "var(--color-org)" : rol === "Jurado" ? "#ea580c" : "#9333ea"
+                                                    });
+
+                                                    // Navegación
+                                                    if (rol === "Participante") {
+                                                        const misProyectosDelEvento = misProyectos.filter(p => p.idEvento === evento.id);
 
                                                         if (misProyectosDelEvento.length > 0) {
-                                                            const proyecto = misProyectosDelEvento[0]; // normalmente 1 por participante
-                                                            localStorage.setItem("proyectoId", proyecto.id);
-                                                            localStorage.setItem("proyectoNombre", proyecto.nombre);
-                                                            localStorage.setItem("proyectoDescripcion", proyecto.descripcion);
-                                                            localStorage.setItem("categoriaProyecto", proyecto.idCategoria);
-
-
-                                                            navigate("/votos");
-
-                                                        }else{
-                                                            localStorage.setItem("eventoDescripcion", evento.descripcion);                                                            
-                                                            navigate("/participantRegister");
+                                                            const proyecto = misProyectosDelEvento[0];
+                                                            localStorage.setItem("proyectoId", proyecto.id.toString());
                                                         }
-                                                        
+                                                        navigate(`/eventos/${evento.id}`);
+                                                    } else if (rol === "Jurado") {
+                                                        navigate(`/eventos/${evento.id}`);
+                                                    } else if (rol === "Organizador") {
+                                                        navigate(`/eventos/${evento.id}`);
+                                                    } else {
+                                                        navigate(`/eventos/${evento.id}`);
                                                     }
-                                                    
-                                                    if(rol === "Jurado") {
-                                                        localStorage.setItem("eventoId", evento.id);
-                                                        localStorage.setItem("eventoNombre", evento.nombre);
-                                                        localStorage.setItem("eventoDescripcion", evento.descripcion);
-                                                        navigate("/dashboard-votacion-categorias");
-                                                    }
-                                                    if(rol === "Organizador") {
-                                                        localStorage.setItem("eventoId", evento.id);
-                                                        localStorage.setItem("eventoNombre", evento.nombre);
-                                                        localStorage.setItem("eventoDescripcion", evento.descripcion);
-                                                        navigate("/organizador-dashboard");
-                                                    }
-                                                    // Usar el rol que viene del backend en el DTO
-                                                    setEventContext(evento.id, evento.nombre, evento.rol || "Participante");
-                                                    
-                                                    // Ahora todos van a la misma ruta base del evento
-                                                    navigate(`/eventos/${evento.id}`);
                                                 }
                                             }
                                         />

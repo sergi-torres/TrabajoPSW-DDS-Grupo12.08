@@ -1,4 +1,4 @@
-﻿import { ArrowLeft, Save, Upload, X, Image as ImageIcon, Users, Code } from "lucide-react";
+import { ArrowLeft, Save, Upload, X, Image as ImageIcon, Users, Code } from "lucide-react";
 import { useNavigate } from "react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
@@ -9,28 +9,28 @@ import { toast } from "sonner";
 
 export default function CreateProject() {
   const navigate = useNavigate();
-  const [projectData, setProjectData] = useState({
+  const [projectData, setProjectData] = useState<any>({
     name: "",
     description: "",
     technology: "",
     team: 1,
   });
-  const [selectedImage, setSelectedImage] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
-  const [technologies, setTechnologies] = useState([]);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [technologies, setTechnologies] = useState<string[]>([]);
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setProjectData(prev => ({ ...prev, [name]: value }));
+    setProjectData((prev: any) => ({ ...prev, [name]: value }));
   };
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (file) {
       setSelectedImage(file);
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImagePreview(reader.result);
+        setImagePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
     }
@@ -39,15 +39,15 @@ export default function CreateProject() {
   const addTechnology = () => {
     if (projectData.technology.trim() && !technologies.includes(projectData.technology.trim())) {
       setTechnologies([...technologies, projectData.technology.trim()]);
-      setProjectData(prev => ({ ...prev, technology: "" }));
+      setProjectData((prev: any) => ({ ...prev, technology: "" }));
     }
   };
 
-  const removeTechnology = (tech) => {
+  const removeTechnology = (tech: string) => {
     setTechnologies(technologies.filter(t => t !== tech));
   };
 
-const handleSubmit = async (e) => {
+const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!projectData.name || !projectData.description) {
@@ -57,7 +57,7 @@ const handleSubmit = async (e) => {
 
     // Obtener datos del usuario logueado
     const userId = localStorage.getItem("userId");
-    const eventoId = localStorage.getItem("eventoId");
+    // const eventoId = localStorage.getItem("eventoId");
 
     // ✅ CORREGIDO: Usa los nombres de propiedad que espera el backend
     const newProject = {
@@ -77,7 +77,7 @@ const handleSubmit = async (e) => {
         console.log("Proyecto creado:", res);
         toast.success(`¡Proyecto "${projectData.name}" creado exitosamente!`);
         navigate("/participantRegister");
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error al crear el proyecto:", error);
         alert("Error al crear proyecto: " + error.message);
     }
@@ -190,7 +190,7 @@ const handleSubmit = async (e) => {
                   value={projectData.description}
                   onChange={handleInputChange}
                   placeholder="Describe tu proyecto..."
-                  rows="4"
+                  rows={4}
                   className="w-full px-4 py-2 border border-purple-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   required
                 />
@@ -285,7 +285,6 @@ const handleSubmit = async (e) => {
                 <Button
                   type="submit"
                   size="lg"
-                  onClick={handleSubmit}
                   className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-8 py-6 text-lg rounded-2xl shadow-xl hover:shadow-2xl transition-all"
                 >
                   <Save className="w-6 h-6 mr-2" />
