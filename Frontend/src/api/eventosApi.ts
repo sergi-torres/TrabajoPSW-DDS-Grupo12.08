@@ -1,5 +1,5 @@
-import { Event } from '@/types';
-import { EventFactory } from '@/models/EventFactory';
+import { Event } from '../types';
+import { EventFactory } from '../models/EventFactory';
 
 const API_URL = "http://localhost:5245/api/Eventos";
 
