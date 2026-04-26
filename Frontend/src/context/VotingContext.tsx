@@ -1,0 +1,258 @@
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { showNotification } from "../components/Notifications/NotificationSystem";
+import { categoriasApi } from "../api/categoriasApi";
+
+export interface Category {
+  id: string | number;
+  name: string;
+  status: "active" | "pending" | "closed" | "paused";
+  startTime?: Date;
+  endTime?: Date;
+}
+
+export interface Notification {
+  id: string;
+  state: string;
+  categoryName?: string;
+  timestamp: Date;
+  read: boolean;
+}
+
+export interface EventConfig {
+  voteLimit: number;
+  eventName: string;
+  eventCode: string;
+  allowComments: boolean;
+}
+
+export interface VotingContextType {
+  categories: Category[];
+  currentCategory: Category | null;
+  eventStatus: "not_started" | "in_progress" | "paused" | "closed" | "results";
+  notifications: Notification[];
+  eventConfig: EventConfig;
+  startCategory: (categoryId: string | number) => void;
+  closeCategory: (categoryId: string | number) => void;
+  pauseVoting: () => void;
+  resumeVoting: () => void;
+  closeEvent: () => void;
+  showResults: () => void;
+  markNotificationAsRead: (id: string) => void;
+  markAllNotificationsAsRead: () => void;
+  clearAllNotifications: () => void;
+  updateEventConfig: (config: Partial<EventConfig>) => void;
+}
+
+const VotingContext = createContext<VotingContextType | undefined>(undefined);
+
+export function VotingProvider({ children }: { children: ReactNode }) {
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [currentCategory, setCurrentCategory] = useState<Category | null>(null);
+  const [eventStatus, setEventStatus] = useState<VotingContextType["eventStatus"]>("not_started");
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [eventConfig, setEventConfig] = useState<EventConfig>({
+    voteLimit: 3,
+    eventName: "Cargando...",
+    eventCode: "",
+    allowComments: true,
+  });
+  const [loading, setLoading] = useState(true);
+
+  // Cargar categorías y configuración del evento al iniciar
+  useEffect(() => {
+    const loadEventData = async () => {
+      try {
+        const eventoId = localStorage.getItem("eventoId");
+        const eventName = localStorage.getItem("eventoNombre");
+        const eventCode = localStorage.getItem("eventoCodigo") || "EVENTO";
+
+        // Configurar evento desde localStorage
+        setEventConfig({
+          voteLimit: 3,
+          eventName: eventName || "Evento sin nombre",
+          eventCode: eventCode,
+          allowComments: true,
+        });
+
+        // Obtener categorías del evento
+        if (eventoId) {
+          const categorias = await categoriasApi.getByEvento(parseInt(eventoId));
+          
+          // Mapear las categorías al formato que espera el frontend
+          const formattedCategories: Category[] = categorias.map((cat: any) => ({
+            id: cat.id?.toString() || cat.id,
+            name: cat.nombre || cat.name,
+            status: cat.estado === "activa" ? "active" : "pending"
+          }));
+          
+          setCategories(formattedCategories);
+        } else {
+          console.warn("No hay eventoId en localStorage");
+          setCategories([]);
+        }
+      } catch (error) {
+        console.error("Error cargando datos del evento:", error);
+        setCategories([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadEventData();
+  }, []);
+
+  const addNotification = useCallback((state: string, categoryName?: string) => {
+    const newNotification: Notification = {
+      id: Date.now().toString(),
+      state: state,
+      categoryName,
+      timestamp: new Date(),
+      read: false,
+    };
+    
+    setNotifications((prev) => [newNotification, ...prev]);
+    
+    showNotification({
+      state,
+      categoryName,
+      timestamp: new Date(),
+    });
+  }, []);
+
+  const markNotificationAsRead = useCallback((id: string) => {
+    setNotifications((prev) =>
+      prev.map((notif) =>
+        notif.id === id ? { ...notif, read: true } : notif
+      )
+    );
+  }, []);
+
+  const markAllNotificationsAsRead = useCallback(() => {
+    setNotifications((prev) =>
+      prev.map((notif) => ({ ...notif, read: true }))
+    );
+  }, []);
+
+  const clearAllNotifications = useCallback(() => {
+    setNotifications([]);
+  }, []);
+
+  const updateEventConfig = useCallback((config: Partial<EventConfig>) => {
+    setEventConfig((prev) => ({ ...prev, ...config }));
+  }, []);
+
+  const startCategory = useCallback((categoryId: string | number) => {
+    setCategories((prev) =>
+      prev.map((cat) => {
+        if (cat.id === categoryId) {
+          const updatedCat: Category = { ...cat, status: "active", startTime: new Date() };
+          setCurrentCategory(updatedCat);
+          
+          addNotification("category_started", cat.name);
+          addNotification("voting_started", cat.name);
+          
+          setEventStatus("in_progress");
+          return updatedCat;
+        }
+        return cat;
+      })
+    );
+  }, [addNotification]);
+
+  const closeCategory = useCallback((categoryId: string | number) => {
+    setCategories((prev) =>
+      prev.map((cat) => {
+        if (cat.id === categoryId) {
+          const updatedCat: Category = { ...cat, status: "closed", endTime: new Date() };
+          
+          addNotification("category_closed", cat.name);
+          addNotification("voting_closed", cat.name);
+          
+          setCurrentCategory(null);
+          return updatedCat;
+        }
+        return cat;
+      })
+    );
+  }, [addNotification]);
+
+  const pauseVoting = useCallback(() => {
+    if (currentCategory) {
+      setCategories((prev) =>
+        prev.map((cat) =>
+          cat.id === currentCategory.id ? { ...cat, status: "paused" as const } : cat
+        )
+      );
+      
+      setEventStatus("paused");
+      addNotification("voting_paused", currentCategory.name);
+    }
+  }, [currentCategory, addNotification]);
+
+  const resumeVoting = useCallback(() => {
+    if (currentCategory) {
+      setCategories((prev) =>
+        prev.map((cat) =>
+          cat.id === currentCategory.id ? { ...cat, status: "active" as const } : cat
+        )
+      );
+      
+      setEventStatus("in_progress");
+      addNotification("voting_resumed", currentCategory.name);
+    }
+  }, [currentCategory, addNotification]);
+
+  const closeEvent = useCallback(() => {
+    setEventStatus("closed");
+    setCurrentCategory(null);
+    addNotification("voting_closed");
+  }, [addNotification]);
+
+  const showResults = useCallback(() => {
+    setEventStatus("results");
+    addNotification("results_available");
+  }, [addNotification]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Cargando evento...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <VotingContext.Provider
+      value={{
+        categories,
+        currentCategory,
+        eventStatus,
+        notifications,
+        eventConfig,
+        startCategory,
+        closeCategory,
+        pauseVoting,
+        resumeVoting,
+        closeEvent,
+        showResults,
+        markNotificationAsRead,
+        markAllNotificationsAsRead,
+        clearAllNotifications,
+        updateEventConfig,
+      }}
+    >
+      {children}
+    </VotingContext.Provider>
+  );
+}
+
+export function useVoting() {
+  const context = useContext(VotingContext);
+  if (context === undefined) {
+    throw new Error("useVoting must be used within a VotingProvider");
+  }
+  return context;
+}
