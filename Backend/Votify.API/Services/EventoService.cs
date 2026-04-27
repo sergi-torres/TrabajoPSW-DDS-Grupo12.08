@@ -199,6 +199,7 @@ namespace Votify.API.Services
                     Estado = evento.Estado,
                     CodEvento = evento.CodEvento,
                     IdOrganizador = evento.IdOrganizador,
+                    ComentariosObligatorios = evento.ComentariosObligatorios,
                     Baremos = baremosDto,
                     Categorias = categoriasDto
                 };
@@ -234,6 +235,7 @@ namespace Votify.API.Services
                     .Set(e => e.FechaInicio, dto.FechaInicio)
                     .Set(e => e.FechaFin, dto.FechaFin)
                     .Set(e => e.TipoEvento, dto.TipoEvento)
+                    .Set(e => e.ComentariosObligatorios, dto.ComentariosObligatorios)
                     .Update();
 
                 // Solo actualizar baremos/criterios si NO está en votación

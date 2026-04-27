@@ -41,6 +41,9 @@ namespace Votify.API.Models.Domain
         [Column("cod_evento")]
         public int CodEvento { get; set; }
 
+        [Column("comentarios_obligatorios")]
+        public bool ComentariosObligatorios { get; set; } = false;
+
         // Constructor sin parámetros (necesario para Supabase/deserialización)
         public Event() { }
 

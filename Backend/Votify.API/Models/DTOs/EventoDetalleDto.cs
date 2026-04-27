@@ -14,6 +14,7 @@ namespace Votify.API.Models.DTOs
         public string Estado { get; set; } = string.Empty;
         public int CodEvento { get; set; }
         public int IdOrganizador { get; set; }
+        public bool ComentariosObligatorios { get; set; }
         public List<BaremoDetalleDto> Baremos { get; set; } = new List<BaremoDetalleDto>();
         public List<CategoriaDetalleDto> Categorias { get; set; } = new List<CategoriaDetalleDto>();
     }

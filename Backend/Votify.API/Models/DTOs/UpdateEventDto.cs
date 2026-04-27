@@ -21,6 +21,8 @@ namespace Votify.API.Models.DTOs
 
         public string TipoEvento { get; set; } = string.Empty;
 
+        public bool ComentariosObligatorios { get; set; } = false;
+
         // Baremos con sus criterios (se reescriben al guardar)
         public List<CreateBaremoDto> Baremos { get; set; } = new List<CreateBaremoDto>();
 

@@ -32,6 +32,7 @@ const DashboardVotacionCategorias = () => {
       <DashboardVotacionProyectos
         categoria={categoriaElegida}
         alVolver={() => setVistaActual('categorias')}
+        comentariosObligatorios={datos?.comentariosObligatorios ?? false}
       />
     );
   }

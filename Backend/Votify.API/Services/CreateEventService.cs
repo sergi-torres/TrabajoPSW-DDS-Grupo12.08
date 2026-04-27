@@ -39,6 +39,8 @@ namespace Votify.API.Services
               eventDto.CodEvento
             );
 
+            NuevoEvento.ComentariosObligatorios = eventDto.ComentariosObligatorios;
+
             var response = await _supabaseClient.From<Event>().Insert(NuevoEvento);
             var eventoCreado = response.Models.First();
 

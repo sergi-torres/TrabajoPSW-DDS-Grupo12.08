@@ -27,6 +27,8 @@ namespace Votify.API.Models.DTOs
         [Required]
         public int CodEvento { get; set; }
 
+        public bool ComentariosObligatorios { get; set; } = false;
+
         [Required]
         public List<CreateBaremoDto> Baremos { get; set; } = new List<CreateBaremoDto>();
 
