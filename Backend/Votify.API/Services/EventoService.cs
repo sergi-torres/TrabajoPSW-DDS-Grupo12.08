@@ -1,4 +1,4 @@
-﻿using Votify.API.Models.Domain;
+using Votify.API.Models.Domain;
 using Votify.API.Models.DTOs;
 using Votify.API.Repositories;
 
@@ -156,7 +156,8 @@ namespace Votify.API.Services
                             Id = c.Id,
                             Nombre = c.Nombre,
                             Peso = c.Peso,
-                            TipoCriterio = c.TipoCriterio.ToString()
+                            TipoCriterio = c.TipoCriterio.ToString(),
+                            ComentarioObligatorio = c.ComentarioObligatorio
                         }).ToList()
                     });
                 }
@@ -285,7 +286,8 @@ namespace Votify.API.Services
                                     Nombre = criterioDto.Nombre,
                                     Peso = (float)criterioDto.Peso,
                                     TipoCriterio = tipoCriterio,
-                                    IdBaremo = baremoId
+                                    IdBaremo = baremoId,
+                                    ComentarioObligatorio = criterioDto.ComentarioObligatorio
                                 };
 
                                 await _supabase.From<Criterio>().Insert(nuevoCriterio);

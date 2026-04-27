@@ -54,5 +54,11 @@ namespace Votify.API.Decorators
             // 3. Si no hay excepción, delegamos al servicio original (el inner)
             return await _innerService.ProcesarVotoAsync(request, idUsuario, sessionId);
         }
+
+        public Task<IEnumerable<VotoResponseDto>> ObtenerVotosPorProyectoAsync(int proyectoId)
+        {
+            // Simplemente delegamos al servicio original porque este método no requiere validación de comentarios
+            return _innerService.ObtenerVotosPorProyectoAsync(proyectoId);
+        }
     }
 }

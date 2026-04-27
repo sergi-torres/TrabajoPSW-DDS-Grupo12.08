@@ -88,6 +88,7 @@ const CreateEvent = () => {
             id: crypto.randomUUID(),
             nombre: c.nombre,
             peso: c.peso,
+            comentarioObligatorio: c.comentarioObligatorio || false,
           }));
 
           // Intentar detectar si es una plantilla predefinida
@@ -188,6 +189,7 @@ const CreateEvent = () => {
                 nombre: d.nombre,
                 tipoCriterio: "Numerico",
                 peso: d.peso,
+                comentarioObligatorio: d.comentarioObligatorio || false,
               })),
             }]
           : [];
@@ -247,6 +249,7 @@ const CreateEvent = () => {
               nombre: d.nombre,
               tipoCriterio: "Numerico",
               peso: d.peso,
+              comentarioObligatorio: d.comentarioObligatorio || false,
             })),
           }]
         : [];
