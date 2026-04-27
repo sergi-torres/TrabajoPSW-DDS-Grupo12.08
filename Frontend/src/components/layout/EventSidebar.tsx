@@ -1,4 +1,4 @@
-import { Link, useLocation, useParams, useNavigate } from "react-router-dom";
+﻿import { Link, useLocation, useParams, useNavigate } from "react-router-dom";
 import { Info, FolderOpen, Trophy, Settings, ClipboardList, User, LogOut, ChevronUp, ChevronLeft, ChevronRight, Vote, Timer, LucideIcon } from "lucide-react";
 import { useState, useRef, useEffect, useContext } from "react";
 import { useAuth } from "../../hooks/useAuth";
@@ -80,7 +80,14 @@ export function EventSidebar({ color: propColor }: EventSidebarProps) {
         roleLinks.push({ label: "Evaluaciones", path: `/eventos/${eventoId}/evaluations`, icon: ClipboardList });
         roleLinks.push({ label: "Votaciones", path: `/eventos/${eventoId}/votar`, icon: Vote });
     } else if (normalizedRole === "participante") {
-        roleLinks.push({ label: "Mi Proyecto", path: `/eventos/${eventoId}/my-project`, icon: User });
+
+        if (localStorage.getItem("proyectoABCD")) { // <-- Cutrada histórica para detectar si el participante ya tiene proyecto registrado (solo para mostrar "Mi Proyecto" en vez de "Registrar Proyecto")
+            localStorage.removeItem("proyectoABCD"); // <-- Limpiar el flag para futuras sesiones
+            roleLinks.push({ label: "Mi Proyecto", path: `/eventos/${eventoId}/my-project`, icon: User });
+        } else {    
+            roleLinks.push({ label: "Registrar Proyecto", path: `/eventos/${eventoId}/participantRegister`, icon: User });
+        }
+
     }
 
     const allLinks = [...commonLinks, ...roleLinks];
