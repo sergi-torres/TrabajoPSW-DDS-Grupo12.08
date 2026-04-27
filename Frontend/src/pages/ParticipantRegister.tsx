@@ -343,7 +343,7 @@ export default function RegisterParticipant() {
 
           {/* Paso 2: Seleccionar Categoría */}
 
-          {categories.length > 0 && projectCreated && (
+{categories.length > 0 && projectCreated && (
   <Card className="border-purple-200 shadow-lg animate-in slide-in-from-bottom duration-500">
     <CardHeader>
       <CardTitle className="flex items-center gap-2">
@@ -358,15 +358,79 @@ export default function RegisterParticipant() {
       </CardTitle>
     </CardHeader>
     <CardContent>
-      {categories.some(cat => cat.status === "active") ? (
+      {/* Verificar si hay categorías activas */}
+
+      {categories.some(cat => cat.status === "pending") ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* ... contenido de categorías ... */}
+          {categories.map((category) => {
+            const isActive = category.status === "pending";
+            const isSelected = selectedCategory === category.id;
+            
+            return (
+              <div
+                key={category.id}
+                onClick={() => isActive && setSelectedCategory(category.id)}
+                className={`
+                  bg-gradient-to-br from-white to-purple-50 border-2 rounded-2xl p-6
+                  transition-all cursor-pointer
+                  ${!isActive && "opacity-60 cursor-not-allowed"}
+                  ${isActive && "hover:shadow-xl"}
+                  ${isSelected && isActive
+                    ? "border-purple-600 shadow-lg ring-4 ring-purple-200"
+                    : "border-purple-100 hover:border-purple-300"
+                  }
+                  ${!isActive && "border-gray-200 bg-gray-50"}
+                `}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className={`
+                      w-12 h-12 rounded-xl flex items-center justify-center
+                      ${isSelected && isActive ? "bg-purple-600" : !isActive ? "bg-gray-300" : "bg-purple-100"}
+                    `}>
+                      <Target className={`w-6 h-6 ${
+                        isSelected && isActive ? "text-white" : !isActive ? "text-gray-500" : "text-purple-600"
+                      }`} />
+                    </div>
+                    <div>
+                      <h4 className={`text-xl ${!isActive && "text-gray-500"}`}>{category.name}</h4>
+                      <Badge 
+                        variant="outline" 
+                        className={`mt-1 ${
+                          isActive 
+                            ? "border-green-300 text-green-700 bg-green-50"
+                            : "border-gray-300 text-gray-500 bg-gray-100"
+                        }`}
+                      >
+                        {isActive ? "Activa" : "Pendiente"}
+                      </Badge>
+                    </div>
+                  </div>
+                  {isSelected && isActive && (
+                    <div className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center">
+                      <Check className="w-6 h-6 text-white" />
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
       ) : (
-        <div className="text-center py-8 text-gray-500">
-          <Target className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-          <p>En estos momentos no hay categorías disponibles</p>
-          <p className="text-sm text-gray-400 mt-1">Espera a que el organizador habilite las votaciones</p>
+        /* Mensaje cuando no hay categorías activas */
+        <div className="text-center py-12">
+          <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Target className="w-10 h-10 text-gray-400" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-700 mb-2">
+            No hay categorías disponibles
+          </h3>
+          <p className="text-gray-500">
+            En estos momentos no hay categorías activas para este evento.
+          </p>
+          <p className="text-gray-400 text-sm mt-2">
+            Por favor, espera a que el organizador habilite las categorías.
+          </p>
         </div>
       )}
     </CardContent>
