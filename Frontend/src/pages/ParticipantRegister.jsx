@@ -9,6 +9,7 @@ import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import { toast } from "sonner";
 import { createProyecto } from "../api/proyectoApi";
+import { EventSidebar } from "../components/layout/EventSidebar";
 import { usuarioApi } from "../api/usuarioApi";
 
 var totalMembers = 1; // Incluye al creador del proyecto
@@ -98,6 +99,7 @@ export default function RegisterParticipant() {
 
   return (
     <div className="min-h-screen bg-[#F8F9FA]">
+    <EventSidebar />
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-6">
         <div className="max-w-7xl mx-auto">

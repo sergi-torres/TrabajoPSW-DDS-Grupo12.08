@@ -133,13 +133,7 @@ export default function DashboardPage() {
                                                             localStorage.setItem("proyectoNombre", proyecto.nombre);
                                                             localStorage.setItem("proyectoDescripcion", proyecto.descripcion);
                                                             localStorage.setItem("categoriaProyecto", proyecto.idCategoria);
-
-
-                                                            navigate("/votos");
-
-                                                        }else{
-                                                            localStorage.setItem("eventoDescripcion", evento.descripcion);                                                            
-                                                            navigate("/participantRegister");
+                                                            localStorage.setItem("proyectoABCD", JSON.stringify(proyecto));
                                                         }
                                                         
                                                     }
