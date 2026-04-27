@@ -3,7 +3,6 @@ import { ArrowRight } from "lucide-react";
 import { LoginDrawer } from "./LoginDrawer";
 import logo from "../../assets/LogoSinTexto.png";
 import { useNavigate } from "react-router-dom";
-import { joinEvento } from "../../api/eventosApi";
 import { AuthContext } from "../../context/AuthContext";
 
 /**
@@ -30,12 +29,10 @@ export function MobileLayout() {
 
         if (pin.length > 0) {
             try {
-                const data = await joinEvento(pin);
-
-                // PIN flow: siempre sesión pública nueva, sin identidad de jurado
-                // loginPublic ya maneja el PIN y establece la sesión
-                await loginPublic(pin);
-                navigate(`/eventos/${data.id}/votar`);
+                // PIN flow: loginPublic ya maneja el POST a /join, guarda en storage y devuelve el evento
+                const data = await loginPublic(pin);
+                // Redirigir directamente al panel de votación del evento
+                navigate(`/eventos/${data.id}/votar`, { replace: true });
             } catch (error: any) {
                 console.error("Error validando PIN:", error);
                 alert(error.message);
