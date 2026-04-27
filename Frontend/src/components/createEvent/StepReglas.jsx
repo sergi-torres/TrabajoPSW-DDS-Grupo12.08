@@ -183,6 +183,16 @@ const StepReglas = ({ data, onChange, readOnlyBaremos = false }) => {
                                     />
                                     <span className="text-sm text-muted-foreground font-medium">%</span>
                                 </div>
+                                <label className="flex items-center gap-1.5 ml-2 cursor-pointer" title="Comentario Obligatorio">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={dim.comentarioObligatorio || false}
+                                        onChange={(e) => updateDimension(dim.id, "comentarioObligatorio", e.target.checked)}
+                                        disabled={readOnlyBaremos}
+                                        className="w-4 h-4 rounded text-org focus:ring-org border-border"
+                                    />
+                                    <span className="text-xs text-muted-foreground font-medium whitespace-nowrap">Obligatorio</span>
+                                </label>
                                 {!readOnlyBaremos && (
                                     <button
                                         onClick={() => removeDimension(dim.id)}
