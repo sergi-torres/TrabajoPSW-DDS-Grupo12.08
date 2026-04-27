@@ -28,7 +28,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (credentials: any) => {
     const data = await apiLogin(credentials);
-    const name = data.userName || data.nombreUsuario || data.nombrecompleto;
+    const name = data.userName || data.nombreUsuario || data.nombrecompleto || "";
     setToken(data.token);
     setUserId(data.userId);
     setUserName(name);

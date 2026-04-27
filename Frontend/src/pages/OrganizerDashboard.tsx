@@ -1,11 +1,10 @@
 // src/pages/OrganizerDashboard.tsx
 import { useState, useEffect, useContext, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Target, Award, TrendingUp, LogOut } from "lucide-react";
+import { ArrowLeft, Target, Award, TrendingUp, LogOut, CheckSquare, Users, FileText, Heart } from "lucide-react";
 import LiveHeader from "../components/organizator_dashboard/LiveHeader";
 import StatsCard from "../components/organizator_dashboard/StatsCard";
 import RankingList from "../components/organizator_dashboard/RankingList";
-import ProjectFeed from "../components/organizator_dashboard/ProjectFeed";
 import { getDashboard, extenderTiempo, cerrarVotacion } from "../api/orgDashboardApi";
 import { AuthContext } from "../context/AuthContext";
 import { EventContext } from "../context/EventContext";
@@ -98,10 +97,6 @@ export default function OrganizerDashboard() {
     }
   };
 
-  const handleViewDetails = (item: any) => {
-    console.log("Ver detalles del proyecto:", item.id);
-  };
-
   if (loading && !dashboardData) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -116,11 +111,11 @@ export default function OrganizerDashboard() {
 
   if (error || !eventoId) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6 text-center">
         <EventSidebar />
-        <div className="max-w-md bg-white p-8 rounded-[32px] shadow-sm border border-red-100 text-center">
+        <div className={cn("max-w-md bg-white p-8 rounded-[32px] shadow-sm border border-red-100 transition-all duration-300", isCollapsed ? "lg:pl-10" : "lg:pl-10")}>
           <div className="w-16 h-16 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <TrendingUp className="w-8 h-8" />
+            <Target className="w-8 h-8" />
           </div>
           <h2 className="text-2xl font-heading font-bold text-gray-900 mb-2">Panel fuera de línea</h2>
           <p className="text-gray-500 mb-8">{error || "No se ha podido identificar el evento activo."}</p>
@@ -135,7 +130,7 @@ export default function OrganizerDashboard() {
     );
   }
 
-  const { liveInfo, stats, ranking, feed } = dashboardData;
+  const { liveInfo, stats, ranking } = dashboardData;
   const isPublicRole = userRole === "Público";
 
   return (
@@ -225,28 +220,8 @@ export default function OrganizerDashboard() {
             <StatsCard label="Media" value={stats?.avgScore ?? 0} total={null} icon="Heart" color="pub" />
           </section>
 
-          {/* CATEGORIES TABS SECTION */}
-          <section className="bg-white rounded-[32px] shadow-sm border border-gray-100 p-2 overflow-x-auto">
-             <div className="flex gap-2">
-                {categorias.map(cat => (
-                  <button
-                    key={cat.id}
-                    onClick={() => setActiveTab(cat.id)}
-                    className={cn(
-                      "px-6 py-3 rounded-2xl text-sm font-bold transition-all whitespace-nowrap",
-                      activeTab === cat.id 
-                        ? 'bg-blue-600 text-white shadow-md' 
-                        : 'text-gray-400 hover:bg-gray-50'
-                    )}
-                    style={activeTab === cat.id ? { backgroundColor: userColor || undefined } : {}}
-                  >
-                    {cat.nombre}
-                  </button>
-                ))}
-             </div>
-          </section>
-
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {/* RANKING SECTION (Main Area) */}
             <div className="lg:col-span-8 space-y-8">
               <section className="bg-white rounded-[32px] shadow-sm border border-gray-100 overflow-hidden">
                 <div className="p-8 border-b border-gray-100 flex items-center justify-between">
@@ -260,12 +235,33 @@ export default function OrganizerDashboard() {
               </section>
             </div>
 
+            {/* CATEGORIES LIST (Side Area - Replaces Feed) */}
             <section className="lg:col-span-4 h-fit">
-              <ProjectFeed
-                items={feed || []}
-                updatedMinutesAgo={1}
-                onViewDetails={handleViewDetails}
-              />
+              <div className="bg-white rounded-[32px] shadow-sm border border-gray-100 p-8 space-y-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-2.5 bg-blue-50 rounded-xl">
+                    <Award className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-heading font-bold text-gray-900">Categorías</h3>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  {categorias.map(cat => (
+                    <div
+                      key={cat.id}
+                      className="w-full flex items-center gap-3 p-4 rounded-2xl bg-gray-50 border border-gray-100"
+                    >
+                      <div className="w-1.5 h-1.5 rounded-full bg-blue-600" />
+                      <span className="text-sm font-bold text-gray-700">{cat.nombre}</span>
+                    </div>
+                  ))}
+                  {categorias.length === 0 && (
+                    <p className="text-sm text-gray-400 italic text-center py-4">No hay categorías definidas</p>
+                  )}
+                </div>
+              </div>
             </section>
           </div>
         </main>

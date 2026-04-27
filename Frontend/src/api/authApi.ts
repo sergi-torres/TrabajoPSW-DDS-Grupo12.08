@@ -7,6 +7,8 @@ export interface AuthResponse {
   token: string;
   userId: number;
   userName: string;
+  nombreUsuario?: string;
+  nombrecompleto?: string;
 }
 
 export interface PublicAuthResponse {

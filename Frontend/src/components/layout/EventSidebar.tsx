@@ -65,7 +65,6 @@ export function EventSidebar({ color: propColor }: EventSidebarProps) {
     const commonLinks: NavLink[] = [
         { label: "General", path: `/eventos/${eventoId}`, icon: Info },
         { label: "Proyectos", path: `/eventos/${eventoId}/proyectos`, icon: FolderOpen },
-        { label: "Ranking", path: `/eventos/${eventoId}/ranking`, icon: Trophy },
     ];
 
     // Secciones por rol

@@ -88,11 +88,8 @@ export function EventCard({ nombre, descripcion, fechaIni, fechaFin, estado, rol
             className="bg-card rounded-2xl p-6 border border-border shadow-base hover:shadow-hover hover:-translate-y-[2px] transition-all group cursor-pointer flex flex-col h-full"
         >
 
-            {/* Header: Estado + Rol Badge */}
-            <div className="flex justify-between items-start mb-4">
-                <span className={clsx("px-2.5 py-1 rounded-lg text-xs font-semibold", estadoData.bg, estadoData.color)}>
-                    {estadoData.label}
-                </span>
+            {/* Header: Rol Badge Only */}
+            <div className="flex justify-end mb-4">
                 <span className={clsx("px-3 py-1 rounded-full text-xs font-semibold tracking-wide uppercase", roleData.bgClass, roleData.textClass)}>
                     {roleData.label}
                 </span>
