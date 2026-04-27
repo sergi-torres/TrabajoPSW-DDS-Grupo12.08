@@ -1,4 +1,4 @@
-import { Link, useLocation, useParams, useNavigate } from "react-router-dom";
+﻿import { Link, useLocation, useParams, useNavigate } from "react-router-dom";
 import { Info, FolderOpen, Trophy, Settings, ClipboardList, User, LogOut, ChevronUp, ChevronLeft, ChevronRight, Vote, Timer, LucideIcon } from "lucide-react";
 import { useState, useRef, useEffect, useContext } from "react";
 import { useAuth } from "../../hooks/useAuth";
@@ -79,6 +79,8 @@ export function EventSidebar({ color: propColor }: EventSidebarProps) {
         roleLinks.push({ label: "Votaciones", path: `/eventos/${eventoId}/votar`, icon: Vote });
     } else if (userRole === "Participante") {
         if (localStorage.getItem("proyectoABCD")) {
+
+            localStorage.removeItem("proyectoABCD");
             roleLinks.push({ label: "Mi Proyecto", path: `/eventos/${eventoId}/my-project`, icon: User });
         } else {    
             roleLinks.push({ label: "Registrar Proyecto", path: `/eventos/${eventoId}/participantRegister`, icon: User });
