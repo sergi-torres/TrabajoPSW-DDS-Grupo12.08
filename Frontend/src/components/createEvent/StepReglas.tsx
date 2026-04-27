@@ -46,226 +46,190 @@ interface Dimension {
     id: string;
     nombre: string;
     peso: number;
+    comentarioObligatorio?: boolean;
 }
 
-interface StepReglasProps {
-    data: {
-        plantilla: string;
-        baremoNombre: string;
-        dimensiones: Dimension[];
-        analisisAutomatico: boolean;
-    };
-    onChange: (newData: any) => void;
-    readOnlyBaremos?: boolean;
-}
-
-const StepReglas = ({ data, onChange, readOnlyBaremos = false }: StepReglasProps) => {
-    const totalPeso = data.dimensiones.reduce((sum, d) => sum + d.peso, 0);
-
-    /**
-     * Al seleccionar una plantilla, carga automáticamente sus criterios predefinidos.
-     * Si se elige "custom" o vacío, limpia las dimensiones para crearlas manualmente.
-     */
-    const handlePlantillaChange = (value: string) => {
+const StepReglas = ({ data, onChange, readOnlyBaremos = false }: { data: any, onChange: any, readOnlyBaremos?: boolean }) => {
+    const applyPlantilla = (key: string) => {
         if (readOnlyBaremos) return;
-
-        const plantilla = PLANTILLAS_BAREMOS[value];
-
-        if (plantilla) {
-            // Cargar criterios predefinidos de la plantilla
-            const dimensiones = plantilla.criterios.map((c) => ({
-                id: crypto.randomUUID(),
-                nombre: c.nombre,
-                peso: c.peso,
-            }));
-            onChange({
-                ...data,
-                plantilla: value,
-                baremoNombre: plantilla.baremoNombre,
-                dimensiones,
-            });
-        } else {
-            // Personalizado o vacío: permitir crear desde cero
-            onChange({
-                ...data,
-                plantilla: value,
-                baremoNombre: value === "custom" ? "Personalizado" : "",
-                dimensiones: [],
-            });
-        }
+        const p = PLANTILLAS_BAREMOS[key];
+        const newDimensions = p.criterios.map((c) => ({
+            id: crypto.randomUUID(),
+            nombre: c.nombre,
+            peso: c.peso,
+        }));
+        onChange({ ...data, plantilla: key, baremoNombre: p.baremoNombre, dimensiones: newDimensions });
     };
 
     const addDimension = () => {
         if (readOnlyBaremos) return;
-        const newDim: Dimension = {
-            id: crypto.randomUUID(),
-            nombre: "",
-            peso: 0,
-        };
+        const newDim = { id: crypto.randomUUID(), nombre: "", peso: 0, comentarioObligatorio: false };
         onChange({ ...data, dimensiones: [...data.dimensiones, newDim] });
-    };
-
-    const updateDimension = (id: string, field: keyof Dimension, value: string | number) => {
-        if (readOnlyBaremos) return;
-        onChange({
-            ...data,
-            dimensiones: data.dimensiones.map((d) =>
-                d.id === id ? { ...d, [field]: value } : d
-            ),
-        });
     };
 
     const removeDimension = (id: string) => {
         if (readOnlyBaremos) return;
-        onChange({
-            ...data,
-            dimensiones: data.dimensiones.filter((d) => d.id !== id),
-        });
+        const filtered = data.dimensiones.filter((d: Dimension) => d.id !== id);
+        onChange({ ...data, dimensiones: filtered });
     };
 
-    return (
-        <div className="space-y-6">
-            <div>
-                <h3 className="text-xl font-heading font-semibold text-foreground">Baremos de Evaluación</h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                    Define las reglas y criterios con los que se juzgarán los proyectos.
-                </p>
-            </div>
+    const updateDimension = (id: string, field: keyof Dimension, value: any) => {
+        if (readOnlyBaremos) return;
+        const newDimensions = data.dimensiones.map((d: Dimension) =>
+            d.id === id ? { ...d, [field]: value } : d
+        );
+        onChange({ ...data, dimensiones: newDimensions });
+    };
 
+    const totalPeso = data.dimensiones.reduce((sum: number, d: Dimension) => sum + d.peso, 0);
+
+    return (
+        <div className="space-y-8 animate-in fade-in duration-500">
+            {/* Aviso de solo lectura */}
             {readOnlyBaremos && (
-                <div className="flex items-center gap-2 p-3 rounded-lg bg-warning/10 border border-warning/20">
-                    <Lock className="w-4 h-4 text-warning" strokeWidth={1.75} />
-                    <span className="text-sm text-warning font-medium">
-                        Los baremos no se pueden editar porque el evento ya está en votación.
-                    </span>
+                <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3">
+                    <Lock className="w-5 h-5 text-amber-600 mt-0.5" />
+                    <div>
+                        <p className="text-sm font-bold text-amber-900">Baremos bloqueados</p>
+                        <p className="text-xs text-amber-700">No puedes editar los criterios porque el evento ya tiene votos o está activo.</p>
+                    </div>
                 </div>
             )}
 
-            <div>
-                <label className="text-sm font-medium text-muted-foreground">Cargar plantilla de baremos</label>
-                <select
-                    value={data.plantilla}
-                    onChange={(e) => handlePlantillaChange(e.target.value)}
-                    disabled={readOnlyBaremos}
-                    className="mt-2 h-12 w-full rounded-md border border-border bg-background px-3 font-body focus:outline-none focus:ring-2 focus:ring-org focus:border-org disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                    <option value="">Seleccionar plantilla (opcional)</option>
-                    {Object.entries(PLANTILLAS_BAREMOS).map(([key, tmpl]) => (
-                        <option key={key} value={key}>{tmpl.label}</option>
+            {/* Plantillas Rápidas */}
+            <div className="space-y-3">
+                <label className="text-gray-400 text-[11px] font-black uppercase tracking-widest ml-1">
+                    Plantillas de Evaluación
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {Object.entries(PLANTILLAS_BAREMOS).map(([key, p]) => (
+                        <button
+                            key={key}
+                            type="button"
+                            disabled={readOnlyBaremos}
+                            onClick={() => applyPlantilla(key)}
+                            className={`p-4 rounded-2xl border-2 transition-all text-left flex flex-col gap-1 group disabled:opacity-50 ${
+                                data.plantilla === key
+                                    ? "border-org bg-blue-50/50 shadow-sm"
+                                    : "border-gray-100 hover:border-gray-200 bg-white"
+                            }`}
+                        >
+                            <div className="flex items-center justify-between">
+                                <span className={`text-sm font-bold ${data.plantilla === key ? "text-org" : "text-gray-700"}`}>
+                                    {p.label}
+                                </span>
+                                <Zap className={`w-4 h-4 ${data.plantilla === key ? "text-org" : "text-gray-300 group-hover:text-gray-400"}`} />
+                            </div>
+                            <span className="text-[10px] text-gray-400 font-medium">
+                                {p.criterios.length} dimensiones configuradas
+                            </span>
+                        </button>
                     ))}
-                    <option value="custom">Personalizado</option>
-                </select>
+                </div>
             </div>
 
-            <div className="rounded-lg shadow-base bg-card p-6 space-y-4">
+            {/* Dimensiones / Criterios */}
+            <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                    <h4 className="text-base font-heading font-semibold text-foreground">Dimensiones de Valor</h4>
-                    <span
-                        className={`text-sm font-heading font-bold ${totalPeso === 100 ? "text-success" : totalPeso === 0 ? "text-muted-foreground" : "text-error"}`}
+                    <label className="text-gray-400 text-[11px] font-black uppercase tracking-widest ml-1">
+                        Dimensiones de Evaluación
+                    </label>
+                    <button
+                        type="button"
+                        disabled={readOnlyBaremos}
+                        onClick={addDimension}
+                        className="text-org font-bold text-xs flex items-center gap-1 hover:underline disabled:opacity-50"
                     >
-                        Total: {totalPeso}%
-                    </span>
+                        <Plus className="w-3 h-3" /> Añadir Criterio
+                    </button>
                 </div>
 
-                {data.dimensiones.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-8 border-2 border-dashed border-border rounded-lg text-muted-foreground">
-                        <p className="text-sm">
-                            {data.plantilla
-                                ? "No hay dimensiones definidas."
-                                : "Selecciona una plantilla o añade dimensiones personalizadas."}
-                        </p>
-                        {!readOnlyBaremos && (
-                            <button
-                                onClick={addDimension}
-                                className="mt-2 text-sm font-heading font-semibold text-foreground hover:text-org transition-colors"
-                            >
-                                Añadir una dimensión
-                            </button>
-                        )}
-                    </div>
-                ) : (
-                    <div className="space-y-3">
-                        {data.dimensiones.map((dim) => (
-                            <div key={dim.id} className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-                                <input
-                                    placeholder="Nombre de la dimensión"
-                                    value={dim.nombre}
-                                    onChange={(e) => updateDimension(dim.id, "nombre", e.target.value)}
-                                    disabled={readOnlyBaremos}
-                                    className="flex-1 h-10 rounded-md border border-border bg-background px-3 font-body focus:outline-none focus:ring-2 focus:ring-org disabled:opacity-50 disabled:cursor-not-allowed"
-                                />
-                                <div className="flex items-center gap-1">
+                <div className="space-y-3">
+                    {data.dimensiones.map((dim: Dimension, index: number) => (
+                        <div
+                            key={dim.id}
+                            className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm flex flex-col gap-4 animate-in slide-in-from-right-4 duration-300"
+                            style={{ animationDelay: `${index * 50}ms` }}
+                        >
+                            <div className="flex items-center gap-4">
+                                <div className="flex-1">
+                                    <input
+                                        type="text"
+                                        placeholder="Nombre del criterio (Ej: Innovación)"
+                                        value={dim.nombre}
+                                        disabled={readOnlyBaremos}
+                                        onChange={(e) => updateDimension(dim.id, "nombre", e.target.value)}
+                                        className="w-full bg-gray-50 border-none rounded-xl px-4 py-2.5 text-sm font-bold text-gray-700 placeholder:text-gray-300 focus:ring-2 focus:ring-org/20 outline-none transition-all disabled:opacity-50"
+                                    />
+                                </div>
+                                <div className="w-24 relative">
                                     <input
                                         type="number"
-                                        min={0}
-                                        max={100}
-                                        value={dim.peso}
+                                        min="0"
+                                        max="100"
+                                        placeholder="0"
+                                        value={dim.peso || ""}
+                                        disabled={readOnlyBaremos}
                                         onChange={(e) => updateDimension(dim.id, "peso", parseInt(e.target.value) || 0)}
-                                        disabled={readOnlyBaremos}
-                                        className="w-20 h-10 rounded-md border border-border bg-background px-2 font-body text-center focus:outline-none focus:ring-2 focus:ring-org disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="w-full bg-gray-50 border-none rounded-xl pl-4 pr-8 py-2.5 text-sm font-black text-center text-gray-700 focus:ring-2 focus:ring-org/20 outline-none transition-all disabled:opacity-50"
                                     />
-                                    <span className="text-sm text-muted-foreground font-medium">%</span>
+                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-gray-400">%</span>
                                 </div>
-                                <label className="flex items-center gap-1.5 ml-2 cursor-pointer" title="Comentario Obligatorio">
-                                    <input 
-                                        type="checkbox" 
-                                        checked={dim.comentarioObligatorio || false}
-                                        onChange={(e) => updateDimension(dim.id, "comentarioObligatorio", e.target.checked)}
-                                        disabled={readOnlyBaremos}
-                                        className="w-4 h-4 rounded text-org focus:ring-org border-border"
-                                    />
-                                    <span className="text-xs text-muted-foreground font-medium whitespace-nowrap">Obligatorio</span>
-                                </label>
                                 {!readOnlyBaremos && (
                                     <button
                                         onClick={() => removeDimension(dim.id)}
-                                        className="p-2 rounded-md text-muted-foreground hover:text-error hover:bg-error-bg transition-colors"
+                                        className="p-2 text-gray-200 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
                                     >
-                                        <Trash2 className="w-4 h-4" strokeWidth={1.75} />
+                                        <Trash2 className="w-4 h-4" />
                                     </button>
                                 )}
                             </div>
-                        ))}
-                    </div>
-                )}
 
-                {!readOnlyBaremos && (
-                    <button
-                        onClick={addDimension}
-                        className="w-full flex items-center justify-center gap-2 py-3 border-2 border-dashed border-border rounded-md text-sm font-heading font-semibold text-foreground hover:border-org hover:text-org transition-colors"
-                    >
-                        <Plus className="w-4 h-4" strokeWidth={2} />
-                        Añadir Dimensión
-                    </button>
-                )}
+                            <div className="flex items-center gap-3 px-1">
+                                <label className="flex items-center gap-2 cursor-pointer group">
+                                    <input
+                                        type="checkbox"
+                                        checked={dim.comentarioObligatorio || false}
+                                        onChange={(e) => updateDimension(dim.id, "comentarioObligatorio", e.target.checked)}
+                                        disabled={readOnlyBaremos}
+                                        className="w-4 h-4 rounded border-gray-300 text-org focus:ring-org cursor-pointer disabled:cursor-not-allowed"
+                                    />
+                                    <span className="text-xs font-bold text-gray-500 group-hover:text-gray-700 transition-colors">
+                                        Comentario obligatorio para este criterio
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                    ))}
+                </div>
 
-                {totalPeso !== 100 && totalPeso > 0 && (
-                    <div className="flex items-center gap-2 text-sm text-warning">
-                        <AlertCircle className="w-4 h-4" strokeWidth={1.75} />
-                        <span>La suma de los pesos debe ser 100% (Actual: {totalPeso}%)</span>
+                {data.dimensiones.length === 0 && (
+                    <div className="text-center py-10 bg-gray-50/50 rounded-[32px] border-2 border-dashed border-gray-100">
+                        <p className="text-gray-400 text-sm font-medium">No hay criterios definidos.</p>
+                        <p className="text-gray-300 text-[10px] mt-1 uppercase font-black">Usa una plantilla o añade uno manualmente</p>
                     </div>
                 )}
             </div>
 
-            <div className="flex items-start gap-4 p-4 rounded-lg bg-info-bg">
-                <Zap className="w-5 h-5 text-info mt-0.5" strokeWidth={1.75} />
-                <div className="flex-1">
-                    <h4 className="text-sm font-heading font-semibold text-foreground">
-                        Activar sugerencias de análisis automático
-                    </h4>
-                    <p className="text-xs text-muted-foreground mt-1">
-                        El sistema sugerirá análisis previos basados en los documentos y materiales que suban los concursantes al unirse.
-                    </p>
+            {/* Resumen de Pesos */}
+            <div className={`p-6 rounded-3xl border-2 transition-all ${
+                totalPeso === 100 ? "bg-green-50 border-green-100" : "bg-red-50 border-red-100"
+            }`}>
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-xl ${totalPeso === 100 ? "bg-green-500 text-white" : "bg-red-500 text-white"}`}>
+                            <AlertCircle className="w-4 h-4" />
+                        </div>
+                        <div>
+                            <p className={`text-sm font-bold ${totalPeso === 100 ? "text-green-900" : "text-red-900"}`}>
+                                Suma Total: {totalPeso}%
+                            </p>
+                            <p className={`text-[10px] font-medium ${totalPeso === 100 ? "text-green-600" : "text-red-600"}`}>
+                                {totalPeso === 100 ? "Distribución de pesos correcta" : "El total debe ser exactamente 100%"}
+                            </p>
+                        </div>
+                    </div>
                 </div>
-                <button
-                    type="button"
-                    role="switch"
-                    aria-checked={data.analisisAutomatico}
-                    onClick={() => onChange({ ...data, analisisAutomatico: !data.analisisAutomatico })}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${data.analisisAutomatico ? 'bg-org' : 'bg-muted'}`}
-                >
-                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${data.analisisAutomatico ? 'translate-x-6' : 'translate-x-1'}`} />
-                </button>
             </div>
         </div>
     );
