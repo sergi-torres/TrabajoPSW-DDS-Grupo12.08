@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
 using Votify.API.Services;
@@ -27,19 +27,6 @@ namespace Votify.API.Controllers
             {
                 var eventoGuardado = await _eventService.CreateEventAsync(dto);
 
-                // Si no se enviaron categorías o la lista está vacía, crear una categoría "Global"
-                if (eventoGuardado.Categorias == null || eventoGuardado.Categorias.Count == 0)
-                {
-                    var categoriaGlobal = new Categoria
-                    {
-                        Nombre = "Global",
-                        IdEvento = eventoGuardado.Id
-                    };
-
-                    var categoriaCreada = await _categoriaService.CreateAsync(categoriaGlobal);
-
-                    eventoGuardado.Categorias = new List<Categoria> { categoriaCreada };
-                }
 
                 return Created($"/api/event/{eventoGuardado.Id}", new
                 {

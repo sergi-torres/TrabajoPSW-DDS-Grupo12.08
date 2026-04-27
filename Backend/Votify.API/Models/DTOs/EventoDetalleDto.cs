@@ -38,6 +38,7 @@ namespace Votify.API.Models.DTOs
         public string Nombre { get; set; } = string.Empty;
         public double Peso { get; set; }
         public string TipoCriterio { get; set; } = string.Empty;
+        public bool ComentarioObligatorio { get; set; }
     }
 
     /// <summary>

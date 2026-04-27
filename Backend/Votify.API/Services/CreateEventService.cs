@@ -95,7 +95,8 @@ namespace Votify.API.Services
                         {
                             Nombre = dtoCrit.Nombre,
                             Peso = (float)dtoCrit.Peso,
-                            TipoCriterio = tipoEnum
+                            TipoCriterio = tipoEnum,
+                            ComentarioObligatorio = dtoCrit.ComentarioObligatorio
                         });
                     }
                 }

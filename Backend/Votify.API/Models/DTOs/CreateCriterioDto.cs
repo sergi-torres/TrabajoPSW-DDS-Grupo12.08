@@ -13,5 +13,7 @@ namespace Votify.API.Models.DTOs
         [Required]
         [Range(0, 100)]
         public double Peso { get; set; }
+
+        public bool ComentarioObligatorio { get; set; } = false;
     }
 }

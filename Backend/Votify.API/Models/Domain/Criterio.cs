@@ -35,6 +35,9 @@ namespace Votify.API.Models.Domain
 
         [Column("idbaremo")]
         public int IdBaremo {get; set;}
+
+        [Column("comentario_obligatorio")]
+        public bool ComentarioObligatorio { get; set; } = false;
         
 
     }
