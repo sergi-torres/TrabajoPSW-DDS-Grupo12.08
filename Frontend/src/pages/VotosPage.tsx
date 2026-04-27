@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+﻿import { useNavigate } from "react-router-dom";
 import { useEffect, useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { EventContext } from "../context/EventContext";
@@ -73,6 +73,9 @@ export default function VotosPage() {
   useEffect(() => {
     const fetchComments = async () => {
       const idProyecto = localStorage.getItem("proyectoId");
+
+      console.log("Iniciando carga de votaciones y comentarios para proyectoId:", idProyecto);
+
       if (!idProyecto) return;
 
       try {
@@ -82,12 +85,16 @@ export default function VotosPage() {
         const dataVoto = await votoRes.json();
         setVotaciones(dataVoto);
 
+        console.log("Votaciones obtenidas:", dataVoto);
+
         if (dataVoto && dataVoto.length > 0) {
           const comentariosPromises = dataVoto.map((voto: any) => 
             fetch(`http://localhost:5245/api/comentarios?idVotacion=${voto.id}`)
               .then(res => res.ok ? res.json() : [])
               .catch(() => [])
           );
+
+          console.log("Cargando comentarios para cada votación...", comentariosPromises);
 
           const resultadosComentarios = await Promise.all(comentariosPromises);
           const todosLosComentarios = resultadosComentarios.flat();
