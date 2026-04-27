@@ -8,14 +8,39 @@ import { useVotacionDashboard } from '../hooks/VotacionHooks/useVotacionDashboar
 import { EventContext } from '../context/EventContext';
 import { AuthContext } from '../context/AuthContext';
 import { EventSidebar } from '../components/layout/EventSidebar';
+import { cn } from '../components/ui/utils';
 
 const DashboardVotacionCategorias = () => {
   const navigate = useNavigate();
-  const { logout } = useContext(AuthContext) as any;
-  const { userRole, userColor, isCollapsed, clearEventContext } = useContext(EventContext) as any;
+  const { logout, isPublic, isAuthenticated } = useContext(AuthContext)!;
+  const { userRole, userColor, isCollapsed, clearEventContext, setEventContext } = useContext(EventContext)!;
   const { datos, cargando, cargarDashboard } = useVotacionDashboard();
   const [vistaActual, setVistaActual] = useState('categorias');
   const [categoriaElegida, setCategoriaElegida] = useState<any>(null);
+
+  // Determinar si es público de forma inmediata para el layout
+  // PRIORIDAD: Si no estoy autenticado pero tengo sesión de PIN, soy PÚBLICO.
+  const effectivelyPublic = (!isAuthenticated && isPublic) || userRole === "Público";
+  const themeColor = effectivelyPublic ? "#059669" : (userColor || "#2563eb");
+
+  // Efecto para saltar a proyectos si es público y hay datos
+  useEffect(() => {
+    if (effectivelyPublic && datos && (datos as any).categorias && (datos as any).categorias.length > 0 && vistaActual === 'categorias') {
+        // Seleccionamos la primera categoría (normalmente "Global") y vamos a proyectos
+        setCategoriaElegida((datos as any).categorias[0]);
+        setVistaActual('proyectos');
+    }
+  }, [effectivelyPublic, datos, vistaActual]);
+
+  // Inicializar contexto si es público y no está seteado
+  useEffect(() => {
+    if (effectivelyPublic && (!userRole || userRole !== "Público")) {
+        setEventContext({
+            userRole: "Público",
+            userColor: "#059669"
+        });
+    }
+  }, [effectivelyPublic, userRole, setEventContext]);
 
   useEffect(() => {
     if (vistaActual === 'categorias') {
@@ -37,8 +62,6 @@ const DashboardVotacionCategorias = () => {
     );
   }
 
-  const isPublicRole = userRole === "Público";
-
   const handleLogout = () => {
     logout();
     clearEventContext();
@@ -47,17 +70,20 @@ const DashboardVotacionCategorias = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 font-body relative">
-      <EventSidebar />
+      {!effectivelyPublic && <EventSidebar />}
 
       <div className="pb-[88px] lg:pb-0">
         {/* HEADER - Dynamic Style - Full Width */}
         <header 
-          className={`text-white p-6 lg:p-10 transition-all duration-300 ${isPublicRole ? 'lg:pl-10' : (isCollapsed ? 'lg:pl-28' : 'lg:pl-80')}`} 
-          style={{ backgroundColor: userColor }}
+          className={cn(
+            "text-white p-6 lg:p-10 transition-all duration-300",
+            effectivelyPublic ? 'lg:pl-10' : (isCollapsed ? 'lg:pl-28' : 'lg:pl-80')
+          )}
+          style={{ backgroundColor: themeColor }}
         >
           <div className="max-w-7xl mx-auto">
             <div className="flex justify-between items-start mb-6">
-              {!isPublicRole ? (
+              {!effectivelyPublic ? (
                 <button
                   onClick={() => navigate('/eventos')}
                   className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-xl transition-all duration-200 border border-white/10 font-heading font-semibold text-sm group"
@@ -69,7 +95,7 @@ const DashboardVotacionCategorias = () => {
                 <div /> // Spacer
               )}
 
-              {isPublicRole && (
+              {effectivelyPublic && (
                 <button
                   onClick={handleLogout}
                   className="inline-flex items-center gap-2 px-4 py-2 bg-rose-500/20 hover:bg-rose-500/30 backdrop-blur-sm rounded-xl transition-all duration-200 border border-white/10 font-heading font-semibold text-sm group"
@@ -83,30 +109,35 @@ const DashboardVotacionCategorias = () => {
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
               <div className="max-w-2xl">
                 <h1 className="text-3xl lg:text-4xl font-heading font-bold tracking-tight mb-3">
-                  {isPublicRole ? `Votación: ${localStorage.getItem("eventoNombre") || "Evento"}` : "Panel de Evaluación"}
+                  {effectivelyPublic ? `Votación: ${localStorage.getItem("eventoNombre") || "Evento"}` : "Panel de Evaluación"}
                 </h1>
                 <p className="text-lg font-medium opacity-90">
-                  Selecciona una categoría para comenzar a evaluar los proyectos. 
-                  Tus votos son limitados por categoría.
+                  {effectivelyPublic 
+                    ? "Bienvenido. Selecciona el proyecto que más te guste para emitir tu voto."
+                    : "Selecciona una categoría para comenzar a evaluar los proyectos. Tus votos son limitados por categoría."
+                  }
                 </p>
               </div>
               {datos && (
                 <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
                   <p className="text-xs uppercase tracking-wider font-bold mb-1 opacity-80">Estado de Sesión</p>
-                  <p className="text-xl font-heading font-bold">{userRole}</p>
+                  <p className="text-xl font-heading font-bold">{effectivelyPublic ? "Público" : userRole}</p>
                 </div>
               )}
             </div>
           </div>
         </header>
 
-        <main className={`max-w-7xl mx-auto p-6 lg:p-10 -mt-8 space-y-8 transition-all duration-300 ${isPublicRole ? 'lg:pl-10' : (isCollapsed ? 'lg:pl-28' : 'lg:pl-80')}`}>
+        <main className={cn(
+          "max-w-7xl mx-auto p-6 lg:p-10 -mt-8 space-y-8 transition-all duration-300",
+          effectivelyPublic ? 'lg:pl-10' : (isCollapsed ? 'lg:pl-28' : 'lg:pl-80')
+        )}>
           {datos && (
             <>
               {/* Stats Section in a Card */}
               <section className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
                 <div className="flex items-center gap-2 mb-6">
-                  <Target className="w-6 h-6" style={{ color: userColor }} />
+                  <Target className="w-6 h-6" style={{ color: themeColor }} />
                   <h2 className="text-xl font-heading font-bold text-gray-900">Resumen de Votación</h2>
                 </div>
                 <StatsBar config={datos as any} />
@@ -115,11 +146,11 @@ const DashboardVotacionCategorias = () => {
               {/* Categories Grid */}
               <section>
                 <div className="flex items-center gap-2 mb-6">
-                  <Award className="w-6 h-6" style={{ color: userColor }} />
+                  <Award className="w-6 h-6" style={{ color: themeColor }} />
                   <h2 className="text-xl font-heading font-bold text-gray-900">Categorías Disponibles</h2>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {(datos.categorias as any[]).map(cat => (
+                  {(datos as any).categorias.map((cat: any) => (
                     <div key={cat.id} className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 p-1">
                       <CategoriaCard
                         categoria={cat}

@@ -1,6 +1,7 @@
 import { Usuario } from "../types";
 
-const API_URL = "http://localhost:5245/api/Auth";
+const BASE_API_URL = "http://localhost:5245/api";
+const AUTH_API_URL = `${BASE_API_URL}/Auth`;
 
 export interface AuthResponse {
   token: string;
@@ -13,7 +14,7 @@ export interface PublicAuthResponse {
 }
 
 export async function login(credentials: any): Promise<AuthResponse> {
-  const response = await fetch(`${API_URL}/login`, {
+  const response = await fetch(`${AUTH_API_URL}/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(credentials),
@@ -23,18 +24,19 @@ export async function login(credentials: any): Promise<AuthResponse> {
   return response.json();
 }
 
-export async function loginPublic(pin: string): Promise<PublicAuthResponse> {
-  const response = await fetch(`${API_URL}/login-public?pin=${pin}`, {
+export async function loginPublic(pin: string): Promise<any> {
+  const response = await fetch(`${BASE_API_URL}/Eventos/join?pin=${pin}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ pin }),
   });
 
-  if (!response.ok) throw new Error("PIN inválido");
+  if (!response.ok) throw new Error("PIN inválido o evento finalizado");
   return response.json();
 }
 
 export async function register(data: any): Promise<any> {
-  const response = await fetch(`${API_URL}/register`, {
+  const response = await fetch(`${AUTH_API_URL}/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),

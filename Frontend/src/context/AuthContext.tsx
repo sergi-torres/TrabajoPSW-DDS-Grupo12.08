@@ -20,7 +20,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [userId, setUserId] = useState<number | null>(
     localStorage.getItem("userId") ? Number(localStorage.getItem("userId")) : null
   );
-  const [userName, setUserName] = useState<string | null>(localStorage.getItem("userName"));
+  const [userName, setUserName] = useState<string | null>(localStorage.getItem("userName") || localStorage.getItem("nombreUsuario"));
   const [sessionId, setSessionId] = useState<string | null>(localStorage.getItem("sessionId"));
 
   const isAuthenticated = !!token;
@@ -28,19 +28,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (credentials: any) => {
     const data = await apiLogin(credentials);
+    const name = data.userName || data.nombreUsuario || data.nombrecompleto;
     setToken(data.token);
     setUserId(data.userId);
-    setUserName(data.userName);
+    setUserName(name);
     localStorage.setItem("token", data.token);
     localStorage.setItem("userId", data.userId.toString());
-    localStorage.setItem("userName", data.userName);
+    localStorage.setItem("userName", name);
     return data;
   };
 
   const loginPublic = async (pin: string) => {
+    // Limpieza de sesión previa
+    setToken(null);
+    setUserId(null);
+    setUserName(null);
+    localStorage.removeItem("token");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("userName");
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("userColor");
+
     const data = await apiLoginPublic(pin);
-    setSessionId(data.sessionId);
-    localStorage.setItem("sessionId", data.sessionId);
+    const sid = data.sessionId || `session-${Date.now()}`;
+    setSessionId(sid);
+    localStorage.setItem("sessionId", sid);
+    localStorage.setItem("eventoId", data.id.toString());
+    localStorage.setItem("eventoNombre", data.nombre);
     return data;
   };
 
