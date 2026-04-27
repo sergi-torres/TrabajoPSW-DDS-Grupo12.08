@@ -42,6 +42,8 @@ function App() {
                 <Route path="/eventos/:eventoId/votar" element={<DashboardVotacionCategorias />} />
                 <Route path="/eventos/:eventoId/ranking" element={<DashboardVotacionCategorias />} />
                 <Route path="/eventos/:eventoId/proyectos" element={<VotosPage />} />
+                <Route path="/eventos/:eventoId/my-project" element={<VotosPage />} />
+                <Route path="/eventos/:eventoId/participantRegister" element={<ParticipantRegister />} />
                 
                 <Route path="/participantRegister" element={<ParticipantRegister />} />
                 <Route path="/create-project" element={<CreateProject />} />

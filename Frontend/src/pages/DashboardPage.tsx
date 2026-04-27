@@ -132,6 +132,10 @@ export default function DashboardPage() {
                                                         if (misProyectosDelEvento.length > 0) {
                                                             const proyecto = misProyectosDelEvento[0];
                                                             localStorage.setItem("proyectoId", proyecto.id.toString());
+                                                            localStorage.setItem("proyectoNombre", proyecto.nombre);
+                                                            localStorage.setItem("proyectoDescripcion", proyecto.descripcion);
+                                                            localStorage.setItem("categoriaProyecto", proyecto.idCategoria?.toString() || "");
+                                                            localStorage.setItem("proyectoABCD", JSON.stringify(proyecto));
                                                         }
                                                         navigate(`/eventos/${evento.id}`);
                                                     } else if (rol === "Jurado") {

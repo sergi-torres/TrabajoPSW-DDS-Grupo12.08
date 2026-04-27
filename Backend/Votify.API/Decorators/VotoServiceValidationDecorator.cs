@@ -55,9 +55,9 @@ namespace Votify.API.Decorators
             return await _innerService.ProcesarVotoAsync(request, idUsuario, sessionId);
         }
 
-        public async Task<IEnumerable<VotoResponseDto>> ObtenerVotosPorProyectoAsync(int proyectoId)
+        public Task<IEnumerable<VotoResponseDto>> ObtenerVotosPorProyectoAsync(int proyectoId)
         {
-            return await _innerService.ObtenerVotosPorProyectoAsync(proyectoId);
+            return _innerService.ObtenerVotosPorProyectoAsync(proyectoId);
         }
     }
 }
