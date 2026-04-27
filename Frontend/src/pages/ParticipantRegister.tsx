@@ -103,7 +103,7 @@ export default function RegisterParticipant() {
       <EventSidebar />
       
       <div className={`transition-all duration-300 ${isCollapsed ? "lg:pl-28" : "lg:pl-80"}`}>
-        {/* Header */}
+        {/* Header `*/}
         <div className="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-6 lg:p-10">
           <div className="max-w-7xl mx-auto">
             <button
@@ -342,55 +342,37 @@ export default function RegisterParticipant() {
           )}
 
           {/* Paso 2: Seleccionar Categoría */}
+
           {categories.length > 0 && projectCreated && (
-            <Card className="border-purple-200 shadow-lg rounded-3xl overflow-hidden animate-in slide-in-from-bottom-8 duration-500">
-              <CardHeader className="p-8 border-b border-purple-50">
-                <CardTitle className="flex items-center gap-2 text-2xl font-heading font-bold text-gray-900">
-                  <Target className="w-6 h-6 text-purple-600" />
-                  Paso 2: Categoría del Evento
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {(categories as any[]).map((category) => (
-                    <div
-                      key={category.id}
-                      onClick={() => setSelectedCategory(category.id)}
-                      className={`
-                        relative group rounded-[32px] p-6 transition-all duration-300 cursor-pointer border-2
-                        ${selectedCategory === category.id
-                          ? "bg-purple-600 border-purple-600 shadow-xl shadow-purple-100 -translate-y-1"
-                          : "bg-white border-gray-50 hover:border-purple-200 hover:shadow-lg"
-                        }
-                      `}
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className={`
-                          w-14 h-14 rounded-2xl flex items-center justify-center transition-colors
-                          ${selectedCategory === category.id ? "bg-white/20" : "bg-purple-50"}
-                        `}>
-                          <Target className={`w-7 h-7 ${selectedCategory === category.id ? "text-white" : "text-purple-600"}`} />
-                        </div>
-                        <div className="flex-1">
-                          <h4 className={`text-xl font-bold ${selectedCategory === category.id ? "text-white" : "text-gray-900"}`}>
-                            {category.name}
-                          </h4>
-                          <Badge variant="outline" className={`mt-1 font-bold border-none px-0 ${selectedCategory === category.id ? "text-purple-100" : "text-gray-400"}`}>
-                             Participar aquí
-                          </Badge>
-                        </div>
-                        {selectedCategory === category.id && (
-                          <div className="bg-white text-purple-600 rounded-full p-1.5">
-                            <Check className="w-5 h-5" strokeWidth={3} />
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+  <Card className="border-purple-200 shadow-lg animate-in slide-in-from-bottom duration-500">
+    <CardHeader>
+      <CardTitle className="flex items-center gap-2">
+        <Target className="w-6 h-6 text-purple-600" />
+        Paso 2: Selecciona la Categoría del Evento
+        {selectedCategory && (
+          <Badge className="bg-purple-600 ml-2">
+            <Check className="w-3 h-3 mr-1" />
+            Seleccionado
+          </Badge>
+        )}
+      </CardTitle>
+    </CardHeader>
+    <CardContent>
+      {categories.some(cat => cat.status === "active") ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* ... contenido de categorías ... */}
+        </div>
+      ) : (
+        <div className="text-center py-8 text-gray-500">
+          <Target className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+          <p>En estos momentos no hay categorías disponibles</p>
+          <p className="text-sm text-gray-400 mt-1">Espera a que el organizador habilite las votaciones</p>
+        </div>
+      )}
+    </CardContent>
+  </Card>
+)}
+
 
           {/* Resumen Final */}
           {projectCreated && (selectedCategory || categories.length === 0) && (

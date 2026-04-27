@@ -80,6 +80,8 @@ export function EventSidebar({ color: propColor }: EventSidebarProps) {
         roleLinks.push({ label: "Votaciones", path: `/eventos/${eventoId}/votar`, icon: Vote });
     } else if (userRole === "Participante") {
         if (localStorage.getItem("proyectoABCD")) {
+
+            localStorage.removeItem("proyectoABCD");
             roleLinks.push({ label: "Mi Proyecto", path: `/eventos/${eventoId}/my-project`, icon: User });
         } else {    
             roleLinks.push({ label: "Registrar Proyecto", path: `/eventos/${eventoId}/participantRegister`, icon: User });
