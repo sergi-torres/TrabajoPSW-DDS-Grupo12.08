@@ -9,11 +9,16 @@ import { toast } from "sonner";
 import { createProyecto } from "../api/proyectoApi";
 import { EventSidebar } from "../components/layout/EventSidebar";
 import { EventContext } from "../context/EventContext";
+import { AuthContext } from "../context/AuthContext";
+import { cn } from "../components/ui/utils";
 
 export default function RegisterParticipant() {
   const navigate = useNavigate();
   const { categories, eventConfig } = useVoting();
   const eventContext = useContext(EventContext);
+  const authContext = useContext(AuthContext);
+  const { isPublic, isAuthenticated } = authContext!;
+  
   const [selectedCategory, setSelectedCategory] = useState<any>(null);
   const [projectData, setProjectData] = useState<any>({
     name: "",
@@ -97,30 +102,42 @@ export default function RegisterParticipant() {
   const isReadyToRegister = projectCreated && (selectedCategory || categories.length === 0);
   const isCollapsed = eventContext?.isCollapsed ?? false;
   const userRole = eventContext?.userRole ?? "Participante";
+  
+  // Determinar si es público de forma robusta
+  const effectivelyPublic = (!isAuthenticated && isPublic) || userRole === "Público";
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] relative">
+    <div className="min-h-screen bg-gray-50 font-body relative">
       <EventSidebar />
       
-      <div className={`transition-all duration-300 ${isCollapsed ? "lg:pl-28" : "lg:pl-80"}`}>
-        {/* Header `*/}
-        <div className="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-6 lg:p-10">
+      <div className="pb-[88px] lg:pb-12">
+        {/* Header - Full Width Background */}
+        <header 
+          className={cn(
+            "text-white p-6 lg:p-10 transition-all duration-300",
+            effectivelyPublic ? "lg:pl-10" : (isCollapsed ? "lg:pl-28" : "lg:pl-80")
+          )}
+          style={{ background: "linear-gradient(to right, #9333ea, #7e22ce)" }}
+        >
           <div className="max-w-7xl mx-auto">
             <button
               onClick={() => navigate("/eventos")}
-              className="flex items-center gap-2 mb-4 hover:opacity-80 transition-opacity bg-white/10 px-4 py-2 rounded-xl"
+              className="inline-flex items-center gap-2 mb-4 hover:opacity-80 transition-opacity bg-white/10 px-4 py-2 rounded-xl font-heading font-semibold text-sm group"
             >
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
               Volver
             </button>
             <div>
-              <h1 className="text-4xl font-heading font-bold mb-2">Registrar Proyecto</h1>
-              <p className="text-purple-100 text-lg">Crea tu proyecto para {eventConfig?.eventName || "el evento"}</p>
+              <h1 className="text-4xl font-heading font-bold mb-2 tracking-tight">Registrar Proyecto</h1>
+              <p className="text-purple-100 text-lg font-medium opacity-90">Crea tu proyecto para {eventConfig?.eventName || "el evento"}</p>
             </div>
           </div>
-        </div>
+        </header>
 
-        <div className="max-w-7xl mx-auto p-6 lg:p-10 space-y-6">
+        <main className={cn(
+          "max-w-7xl mx-auto p-6 lg:p-10 -mt-10 space-y-8 transition-all duration-300",
+          effectivelyPublic ? "" : (isCollapsed ? "lg:pl-28" : "lg:pl-80")
+        )}>
           {/* Paso 1: Crear Proyecto */}
           {!projectCreated ? (
             <Card className="border-purple-200 shadow-lg rounded-3xl overflow-hidden">
@@ -458,7 +475,7 @@ export default function RegisterParticipant() {
               </button>
             </div>
           )}
-        </div>
+        </main>
       </div>
     </div>
   );
