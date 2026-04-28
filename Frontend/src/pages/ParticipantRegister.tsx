@@ -12,7 +12,7 @@ import { EventContext } from "../context/EventContext";
 
 export default function RegisterParticipant() {
   const navigate = useNavigate();
-  const { id: eventIdFromUrl } = useParams();
+  const { eventoId: eventIdFromUrl } = useParams();
   const { eventConfig } = useVoting();
   const eventContext = useContext(EventContext);
   
@@ -97,7 +97,7 @@ export default function RegisterParticipant() {
         const newProject = {
           nombre: projectData.name,
           descripcion: projectData.description,
-          urlMultimedia: imagePreview || "🚀",
+          urlMultimedia: "🚀", // No enviamos el Base64 porque supera los 500 caracteres del VARCHAR en DB
           idEvento: eventoId ? parseInt(eventoId) : null,
           idParticipante: userId ? parseInt(userId) : 16,
           idCategoria: selectedCategory ? parseInt(selectedCategory) : null,
@@ -389,53 +389,45 @@ export default function RegisterParticipant() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {localCategories.some(cat => cat.estado === "activa" || cat.estado === "pendiente") ? (
+                  {localCategories.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {localCategories.map((category) => {
-                        const isActive = category.estado === "activa" || category.estado === "pendiente";
                         const isSelected = selectedCategory === category.id;
                         
                         return (
                           <div
                             key={category.id}
-                            onClick={() => isActive && setSelectedCategory(category.id)}
+                            onClick={() => setSelectedCategory(category.id)}
                             className={`
                               bg-gradient-to-br from-white to-purple-50 border-2 rounded-2xl p-6
-                              transition-all cursor-pointer
-                              ${!isActive && "opacity-60 cursor-not-allowed"}
-                              ${isActive && "hover:shadow-xl"}
-                              ${isSelected && isActive
+                              transition-all cursor-pointer hover:shadow-xl
+                              ${isSelected
                                 ? "border-purple-600 shadow-lg ring-4 ring-purple-200"
                                 : "border-purple-100 hover:border-purple-300"
                               }
-                              ${!isActive && "border-gray-200 bg-gray-50"}
                             `}
                           >
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-4">
                                 <div className={`
                                   w-12 h-12 rounded-xl flex items-center justify-center
-                                  ${isSelected && isActive ? "bg-purple-600" : !isActive ? "bg-gray-300" : "bg-purple-100"}
+                                  ${isSelected ? "bg-purple-600" : "bg-purple-100"}
                                 `}>
                                   <Target className={`w-6 h-6 ${
-                                    isSelected && isActive ? "text-white" : !isActive ? "text-gray-500" : "text-purple-600"
+                                    isSelected ? "text-white" : "text-purple-600"
                                   }`} />
                                 </div>
                                 <div>
-                                  <h4 className={`text-xl font-bold ${!isActive && "text-gray-500"}`}>{category.nombre}</h4>
+                                  <h4 className="text-xl font-bold text-gray-900">{category.nombre}</h4>
                                   <Badge 
                                     variant="outline" 
-                                    className={`mt-1 ${
-                                      isActive 
-                                        ? "border-green-300 text-green-700 bg-green-50"
-                                        : "border-gray-300 text-gray-500 bg-gray-100"
-                                    }`}
+                                    className="mt-1 border-green-300 text-green-700 bg-green-50"
                                   >
-                                    {category.estado === "activa" ? "Activa" : "Pendiente"}
+                                    Activa
                                   </Badge>
                                 </div>
                               </div>
-                              {isSelected && isActive && (
+                              {isSelected && (
                                 <div className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center">
                                   <Check className="w-6 h-6 text-white" />
                                 </div>
@@ -454,7 +446,7 @@ export default function RegisterParticipant() {
                         No hay categorías disponibles
                       </h3>
                       <p className="text-gray-500">
-                        En estos momentos no hay categorías activas para este evento.
+                        En estos momentos no hay categorías registradas para este evento.
                       </p>
                     </div>
                   )}
