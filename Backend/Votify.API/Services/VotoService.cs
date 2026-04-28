@@ -1,4 +1,4 @@
-﻿using Votify.API.Factories;
+using Votify.API.Factories;
 using Votify.API.Models.Domain;
 using Votify.API.Models.DTOs;
 using Votify.API.Repositories;
@@ -228,9 +228,9 @@ namespace Votify.API.Services
                 // Crear voto usando el patrón Factory
                 var voto = factory.CrearVoto(
                     proyectoId: request.ProyectoId,
-                    valorBase: 1.0f, // Valor por defecto para público
+                    valorBase: request.Valor, 
                     idCategoria: request.CategoriaId,
-                    idCriterio: 1, // TODO: Esto en el futuro seguramente será una lista de criterios
+                    idCriterio: request.IdCriterio ?? 1, // Fallback a 1 si no se envía (Público)
                     comentario: request.Comentario,
                     urlAudio: null,
                     idUsuario: idUsuario,
