@@ -6,7 +6,7 @@ namespace Votify.API.Repositories
     public interface ICategoriaRepository
     {
         Task<List<Categoria>> ObtenerTodasAsync();
-        Task<List<CategoriaResponseDto>> ObtenerPorEventoIdAsync(int eventoId);
+        Task<List<CategoriaResponseActualizadoDto>> ObtenerPorEventoIdAsync(int eventoId);
         Task<Categoria> CrearAsync(Categoria categoria);
 
         Task<Categoria> ObtenerPorIdAsync(int id);

@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 
 using Votify.API.Models.Domain;
 using Votify.API.Models.DTOs;
@@ -52,11 +52,12 @@ namespace Votify.API.Controllers
             {
                 var categorias = await _categoriaRepository.ObtenerPorEventoIdAsync(eventoId);
 
-                var dto = categorias.Select(c => new CategoriaResponseDto
+                var dto = categorias.Select(c => new Votify.API.Models.DTOs.CategoriaResponseActualizadoDto
                 {
                     Id = c.Id,
                     Nombre = c.Nombre,
-                    IdEvento = c.IdEvento
+                    IdEvento = c.IdEvento,
+                    Estado = c.Estado
                 });
 
                 return Ok(dto);

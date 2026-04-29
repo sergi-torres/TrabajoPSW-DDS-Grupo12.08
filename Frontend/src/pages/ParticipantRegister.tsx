@@ -343,7 +343,9 @@ export default function RegisterParticipant() {
 
           {/* Paso 2: Seleccionar Categoría */}
 
+         
 {categories.length > 0 && projectCreated && (
+
   <Card className="border-purple-200 shadow-lg animate-in slide-in-from-bottom duration-500">
     <CardHeader>
       <CardTitle className="flex items-center gap-2">
@@ -360,12 +362,16 @@ export default function RegisterParticipant() {
     <CardContent>
       {/* Verificar si hay categorías activas */}
 
-      {categories.some(cat => cat.status === "pending") ? (
+      {categories.forEach(category => console.log(category))}
+
+      {categories.some(cat => cat.status === "pending" || cat.status === "active") ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {categories.map((category) => {
-            const isActive = category.status === "pending";
+            const isActive = category.status === "pending" || category.status === "active";
             const isSelected = selectedCategory === category.id;
             
+            
+
             return (
               <div
                 key={category.id}

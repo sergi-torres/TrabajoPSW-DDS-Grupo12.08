@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+﻿import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 import { showNotification } from "../components/Notifications/NotificationSystem";
 import { categoriasApi } from "../api/categoriasApi";
 
@@ -79,10 +79,15 @@ export function VotingProvider({ children }: { children: ReactNode }) {
           const categorias = await categoriasApi.getByEvento(parseInt(eventoId));
           
           // Mapear las categorías al formato que espera el frontend
-          const formattedCategories: Category[] = categorias.map((cat: any) => ({
-            id: cat.id?.toString() || cat.id,
-            name: cat.nombre || cat.name,
-            status: cat.estado === "activa" ? "active" : "pending"
+          const formattedCategories = categorias.map(cat => ({
+            id: cat.id,
+            name: cat.nombre,
+            status: cat.estado === "Activa" ? "active" : 
+                    cat.estado === "Pendiente" ? "pending" : 
+                    cat.estado === "Finalizada" ? "closed" : 
+                    cat.estado === "Pausada" ? "paused" : "pending",
+            startTime: cat.fechaInicio ? new Date(cat.fechaInicio) : undefined,
+            endTime: cat.fechaFin ? new Date(cat.fechaFin) : undefined
           }));
           
           setCategories(formattedCategories);
