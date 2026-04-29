@@ -278,6 +278,8 @@ namespace Votify.API.Services
 
             var factory = await ObtenerFactoryPorRolAsync(request.EventoId, idUsuario);
 
+            int? primerVotoId = null;
+
             // Crear y persistir un voto por cada criterio evaluado
             foreach (var evaluacion in request.Evaluaciones)
             {
@@ -293,8 +295,9 @@ namespace Votify.API.Services
                 );
 
                 var votoCreado = await _votoRepository.AgregarVotoAsync(voto);
+                primerVotoId ??= votoCreado.Id;
 
-                // Crear comentario cualitativo si hay texto
+                // Crear comentario cualitativo por criterio si hay texto
                 if (!string.IsNullOrWhiteSpace(evaluacion.Comentario))
                 {
                     await _comentarioService.CreateComentarioAsync(
@@ -302,6 +305,15 @@ namespace Votify.API.Services
                         evaluacion.Comentario
                     );
                 }
+            }
+
+            // Guardar el comentario global del proyecto (vinculado al primer voto)
+            if (!string.IsNullOrWhiteSpace(request.ComentarioGlobal) && primerVotoId.HasValue)
+            {
+                await _comentarioService.CreateComentarioAsync(
+                    primerVotoId.Value,
+                    $"[GENERAL] {request.ComentarioGlobal}"
+                );
             }
 
             // Registrar como UN SOLO voto en la categoría (no uno por criterio)

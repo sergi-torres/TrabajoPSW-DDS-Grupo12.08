@@ -57,24 +57,34 @@ namespace Votify.API.Decorators
 
         public async Task<DashboardResponseDto> ProcesarVotoBatchAsync(VotoBatchRequestDto request)
         {
-            // 1. Obtener el evento para saber la configuración
+            // 1. Obtener el evento para saber la configuración global
             var eventoResponse = await _supabase.From<EventoLite>()
                 .Filter("id", Supabase.Postgrest.Constants.Operator.Equals, request.EventoId.ToString())
                 .Get();
             var evento = eventoResponse.Models.FirstOrDefault() 
                 ?? throw new Exception("Evento no encontrado");
 
-            // 2. Aplicar Strategy para validar comentarios de cada criterio
-            IComentarioValidationStrategy strategy = evento.ComentariosObligatorios 
-                ? new ComentarioObligatorioStrategy() 
-                : new ComentarioOpcionalStrategy();
+            // 2. Obtener los criterios de la BD para saber cuáles tienen comentario obligatorio individual
+            var criteriosResponse = await _supabase.From<Criterio>()
+                .Get();
+            var criteriosDb = criteriosResponse.Models;
 
+            // 3. Validar comentarios: verificar por cada criterio individual
             foreach (var evaluacion in request.Evaluaciones)
             {
+                var criterioBd = criteriosDb.FirstOrDefault(c => c.Id == evaluacion.CriterioId);
+                
+                // El comentario es obligatorio si: el criterio individual lo marca O el evento global lo exige
+                bool requiereComentario = (criterioBd?.ComentarioObligatorio ?? false) || evento.ComentariosObligatorios;
+
+                IComentarioValidationStrategy strategy = requiereComentario
+                    ? new ComentarioObligatorioStrategy()
+                    : new ComentarioOpcionalStrategy();
+
                 strategy.Validar(evaluacion.Comentario);
             }
 
-            // 3. Delegar al servicio original
+            // 4. Delegar al servicio original
             return await _innerService.ProcesarVotoBatchAsync(request);
         }
 

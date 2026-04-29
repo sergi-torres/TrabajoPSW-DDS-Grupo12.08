@@ -62,7 +62,7 @@ const DashboardVotacionProyectos: React.FC<Props> = ({ categoria, alVolver, come
     }
   };
 
-  const handleConfirmarJurado = async (evaluaciones: { criterioId: number, valor: number, comentario: string }[]) => {
+  const handleConfirmarJurado = async (evaluaciones: { criterioId: number, valor: number, comentario: string }[], comentarioGlobal: string) => {
     if (!seleccionado) return;
 
     const userIdRaw = localStorage.getItem('userId');
@@ -75,6 +75,7 @@ const DashboardVotacionProyectos: React.FC<Props> = ({ categoria, alVolver, come
         categoriaId: categoria.id,
         proyectoId: seleccionado.id,
         idUsuario: idUsuario,
+        comentarioGlobal: comentarioGlobal || undefined,
         evaluaciones: evaluaciones.map(e => ({
           criterioId: e.criterioId,
           valor: e.valor,
@@ -161,6 +162,7 @@ const DashboardVotacionProyectos: React.FC<Props> = ({ categoria, alVolver, come
                 onConfirmar={handleConfirmarJurado}
                 onCancelar={() => setPasoEvaluacion(false)}
                 cargando={cargando}
+                comentariosObligatorios={comentariosObligatorios}
               />
             ) : (
               <>
