@@ -80,4 +80,36 @@ namespace Votify.API.Models.DTOs
             public DateTime Fecha { get; set; }
     }
 
+    // Batch request for Jurado: all criteria evaluations for one project in one request
+    public class VotoBatchRequestDto
+    {
+        [Required]
+        public int EventoId { get; set; }
+
+        [Required]
+        public int CategoriaId { get; set; }
+
+        [Required]
+        public int ProyectoId { get; set; }
+
+        // null = PIN flow (anónimo), valor = Jurado flow (usuario autenticado)
+        public int? IdUsuario { get; set; }
+
+        public string? SessionId { get; set; }
+
+        [Required]
+        public List<EvaluacionCriterioDto> Evaluaciones { get; set; } = new();
+    }
+
+    public class EvaluacionCriterioDto
+    {
+        [Required]
+        public int CriterioId { get; set; }
+
+        public float Valor { get; set; } = 1.0f;
+
+        [MaxLength(200)]
+        public string? Comentario { get; set; }
+    }
+
 }

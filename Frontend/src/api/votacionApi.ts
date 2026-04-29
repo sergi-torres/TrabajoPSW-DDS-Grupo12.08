@@ -38,6 +38,30 @@ export const enviarDatosVoto = async (votoDto: Voto): Promise<any> => {
   return await response.json();
 }
 
+export interface VotoBatchPayload {
+  eventoId: number;
+  categoriaId: number;
+  proyectoId: number;
+  idUsuario: number | null;
+  sessionId?: string | null;
+  evaluaciones: { criterioId: number; valor: number; comentario: string }[];
+}
+
+export const enviarDatosVotoBatch = async (payload: VotoBatchPayload): Promise<any> => {
+  const response = await fetch(`${API_URL}/votar/batch`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(errorText || 'Error al enviar la evaluación');
+  }
+
+  return await response.json();
+}
+
 export const obtenerVotosPorProyecto = async (proyectoId: number): Promise<any[]> => {
     if (proyectoId == null) {
         throw new Error('proyectoId es obligatorio');

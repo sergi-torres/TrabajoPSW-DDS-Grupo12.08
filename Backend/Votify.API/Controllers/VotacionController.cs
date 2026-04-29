@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Votify.API.Models.DTOs;
 using Votify.API.Services;
 
@@ -26,6 +26,20 @@ namespace Votify.API.Controllers
                 // IdUsuario viene del frontend (localStorage) - null = PIN flow, valor = Jurado flow
                 var dashboard = await _votoService.ProcesarVotoAsync(request, request.IdUsuario, request.SessionId);
 
+                return Ok(dashboard);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.InnerException?.Message ?? ex.Message);
+            }
+        }
+
+        [HttpPost("votar/batch")]
+        public async Task<IActionResult> VotarBatchAsync(VotoBatchRequestDto request)
+        {
+            try
+            {
+                var dashboard = await _votoService.ProcesarVotoBatchAsync(request);
                 return Ok(dashboard);
             }
             catch (Exception ex)

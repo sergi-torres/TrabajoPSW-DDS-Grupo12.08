@@ -55,6 +55,29 @@ namespace Votify.API.Decorators
             return await _innerService.ProcesarVotoAsync(request, idUsuario, sessionId);
         }
 
+        public async Task<DashboardResponseDto> ProcesarVotoBatchAsync(VotoBatchRequestDto request)
+        {
+            // 1. Obtener el evento para saber la configuración
+            var eventoResponse = await _supabase.From<EventoLite>()
+                .Filter("id", Supabase.Postgrest.Constants.Operator.Equals, request.EventoId.ToString())
+                .Get();
+            var evento = eventoResponse.Models.FirstOrDefault() 
+                ?? throw new Exception("Evento no encontrado");
+
+            // 2. Aplicar Strategy para validar comentarios de cada criterio
+            IComentarioValidationStrategy strategy = evento.ComentariosObligatorios 
+                ? new ComentarioObligatorioStrategy() 
+                : new ComentarioOpcionalStrategy();
+
+            foreach (var evaluacion in request.Evaluaciones)
+            {
+                strategy.Validar(evaluacion.Comentario);
+            }
+
+            // 3. Delegar al servicio original
+            return await _innerService.ProcesarVotoBatchAsync(request);
+        }
+
         public Task<IEnumerable<VotoResponseDto>> ObtenerVotosPorProyectoAsync(int proyectoId)
         {
             return _innerService.ObtenerVotosPorProyectoAsync(proyectoId);

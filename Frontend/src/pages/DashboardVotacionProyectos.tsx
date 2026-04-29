@@ -3,6 +3,7 @@ import ProyectosLista from '../components/votacion/votacionProyectos/ProyectosLi
 import OpcionesSeleccionado from '../components/votacion/votacionProyectos/OpcionesSeleccionado';
 import EvaluacionCriterios from '../components/votacion/votacionProyectos/EvaluacionCriterios';
 import { useEnviarVoto } from '../hooks/VotacionHooks/useEnvioVoto';
+import { enviarDatosVotoBatch } from '../api/votacionApi';
 import { AuthContext } from '../context/AuthContext';
 import { EventContext } from '../context/EventContext';
 import { EventSidebar } from '../components/layout/EventSidebar';
@@ -68,32 +69,25 @@ const DashboardVotacionProyectos: React.FC<Props> = ({ categoria, alVolver, come
     const idUsuario = userIdRaw ? parseInt(userIdRaw) : null;
 
     try {
-      // Enviar cada criterio por separado
-      // Nota: En un entorno de producción real, esto debería ser una petición por lotes (Batch)
-      const promesas = evaluaciones.map(evaluacion => {
-        const votoDto = {
-          eventoId: eventoId || 0,
-          categoriaId: categoria.id,
-          proyectoId: seleccionado.id,
-          comentario: evaluacion.comentario,
-          idUsuario: idUsuario,
-          valor: evaluacion.valor,
-          idCriterio: evaluacion.criterioId, // Backend usa PascalCase o camelCase dependiendo de la config, pero DTO es IdCriterio
-          idproyecto: seleccionado.id,
-          idevaluador: idUsuario,
-          idcategoria: categoria.id
-        };
-        return enviarVoto(votoDto as any);
-      });
+      // Enviar todas las evaluaciones en una sola petición batch
+      const batchPayload = {
+        eventoId: eventoId || 0,
+        categoriaId: categoria.id,
+        proyectoId: seleccionado.id,
+        idUsuario: idUsuario,
+        evaluaciones: evaluaciones.map(e => ({
+          criterioId: e.criterioId,
+          valor: e.valor,
+          comentario: e.comentario
+        }))
+      };
 
-      const resultados = await Promise.all(promesas);
-      if (resultados.every(r => r === true)) {
-        toast.success("Evaluación completa registrada correctamente");
-        alVolver();
-      }
+      await enviarDatosVotoBatch(batchPayload);
+      toast.success("Evaluación completa registrada correctamente");
+      alVolver();
     } catch (err) {
       console.error(err);
-      toast.error("Error al procesar la evaluación completa");
+      toast.error((err as any)?.message || "Error al procesar la evaluación completa");
     }
   };
 

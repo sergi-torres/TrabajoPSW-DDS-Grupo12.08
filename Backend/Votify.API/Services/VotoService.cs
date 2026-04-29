@@ -261,6 +261,59 @@ namespace Votify.API.Services
             return await ObtenerDashboardAsync(request.EventoId, idUsuario, sessionId);
         }
 
+        public async Task<DashboardResponseDto> ProcesarVotoBatchAsync(VotoBatchRequestDto request)
+        {
+            var idUsuario = request.IdUsuario;
+            var sessionId = request.SessionId;
+            var claveSesion = ObtenerClaveSesion(idUsuario, sessionId);
+
+            // Obtener dashboard actual para verificar VotosRestantes
+            var dashboard = await ObtenerDashboardAsync(request.EventoId, idUsuario, sessionId);
+            var categoria = dashboard.Categorias.FirstOrDefault(c => c.Id == request.CategoriaId);
+
+            if (categoria == null || categoria.VotosRestantes <= 0 || categoria.Estado != "activa")
+            {
+                throw new Exception("No se puede votar: la categoría no está activa o no quedan votos.");
+            }
+
+            var factory = await ObtenerFactoryPorRolAsync(request.EventoId, idUsuario);
+
+            // Crear y persistir un voto por cada criterio evaluado
+            foreach (var evaluacion in request.Evaluaciones)
+            {
+                var voto = factory.CrearVoto(
+                    proyectoId: request.ProyectoId,
+                    valorBase: evaluacion.Valor,
+                    idCategoria: request.CategoriaId,
+                    idCriterio: evaluacion.CriterioId,
+                    comentario: evaluacion.Comentario,
+                    urlAudio: null,
+                    idUsuario: idUsuario,
+                    ipDispositivo: "web"
+                );
+
+                var votoCreado = await _votoRepository.AgregarVotoAsync(voto);
+
+                // Crear comentario cualitativo si hay texto
+                if (!string.IsNullOrWhiteSpace(evaluacion.Comentario))
+                {
+                    await _comentarioService.CreateComentarioAsync(
+                        votoCreado.Id,
+                        evaluacion.Comentario
+                    );
+                }
+            }
+
+            // Registrar como UN SOLO voto en la categoría (no uno por criterio)
+            if (!VotosRealizadosPorUsuario.ContainsKey(claveSesion))
+            {
+                VotosRealizadosPorUsuario[claveSesion] = new List<(int CategoriaId, int ProyectoId)>();
+            }
+            VotosRealizadosPorUsuario[claveSesion].Add((request.CategoriaId, request.ProyectoId));
+
+            return await ObtenerDashboardAsync(request.EventoId, idUsuario, sessionId);
+        }
+
         public async Task<IEnumerable<VotoResponseDto>> ObtenerVotosPorProyectoAsync(int proyectoId)
         {
             var votos = await _votoRepository.ObtenerPorProyectoIdAsync(proyectoId);
