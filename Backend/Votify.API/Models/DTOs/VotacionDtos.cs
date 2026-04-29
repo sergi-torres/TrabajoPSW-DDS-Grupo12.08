@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace Votify.API.Models.DTOs
 {
@@ -33,6 +33,10 @@ namespace Votify.API.Models.DTOs
         
         [Required]
         public int ProyectoId { get; set; }
+
+        public int? IdCriterio { get; set; }
+
+        public float Valor { get; set; } = 1.0f;
 
         [MaxLength(200)]
         public string? Comentario { get; set; }

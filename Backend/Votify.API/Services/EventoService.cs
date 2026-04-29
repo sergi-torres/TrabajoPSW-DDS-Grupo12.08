@@ -296,56 +296,58 @@ namespace Votify.API.Services
                     }
                 }
 
-                // Actualizar categorías si se proporcionan y NO está en votación
+                // Actualizar categorías solo si se proporcionan y el evento NO está en votación
                 if (!enVotacion && dto.Categorias != null)
                 {
-                    // Borrar pesos de categorías existentes
-                    var categoriasExistentes = await _supabase
+                    // Obtener categorías existentes
+                    var categoriasExistentesRes = await _supabase
                         .From<Categoria>()
                         .Filter("idevento", Supabase.Postgrest.Constants.Operator.Equals, eventoId.ToString())
                         .Get();
+                    
+                    var categoriasExistentes = categoriasExistentesRes.Models;
 
-                    foreach (var cat in categoriasExistentes.Models)
-                    {
-                        await _supabase
-                            .From<PesoCategoriaRol>()
-                            .Filter("idcategoria", Supabase.Postgrest.Constants.Operator.Equals, cat.Id.ToString())
-                            .Delete();
-                    }
-
-                    // Borrar categorías existentes
-                    await _supabase
-                        .From<Categoria>()
-                        .Filter("idevento", Supabase.Postgrest.Constants.Operator.Equals, eventoId.ToString())
-                        .Delete();
-
-                    // Crear nuevas categorías
+                    // Para cada categoría en el DTO
                     foreach (var catDto in dto.Categorias)
                     {
-                        var nuevaCat = new Categoria
+                        // Buscar si ya existe por nombre (o podrías usar ID si el DTO lo tuviera)
+                        var existente = categoriasExistentes.FirstOrDefault(c => c.Nombre == catDto.Nombre);
+                        int catId;
+
+                        if (existente != null)
                         {
-                            Nombre = catDto.Nombre,
-                            IdEvento = eventoId
-                        };
+                            catId = existente.Id;
+                            // Actualizar pesos si es necesario (primero borrar pesos viejos de esta cat)
+                            await _supabase.From<PesoCategoriaRol>()
+                                .Filter("idcategoria", Supabase.Postgrest.Constants.Operator.Equals, catId.ToString())
+                                .Delete();
+                        }
+                        else
+                        {
+                            // Crear nueva
+                            var nuevaCat = new Categoria { Nombre = catDto.Nombre, IdEvento = eventoId };
+                            var catCreada = await _supabase.From<Categoria>().Insert(nuevaCat);
+                            catId = catCreada.Models.First().Id;
+                        }
 
-                        var catCreada = await _supabase.From<Categoria>().Insert(nuevaCat);
-                        var catId = catCreada.Models.First().Id;
-
+                        // Insertar nuevos pesos
                         if (catDto.Pesos != null)
                         {
                             foreach (var pesoDto in catDto.Pesos)
                             {
-                                var nuevoPeso = new PesoCategoriaRol
+                                await _supabase.From<PesoCategoriaRol>().Insert(new PesoCategoriaRol
                                 {
                                     IdCategoria = catId,
                                     RolVotante = pesoDto.RolVotante,
                                     Peso = (float)pesoDto.Peso
-                                };
-
-                                await _supabase.From<PesoCategoriaRol>().Insert(nuevoPeso);
+                                });
                             }
                         }
                     }
+
+                    // Opcional: Borrar categorías que NO están en el DTO y NO tienen proyectos
+                    // Pero por seguridad y para evitar el error 23503 que viste, 
+                    // simplemente no borraremos categorías de forma masiva aquí.
                 }
 
                 // Devolver el evento actualizado
