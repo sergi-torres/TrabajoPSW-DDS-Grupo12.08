@@ -103,13 +103,16 @@ namespace Votify.API.Services
             {
                 var claveSesion = ObtenerClaveSesion(idUsuario, sessionId);
 
-                // Detectar cambio de usuario (nuevo Jurado = reset a zero state)
-                if (idUsuario.HasValue && idUsuario != _ultimoIdUsuarioActivo)
+                // Detectar cambio de usuario (nuevo Jurado = reset a zero state) o inicializar si el server acaba de reiniciar
+                if (idUsuario.HasValue)
                 {
-                    // Nuevo usuario Jurado: inicializar su lista como vacía
-                    if (!VotosRealizadosPorUsuario.ContainsKey(claveSesion))
+                    if (!VotosRealizadosPorUsuario.ContainsKey(claveSesion) || idUsuario != _ultimoIdUsuarioActivo)
                     {
-                        VotosRealizadosPorUsuario[claveSesion] = new List<(int CategoriaId, int ProyectoId)>();
+                        var votosDb = await _votoRepository.ObtenerVotosDeUsuarioAsync(idUsuario.Value);
+                        VotosRealizadosPorUsuario[claveSesion] = votosDb
+                            .Select(v => (v.IdCategoria, v.IdProyecto))
+                            .Distinct()
+                            .ToList();
                     }
                     _ultimoIdUsuarioActivo = idUsuario;
                 }
