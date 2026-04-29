@@ -1,5 +1,5 @@
-﻿import { ArrowLeft, Check, Target, Calendar, Users, Upload, X, Image as ImageIcon } from "lucide-react";
-import { useNavigate } from "react-router";
+import { ArrowLeft, Check, Target, Calendar, Users, Upload, X, Image as ImageIcon } from "lucide-react";
+import { useNavigate, useParams } from "react-router";
 import { useState, useEffect, useContext } from "react"; 
 import { useVoting } from "../context/VotingContext";
 import { Card, CardHeader, CardTitle, CardContent } from "../components/ui/card";
@@ -14,11 +14,12 @@ import { cn } from "../components/ui/utils";
 
 export default function RegisterParticipant() {
   const navigate = useNavigate();
-  const { categories, eventConfig } = useVoting();
+  const { eventoId: eventIdFromUrl } = useParams();
+  const { eventConfig } = useVoting();
   const eventContext = useContext(EventContext);
-  const authContext = useContext(AuthContext);
-  const { isPublic, isAuthenticated } = authContext!;
   
+  const [localCategories, setLocalCategories] = useState<any[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<any>(null);
   const [projectData, setProjectData] = useState<any>({
     name: "",
@@ -28,6 +29,27 @@ export default function RegisterParticipant() {
     additionalMembers: [],
     newMemberEmail: ""
   });
+
+  // Cargar categorías específicas de este evento (desde la URL)
+  useEffect(() => {
+    const fetchCategories = async () => {
+      if (!eventIdFromUrl) return;
+      try {
+        setLoadingCategories(true);
+        const response = await fetch(`http://localhost:5245/api/Categorias/evento/${eventIdFromUrl}`);
+        if (!response.ok) throw new Error("Error al cargar categorías");
+        const data = await response.json();
+        setLocalCategories(data);
+      } catch (err) {
+        console.error("Error fetching categories:", err);
+        toast.error("No se pudieron cargar las categorías del evento");
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+
+    fetchCategories();
+  }, [eventIdFromUrl]);
 
   useEffect(() => {
     const userId = localStorage.getItem("userId");
@@ -69,15 +91,15 @@ export default function RegisterParticipant() {
   };
 
   const handleRegister = async () => {
-    if (projectCreated && (selectedCategory || categories.length === 0)) {
+    if (projectCreated && (localCategories.length === 0 || selectedCategory)) {
       try {
         const userId = localStorage.getItem("userId");
-        const eventoId = localStorage.getItem("eventoId");      
+        const eventoId = eventIdFromUrl || localStorage.getItem("eventoId");      
 
         const newProject = {
           nombre: projectData.name,
           descripcion: projectData.description,
-          urlMultimedia: imagePreview || "🚀",
+          urlMultimedia: "🚀", // No enviamos el Base64 porque supera los 500 caracteres del VARCHAR en DB
           idEvento: eventoId ? parseInt(eventoId) : null,
           idParticipante: userId ? parseInt(userId) : 16,
           idCategoria: selectedCategory ? parseInt(selectedCategory) : null,
@@ -90,7 +112,8 @@ export default function RegisterParticipant() {
         
         localStorage.setItem("proyectoABCD", JSON.stringify(res));
 
-        toast.success(`Proyecto registrado exitosamente!\n\nProyecto: ${projectData.name}\nCategoría: ${categories.find((c: any) => c.id === selectedCategory)?.name}`);
+        const catName = localCategories.find((c: any) => c.id === selectedCategory)?.nombre || "N/A";
+        toast.success(`Proyecto registrado exitosamente!\n\nProyecto: ${projectData.name}\nCategoría: ${catName}`);
         navigate("/eventos");
       } catch (error: any) {
         console.error("Error al crear el proyecto:", error);
@@ -99,7 +122,7 @@ export default function RegisterParticipant() {
     }
   };
 
-  const isReadyToRegister = projectCreated && (selectedCategory || categories.length === 0);
+  const isReadyToRegister = projectCreated && (selectedCategory || localCategories.length === 0);
   const isCollapsed = eventContext?.isCollapsed ?? false;
   const userRole = eventContext?.userRole ?? "Participante";
   
@@ -359,104 +382,96 @@ export default function RegisterParticipant() {
           )}
 
           {/* Paso 2: Seleccionar Categoría */}
-
-{categories.length > 0 && projectCreated && (
-  <Card className="border-purple-200 shadow-lg animate-in slide-in-from-bottom duration-500">
-    <CardHeader>
-      <CardTitle className="flex items-center gap-2">
-        <Target className="w-6 h-6 text-purple-600" />
-        Paso 2: Selecciona la Categoría del Evento
-        {selectedCategory && (
-          <Badge className="bg-purple-600 ml-2">
-            <Check className="w-3 h-3 mr-1" />
-            Seleccionado
-          </Badge>
-        )}
-      </CardTitle>
-    </CardHeader>
-    <CardContent>
-      {/* Verificar si hay categorías activas */}
-
-      {categories.some(cat => cat.status === "pending") ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {categories.map((category) => {
-            const isActive = category.status === "pending";
-            const isSelected = selectedCategory === category.id;
-            
-            return (
-              <div
-                key={category.id}
-                onClick={() => isActive && setSelectedCategory(category.id)}
-                className={`
-                  bg-gradient-to-br from-white to-purple-50 border-2 rounded-2xl p-6
-                  transition-all cursor-pointer
-                  ${!isActive && "opacity-60 cursor-not-allowed"}
-                  ${isActive && "hover:shadow-xl"}
-                  ${isSelected && isActive
-                    ? "border-purple-600 shadow-lg ring-4 ring-purple-200"
-                    : "border-purple-100 hover:border-purple-300"
-                  }
-                  ${!isActive && "border-gray-200 bg-gray-50"}
-                `}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className={`
-                      w-12 h-12 rounded-xl flex items-center justify-center
-                      ${isSelected && isActive ? "bg-purple-600" : !isActive ? "bg-gray-300" : "bg-purple-100"}
-                    `}>
-                      <Target className={`w-6 h-6 ${
-                        isSelected && isActive ? "text-white" : !isActive ? "text-gray-500" : "text-purple-600"
-                      }`} />
-                    </div>
-                    <div>
-                      <h4 className={`text-xl ${!isActive && "text-gray-500"}`}>{category.name}</h4>
-                      <Badge 
-                        variant="outline" 
-                        className={`mt-1 ${
-                          isActive 
-                            ? "border-green-300 text-green-700 bg-green-50"
-                            : "border-gray-300 text-gray-500 bg-gray-100"
-                        }`}
-                      >
-                        {isActive ? "Activa" : "Pendiente"}
+          {loadingCategories ? (
+            <div className="flex flex-col items-center justify-center p-12 bg-white rounded-3xl border border-gray-100">
+              <div className="w-10 h-10 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mb-4" />
+              <p className="text-gray-500 font-medium">Cargando categorías del evento...</p>
+            </div>
+          ) : (
+            localCategories.length > 0 && projectCreated && (
+              <Card className="border-purple-200 shadow-lg animate-in slide-in-from-bottom duration-500">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Target className="w-6 h-6 text-purple-600" />
+                    Paso 2: Selecciona la Categoría del Evento
+                    {selectedCategory && (
+                      <Badge className="bg-purple-600 ml-2">
+                        <Check className="w-3 h-3 mr-1" />
+                        Seleccionado
                       </Badge>
+                    )}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {localCategories.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {localCategories.map((category) => {
+                        const isSelected = selectedCategory === category.id;
+                        
+                        return (
+                          <div
+                            key={category.id}
+                            onClick={() => setSelectedCategory(category.id)}
+                            className={`
+                              bg-gradient-to-br from-white to-purple-50 border-2 rounded-2xl p-6
+                              transition-all cursor-pointer hover:shadow-xl
+                              ${isSelected
+                                ? "border-purple-600 shadow-lg ring-4 ring-purple-200"
+                                : "border-purple-100 hover:border-purple-300"
+                              }
+                            `}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-4">
+                                <div className={`
+                                  w-12 h-12 rounded-xl flex items-center justify-center
+                                  ${isSelected ? "bg-purple-600" : "bg-purple-100"}
+                                `}>
+                                  <Target className={`w-6 h-6 ${
+                                    isSelected ? "text-white" : "text-purple-600"
+                                  }`} />
+                                </div>
+                                <div>
+                                  <h4 className="text-xl font-bold text-gray-900">{category.nombre}</h4>
+                                  <Badge 
+                                    variant="outline" 
+                                    className="mt-1 border-green-300 text-green-700 bg-green-50"
+                                  >
+                                    Activa
+                                  </Badge>
+                                </div>
+                              </div>
+                              {isSelected && (
+                                <div className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center">
+                                  <Check className="w-6 h-6 text-white" />
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                  </div>
-                  {isSelected && isActive && (
-                    <div className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center">
-                      <Check className="w-6 h-6 text-white" />
+                  ) : (
+                    <div className="text-center py-12">
+                      <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Target className="w-10 h-10 text-gray-400" />
+                      </div>
+                      <h3 className="text-xl font-semibold text-gray-700 mb-2">
+                        No hay categorías disponibles
+                      </h3>
+                      <p className="text-gray-500">
+                        En estos momentos no hay categorías registradas para este evento.
+                      </p>
                     </div>
                   )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        /* Mensaje cuando no hay categorías activas */
-        <div className="text-center py-12">
-          <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Target className="w-10 h-10 text-gray-400" />
-          </div>
-          <h3 className="text-xl font-semibold text-gray-700 mb-2">
-            No hay categorías disponibles
-          </h3>
-          <p className="text-gray-500">
-            En estos momentos no hay categorías activas para este evento.
-          </p>
-          <p className="text-gray-400 text-sm mt-2">
-            Por favor, espera a que el organizador habilite las categorías.
-          </p>
-        </div>
-      )}
-    </CardContent>
-  </Card>
-)}
+                </CardContent>
+              </Card>
+            )
+          )}
 
 
           {/* Resumen Final */}
-          {projectCreated && (selectedCategory || categories.length === 0) && (
+          {projectCreated && (selectedCategory || localCategories.length === 0) && (
             <div className="animate-in slide-in-from-bottom-8 duration-700">
               <button
                 onClick={handleRegister}
