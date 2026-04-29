@@ -279,10 +279,12 @@ namespace Votify.API.Services
             var factory = await ObtenerFactoryPorRolAsync(request.EventoId, idUsuario);
 
             int? primerVotoId = null;
+            string? comentarioPrimerVoto = null;
 
             // Crear y persistir un voto por cada criterio evaluado
-            foreach (var evaluacion in request.Evaluaciones)
+            for (int i = 0; i < request.Evaluaciones.Count; i++)
             {
+                var evaluacion = request.Evaluaciones[i];
                 var voto = factory.CrearVoto(
                     proyectoId: request.ProyectoId,
                     valorBase: evaluacion.Valor,
@@ -295,25 +297,45 @@ namespace Votify.API.Services
                 );
 
                 var votoCreado = await _votoRepository.AgregarVotoAsync(voto);
-                primerVotoId ??= votoCreado.Id;
-
-                // Crear comentario cualitativo por criterio si hay texto
-                if (!string.IsNullOrWhiteSpace(evaluacion.Comentario))
+                
+                if (i == 0)
                 {
-                    await _comentarioService.CreateComentarioAsync(
-                        votoCreado.Id,
-                        evaluacion.Comentario
-                    );
+                    primerVotoId = votoCreado.Id;
+                    comentarioPrimerVoto = evaluacion.Comentario;
+                }
+                else
+                {
+                    // Crear comentario cualitativo por criterio si hay texto
+                    if (!string.IsNullOrWhiteSpace(evaluacion.Comentario))
+                    {
+                        await _comentarioService.CreateComentarioAsync(
+                            votoCreado.Id,
+                            evaluacion.Comentario
+                        );
+                    }
                 }
             }
 
-            // Guardar el comentario global del proyecto (vinculado al primer voto)
-            if (!string.IsNullOrWhiteSpace(request.ComentarioGlobal) && primerVotoId.HasValue)
+            // Guardar el comentario global del proyecto y el del primer criterio en un solo registro
+            if (primerVotoId.HasValue)
             {
-                await _comentarioService.CreateComentarioAsync(
-                    primerVotoId.Value,
-                    $"[GENERAL] {request.ComentarioGlobal}"
-                );
+                var comentariosACombinar = new List<string>();
+                if (!string.IsNullOrWhiteSpace(request.ComentarioGlobal))
+                {
+                    comentariosACombinar.Add($"[GENERAL] {request.ComentarioGlobal}");
+                }
+                if (!string.IsNullOrWhiteSpace(comentarioPrimerVoto))
+                {
+                    comentariosACombinar.Add(comentarioPrimerVoto);
+                }
+
+                if (comentariosACombinar.Any())
+                {
+                    await _comentarioService.CreateComentarioAsync(
+                        primerVotoId.Value,
+                        string.Join("\n\n---\n\n", comentariosACombinar)
+                    );
+                }
             }
 
             // Registrar como UN SOLO voto en la categoría (no uno por criterio)

@@ -69,13 +69,13 @@ namespace Votify.API.Decorators
                 .Get();
             var criteriosDb = criteriosResponse.Models;
 
-            // 3. Validar comentarios: verificar por cada criterio individual
+            // 3. Validar comentarios POR CRITERIO: solo los que tienen comentario_obligatorio = true
             foreach (var evaluacion in request.Evaluaciones)
             {
                 var criterioBd = criteriosDb.FirstOrDefault(c => c.Id == evaluacion.CriterioId);
                 
-                // El comentario es obligatorio si: el criterio individual lo marca O el evento global lo exige
-                bool requiereComentario = (criterioBd?.ComentarioObligatorio ?? false) || evento.ComentariosObligatorios;
+                // Solo el flag individual del criterio determina si SU comentario es obligatorio
+                bool requiereComentario = criterioBd?.ComentarioObligatorio ?? false;
 
                 IComentarioValidationStrategy strategy = requiereComentario
                     ? new ComentarioObligatorioStrategy()
@@ -84,7 +84,14 @@ namespace Votify.API.Decorators
                 strategy.Validar(evaluacion.Comentario);
             }
 
-            // 4. Delegar al servicio original
+            // 4. Validar COMENTARIO GLOBAL: solo si el evento lo exige a nivel global
+            if (evento.ComentariosObligatorios)
+            {
+                IComentarioValidationStrategy globalStrategy = new ComentarioObligatorioStrategy();
+                globalStrategy.Validar(request.ComentarioGlobal);
+            }
+
+            // 5. Delegar al servicio original
             return await _innerService.ProcesarVotoBatchAsync(request);
         }
 
