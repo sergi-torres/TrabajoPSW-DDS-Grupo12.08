@@ -72,6 +72,7 @@ export function EventSidebar({ color: propColor }: EventSidebarProps) {
     
     if (userRole === "Organizador") {
         roleLinks.push({ label: "Jurado", path: `/eventos/${eventoId}/jurado`, icon: ClipboardList });
+        roleLinks.push({ label: "Control Estados", path: `/eventos/${eventoId}/control-estados`, icon: Timer });
         roleLinks.push({ label: "Configuraciones", path: `/eventos/${eventoId}/configuraciones`, icon: Timer });
         roleLinks.push({ label: "Ajustes", path: `/eventos/${eventoId}/ajustes`, icon: Settings });
     } else if (userRole === "Jurado") {

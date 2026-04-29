@@ -17,6 +17,7 @@ import ParticipantRegister from './pages/ParticipantRegister'
 import { VotingProvider } from "./context/VotingContext";
 import CreateProject from './pages/CreateProject'
 import ConfigTiempoVotacionPage from './pages/ConfigTiempoVotacion'
+import ControlVotacionesPage from './pages/ControlVotacionesPage'
 
 function App() {
   return (
@@ -37,6 +38,7 @@ function App() {
                 {/* Rutas de Evento */}
                 <Route path="/eventos/:eventoId" element={<OrganizerDashboard />} />
                 <Route path="/eventos/:eventoId/configuraciones" element={<ConfigTiempoVotacionPage />} />
+                <Route path="/eventos/:eventoId/control-estados" element={<ControlVotacionesPage />} />
                 <Route path="/eventos/:eventoId/ajustes" element={<CreateEvent />} />
                 <Route path="/eventos/:eventoId/jurado" element={<InvitarJuradoPage />} />
                 <Route path="/eventos/:eventoId/votar" element={<DashboardVotacionCategorias />} />
