@@ -120,5 +120,43 @@ namespace Votify.Tests
             var exception = await Assert.ThrowsAsync<Exception>(() => _votoService.ProcesarVotoAsync(request));
             Assert.Contains("Ya se ha registrado un voto", exception.Message);
         }
+
+        [Fact]
+        public async Task ProcesarVotoAsync_ShouldSucceed_WhenJuradoVotes()
+        {
+            // Arrange
+            int userId = 10;
+            var request = new VotoRequestDto
+            {
+                EventoId = 1,
+                CategoriaId = 1,
+                ProyectoId = 1,
+                Valor = 8,
+                Comentario = "Gran proyecto"
+            };
+
+            _votoRepoMock.Setup(r => r.ObtenerRolUsuarioEnEventoAsync(userId, request.EventoId))
+                .ReturnsAsync("Jurado");
+
+            _votoRepoMock.Setup(r => r.AgregarVotoAsync(It.IsAny<Voto>()))
+                .ReturnsAsync(new VotoJurado { Id = 100 });
+
+            // Mock dependencies for dashboard call inside ProcesarVotoAsync
+            _categoriaRepoMock.Setup(r => r.ObtenerTodosCamposAsync(request.EventoId))
+                .ReturnsAsync(new List<CategoriaResponseActualizadoDto> { 
+                    new CategoriaResponseActualizadoDto { Id = 1, Nombre = "Cat 1", IdEvento = 1, Estado = "Activa" } 
+                });
+            _proyectoRepoMock.Setup(r => r.ObtenerPorCategoriaIdAsync(1))
+                .ReturnsAsync(new List<Proyecto> { new Proyecto { Id = 1, IdCategoria = 1, Nombre = "Proj 1" } });
+            _votoRepoMock.Setup(r => r.ObtenerVotosDeUsuarioAsync(userId))
+                .ReturnsAsync(new List<VotoJurado> { new VotoJurado { IdCategoria = 1, IdProyecto = 1 } });
+
+            // Act
+            var result = await _votoService.ProcesarVotoAsync(request, idUsuario: userId);
+
+            // Assert
+            Assert.NotNull(result);
+            _votoRepoMock.Verify(r => r.AgregarVotoAsync(It.Is<Voto>(v => v.IdEvaluador == userId && v.Valor == 8)), Times.Once);
+        }
     }
 }
