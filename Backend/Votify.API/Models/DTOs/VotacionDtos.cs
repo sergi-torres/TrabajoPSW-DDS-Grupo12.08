@@ -97,6 +97,9 @@ namespace Votify.API.Models.DTOs
 
         public string? SessionId { get; set; }
 
+        [MaxLength(500)]
+        public string? ComentarioGlobal { get; set; }
+
         [Required]
         public List<EvaluacionCriterioDto> Evaluaciones { get; set; } = new();
     }

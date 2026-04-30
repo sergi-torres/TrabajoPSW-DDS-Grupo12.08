@@ -44,6 +44,7 @@ export interface VotoBatchPayload {
   proyectoId: number;
   idUsuario: number | null;
   sessionId?: string | null;
+  comentarioGlobal?: string;
   evaluaciones: { criterioId: number; valor: number; comentario: string }[];
 }
 

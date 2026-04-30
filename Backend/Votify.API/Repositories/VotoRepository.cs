@@ -1,4 +1,4 @@
-﻿using Votify.API.Models.Domain;
+using Votify.API.Models.Domain;
 
 namespace Votify.API.Repositories
 {
@@ -57,6 +57,16 @@ namespace Votify.API.Repositories
             var response = await _supabase
                 .From<VotoPublico>()
                 .Filter("idproyecto", Supabase.Postgrest.Constants.Operator.Equals, proyectoId.ToString())
+                .Get();
+
+            return response.Models;
+        }
+
+        public async Task<List<VotoJurado>> ObtenerVotosDeUsuarioAsync(int idUsuario)
+        {
+            var response = await _supabase
+                .From<VotoJurado>()
+                .Filter("idevaluador", Supabase.Postgrest.Constants.Operator.Equals, idUsuario.ToString())
                 .Get();
 
             return response.Models;

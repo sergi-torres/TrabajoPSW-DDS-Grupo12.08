@@ -103,13 +103,16 @@ namespace Votify.API.Services
             {
                 var claveSesion = ObtenerClaveSesion(idUsuario, sessionId);
 
-                // Detectar cambio de usuario (nuevo Jurado = reset a zero state)
-                if (idUsuario.HasValue && idUsuario != _ultimoIdUsuarioActivo)
+                // Detectar cambio de usuario (nuevo Jurado = reset a zero state) o inicializar si el server acaba de reiniciar
+                if (idUsuario.HasValue)
                 {
-                    // Nuevo usuario Jurado: inicializar su lista como vacía
-                    if (!VotosRealizadosPorUsuario.ContainsKey(claveSesion))
+                    if (!VotosRealizadosPorUsuario.ContainsKey(claveSesion) || idUsuario != _ultimoIdUsuarioActivo)
                     {
-                        VotosRealizadosPorUsuario[claveSesion] = new List<(int CategoriaId, int ProyectoId)>();
+                        var votosDb = await _votoRepository.ObtenerVotosDeUsuarioAsync(idUsuario.Value);
+                        VotosRealizadosPorUsuario[claveSesion] = votosDb
+                            .Select(v => (v.IdCategoria, v.IdProyecto))
+                            .Distinct()
+                            .ToList();
                     }
                     _ultimoIdUsuarioActivo = idUsuario;
                 }
@@ -278,9 +281,13 @@ namespace Votify.API.Services
 
             var factory = await ObtenerFactoryPorRolAsync(request.EventoId, idUsuario);
 
+            int? primerVotoId = null;
+            string? comentarioPrimerVoto = null;
+
             // Crear y persistir un voto por cada criterio evaluado
-            foreach (var evaluacion in request.Evaluaciones)
+            for (int i = 0; i < request.Evaluaciones.Count; i++)
             {
+                var evaluacion = request.Evaluaciones[i];
                 var voto = factory.CrearVoto(
                     proyectoId: request.ProyectoId,
                     valorBase: evaluacion.Valor,
@@ -293,13 +300,43 @@ namespace Votify.API.Services
                 );
 
                 var votoCreado = await _votoRepository.AgregarVotoAsync(voto);
+                
+                if (i == 0)
+                {
+                    primerVotoId = votoCreado.Id;
+                    comentarioPrimerVoto = evaluacion.Comentario;
+                }
+                else
+                {
+                    // Crear comentario cualitativo por criterio si hay texto
+                    if (!string.IsNullOrWhiteSpace(evaluacion.Comentario))
+                    {
+                        await _comentarioService.CreateComentarioAsync(
+                            votoCreado.Id,
+                            evaluacion.Comentario
+                        );
+                    }
+                }
+            }
 
-                // Crear comentario cualitativo si hay texto
-                if (!string.IsNullOrWhiteSpace(evaluacion.Comentario))
+            // Guardar el comentario global del proyecto y el del primer criterio en un solo registro
+            if (primerVotoId.HasValue)
+            {
+                var comentariosACombinar = new List<string>();
+                if (!string.IsNullOrWhiteSpace(request.ComentarioGlobal))
+                {
+                    comentariosACombinar.Add($"[GENERAL] {request.ComentarioGlobal}");
+                }
+                if (!string.IsNullOrWhiteSpace(comentarioPrimerVoto))
+                {
+                    comentariosACombinar.Add(comentarioPrimerVoto);
+                }
+
+                if (comentariosACombinar.Any())
                 {
                     await _comentarioService.CreateComentarioAsync(
-                        votoCreado.Id,
-                        evaluacion.Comentario
+                        primerVotoId.Value,
+                        string.Join("\n\n---\n\n", comentariosACombinar)
                     );
                 }
             }
