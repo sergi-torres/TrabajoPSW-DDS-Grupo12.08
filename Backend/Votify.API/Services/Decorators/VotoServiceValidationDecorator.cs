@@ -16,10 +16,10 @@ namespace Votify.API.Services.Decorators
             _supabase = supabase;
         }
 
-        public async Task<DashboardResponseDto> ObtenerDashboardAsync(int eventoId, int? idUsuario = null, string? sessionId = null)
+        public async Task<DashboardResponseDto> ObtenerDashboardAsync(int eventoId, int? idUsuario = null, string? sessionId = null, string? identificadorHash = null)
         {
             // Delegamos la obtención del dashboard al servicio original
-            var dashboard = await _innerService.ObtenerDashboardAsync(eventoId, idUsuario, sessionId);
+            var dashboard = await _innerService.ObtenerDashboardAsync(eventoId, idUsuario, sessionId, identificadorHash);
             
             // Aquí enriquecemos el DTO resultante consultando el evento
             var eventoResponse = await _supabase.From<EventoLite>()
