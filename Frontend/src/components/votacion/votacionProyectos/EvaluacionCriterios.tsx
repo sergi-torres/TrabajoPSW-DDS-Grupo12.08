@@ -22,9 +22,10 @@ interface Props {
   proyecto: any;
   eventoId: number;
   categoriaId: number;
-  onConfirmar: (evaluaciones: { criterioId: number, valor: number, comentario: string }[]) => void;
+  onConfirmar: (evaluaciones: { criterioId: number, valor: number, comentario: string }[], comentarioGlobal: string) => void;
   onCancelar: () => void;
   cargando?: boolean;
+  comentariosObligatorios?: boolean;
 }
 
 const EvaluacionCriterios: React.FC<Props> = ({ 
@@ -33,10 +34,12 @@ const EvaluacionCriterios: React.FC<Props> = ({
   categoriaId, 
   onConfirmar, 
   onCancelar,
-  cargando 
+  cargando,
+  comentariosObligatorios 
 }) => {
   const [criterios, setCriterios] = useState<Criterio[]>([]);
   const [evaluaciones, setEvaluaciones] = useState<Record<number, { valor: number, comentario: string }>>({});
+  const [comentarioGlobal, setComentarioGlobal] = useState("");
   const [fetching, setFetching] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -77,7 +80,7 @@ const EvaluacionCriterios: React.FC<Props> = ({
   };
 
   const handleConfirmar = () => {
-    // Validar comentarios obligatorios
+    // Validar comentarios obligatorios por criterio
     const faltanComentarios = criterios.some(c => 
       c.comentarioObligatorio && !evaluaciones[c.id].comentario.trim()
     );
@@ -87,13 +90,19 @@ const EvaluacionCriterios: React.FC<Props> = ({
       return;
     }
 
+    // Validar comentario global si es obligatorio a nivel de evento
+    if (comentariosObligatorios && !comentarioGlobal.trim()) {
+      import('sonner').then(m => m.toast.error("El comentario general es obligatorio para evaluar en este evento."));
+      return;
+    }
+
     const payload = criterios.map(c => ({
       criterioId: c.id,
       valor: evaluaciones[c.id].valor,
       comentario: evaluaciones[c.id].comentario
     }));
 
-    onConfirmar(payload);
+    onConfirmar(payload, comentarioGlobal);
   };
 
   if (fetching) {
@@ -158,6 +167,38 @@ const EvaluacionCriterios: React.FC<Props> = ({
       </div>
 
       <div className="space-y-6">
+        {/* Comentario Global del Proyecto */}
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-[32px] p-6 lg:p-8"
+        >
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white">
+              <MessageSquare className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="text-lg font-heading font-bold text-gray-900">
+                Comentario General {comentariosObligatorios && <span className="text-red-500">*</span>}
+              </h4>
+              <p className="text-gray-500 text-xs">
+                {comentariosObligatorios 
+                  ? 'Escribe un comentario general sobre el proyecto (obligatorio).' 
+                  : 'Opcionalmente, añade un comentario general sobre el proyecto.'}
+              </p>
+            </div>
+          </div>
+          <textarea 
+            placeholder={comentariosObligatorios ? "Escribe tu valoración general del proyecto (obligatorio)..." : "Escribe tu valoración general del proyecto (opcional)..."}
+            value={comentarioGlobal}
+            onChange={(e) => setComentarioGlobal(e.target.value)}
+            className={cn(
+              "w-full bg-white border-2 border-transparent rounded-2xl px-5 py-4 text-sm font-medium focus:border-blue-200 focus:ring-4 focus:ring-blue-50/50 outline-none transition-all resize-none h-28",
+              comentariosObligatorios && !comentarioGlobal.trim() && "border-amber-200 bg-amber-50/30"
+            )}
+          />
+        </motion.div>
+
         <AnimatePresence mode="popLayout">
           {criterios.map((c, index) => (
             <motion.div
