@@ -49,7 +49,6 @@ Ubicado en la carpeta `/Backend/Votify.API/`:
 -   `Services/`: Lógica de negocio (es el "cerebro" donde se procesan los datos).
 -   `Models/`: Clases de dominio y DTOs (Data Transfer Objects).
 -   `Repositories/`: Acceso directo a datos (Supabase/DB).
--   `Factories/`: Implementación del patrón **Factory Method** para creación de objetos complejos.
 
 ---
 

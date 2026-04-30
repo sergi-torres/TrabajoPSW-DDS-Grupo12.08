@@ -28,7 +28,7 @@ builder.Services.AddScoped<Votify.API.Services.IVotoService>(provider =>
 {
     var baseService = provider.GetRequiredService<Votify.API.Services.VotoService>();
     var supabase = provider.GetRequiredService<Supabase.Client>();
-    return new Votify.API.Decorators.VotoServiceValidationDecorator(baseService, supabase);
+    return new Votify.API.Services.Decorators.VotoServiceValidationDecorator(baseService, supabase);
 });
 
 builder.Services.AddScoped<Votify.API.Services.IAuthService, Votify.API.Services.AuthService>();
@@ -38,8 +38,8 @@ builder.Services.AddScoped<Votify.API.Repositories.IVotoRepository, Votify.API.R
 builder.Services.AddScoped<Votify.API.Repositories.IUsuarioRepository, Votify.API.Repositories.UsuarioRepository>();
 builder.Services.AddScoped<Votify.API.Repositories.IEventoUsuarioRepository, Votify.API.Repositories.EventoUsuarioRepository>();
 builder.Services.AddScoped<Votify.API.Repositories.IInvitacionPendienteRepository, Votify.API.Repositories.InvitacionPendienteRepository>();
-builder.Services.AddScoped<Votify.API.Factories.VotoPublicoFactory>();
-builder.Services.AddScoped<Votify.API.Factories.VotoJuradoFactory>();
+builder.Services.AddScoped<Votify.API.Models.Domain.Factories.VotoPublicoFactory>();
+builder.Services.AddScoped<Votify.API.Models.Domain.Factories.VotoJuradoFactory>();
 builder.Services.AddScoped<Votify.API.Services.IAuthService, Votify.API.Services.AuthService>();
 builder.Services.AddScoped<Votify.API.Services.IEventoService, Votify.API.Services.EventoService>();
 builder.Services.AddScoped<Votify.API.Services.IComentarioCualitativoService, Votify.API.Services.ComentarioCualitativoService>();

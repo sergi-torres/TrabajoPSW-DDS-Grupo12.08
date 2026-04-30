@@ -1,9 +1,9 @@
 using Votify.API.Models.Domain;
 using Votify.API.Models.DTOs;
 using Votify.API.Services;
-using Votify.API.Strategies;
+using Votify.API.Models.Domain.Strategies;
 
-namespace Votify.API.Decorators
+namespace Votify.API.Services.Decorators
 {
     public class VotoServiceValidationDecorator : IVotoService
     {

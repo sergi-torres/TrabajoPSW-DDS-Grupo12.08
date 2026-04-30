@@ -1,4 +1,4 @@
-namespace Votify.API.Strategies
+namespace Votify.API.Models.Domain.Strategies
 {
     public class ComentarioOpcionalStrategy : IComentarioValidationStrategy
     {

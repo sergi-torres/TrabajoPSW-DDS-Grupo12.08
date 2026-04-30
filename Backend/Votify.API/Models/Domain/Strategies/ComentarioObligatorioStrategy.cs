@@ -1,6 +1,6 @@
 using System;
 
-namespace Votify.API.Strategies
+namespace Votify.API.Models.Domain.Strategies
 {
     public class ComentarioObligatorioStrategy : IComentarioValidationStrategy
     {
