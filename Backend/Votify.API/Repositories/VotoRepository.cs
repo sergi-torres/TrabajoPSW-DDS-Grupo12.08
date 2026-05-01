@@ -72,5 +72,24 @@ namespace Votify.API.Repositories
             return response.Models;
         }
 
+        public async Task<bool> ExisteVotoPublicoAsync(int idEvento, int idCategoria, string hash)
+        {
+            var response = await _supabase
+                .From<RegistroVotoPublico>()
+                .Filter("idevento", Supabase.Postgrest.Constants.Operator.Equals, idEvento.ToString())
+                .Filter("idcategoria", Supabase.Postgrest.Constants.Operator.Equals, idCategoria.ToString())
+                .Filter("identificador_hash", Supabase.Postgrest.Constants.Operator.Equals, hash)
+                .Get();
+
+            return response.Models.Any();
+        }
+
+        public async Task RegistrarVotoPublicoAsync(RegistroVotoPublico registro)
+        {
+            await _supabase
+                .From<RegistroVotoPublico>()
+                .Insert(registro);
+        }
+
     }
 }

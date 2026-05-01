@@ -18,4 +18,5 @@ export interface Voto {
   idevaluador?: number | null;
   idcategoria: number;
   sessionId?: string | null;
+  identificadorHash?: string;
 }

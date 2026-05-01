@@ -46,6 +46,9 @@ namespace Votify.API.Models.DTOs
 
         // Solo para público: identifica una sesión de votación efímera
         public string? SessionId { get; set; }
+
+        // Hash único del dispositivo/navegador para unicidad en voto público
+        public string? IdentificadorHash { get; set; }
     }
 
     public class ProyectosResponseDto

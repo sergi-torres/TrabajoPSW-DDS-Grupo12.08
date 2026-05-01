@@ -5,7 +5,8 @@ const API_URL = 'http://localhost:5245/api/votacion';
 export const getDashboardData = async (
   eventoId: number, 
   idUsuario: number | null = null, 
-  sessionId: string | null = null
+  sessionId: string | null = null,
+  identificadorHash?: string
 ): Promise<VotacionDashboardData> => {
   const params = new URLSearchParams({ eventoId: String(eventoId) });
   if (idUsuario !== null && idUsuario !== undefined) {
@@ -13,6 +14,9 @@ export const getDashboardData = async (
   }
   if (sessionId) {
     params.append('sessionId', String(sessionId));
+  }
+  if (identificadorHash) {
+    params.append('identificadorHash', identificadorHash);
   }
 
   const response = await fetch(`${API_URL}/dashboard?${params.toString()}`);

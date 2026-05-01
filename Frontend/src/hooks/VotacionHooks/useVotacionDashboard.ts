@@ -1,6 +1,7 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { getDashboardData } from '../../api/votacionApi';
 import { VotacionDashboardData } from '../../types';
+import { useFingerprint } from '../useFingerprint';
 
 export interface UseVotacionDashboardReturn {
   datos: VotacionDashboardData | null;
@@ -13,8 +14,12 @@ export const useVotacionDashboard = (): UseVotacionDashboardReturn => {
   const [datos, setDatos] = useState<VotacionDashboardData | null>(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { fingerprint, isLoading: fpLoading } = useFingerprint();
 
   const cargarDashboard = useCallback(async () => {
+    // No cargar si el fingerprint aún está cargando
+    if (fpLoading) return;
+
     try {
       setCargando(true);
       const eventoId = localStorage.getItem('eventoId');
@@ -29,7 +34,8 @@ export const useVotacionDashboard = (): UseVotacionDashboardReturn => {
       const result = await getDashboardData(
         Number(eventoId),
         (idUsuario !== null && !Number.isNaN(idUsuario)) ? idUsuario : null,
-        sessionId || null
+        sessionId || null,
+        fingerprint || undefined
       );
       setDatos(result);
       setError(null);
@@ -39,7 +45,14 @@ export const useVotacionDashboard = (): UseVotacionDashboardReturn => {
     } finally {
       setCargando(false);
     }
-  }, []);
+  }, [fingerprint, fpLoading]);
 
-  return { datos, cargando, error, cargarDashboard };
+  // Recargar cuando el fingerprint esté listo
+  useEffect(() => {
+    if (!fpLoading) {
+        cargarDashboard();
+    }
+  }, [fpLoading, cargarDashboard]);
+
+  return { datos, cargando: cargando || fpLoading, error, cargarDashboard };
 };

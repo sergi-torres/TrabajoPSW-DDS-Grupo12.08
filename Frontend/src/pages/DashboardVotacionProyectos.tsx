@@ -3,6 +3,7 @@ import ProyectosLista from '../components/votacion/votacionProyectos/ProyectosLi
 import OpcionesSeleccionado from '../components/votacion/votacionProyectos/OpcionesSeleccionado';
 import EvaluacionCriterios from '../components/votacion/votacionProyectos/EvaluacionCriterios';
 import { useEnviarVoto } from '../hooks/VotacionHooks/useEnvioVoto';
+import { useFingerprint } from '../hooks/useFingerprint';
 import { enviarDatosVotoBatch } from '../api/votacionApi';
 import { AuthContext } from '../context/AuthContext';
 import { EventContext } from '../context/EventContext';
@@ -19,6 +20,7 @@ interface Props {
 
 const DashboardVotacionProyectos: React.FC<Props> = ({ categoria, alVolver, comentariosObligatorios }) => {
   const { enviarVoto, cargando } = useEnviarVoto();
+  const { fingerprint, isLoading: fpLoading } = useFingerprint();
   const { isPublic, isAuthenticated } = useContext(AuthContext)!;
   const { userRole, userColor, isCollapsed, eventoId } = useContext(EventContext)!;
   
@@ -49,6 +51,7 @@ const DashboardVotacionProyectos: React.FC<Props> = ({ categoria, alVolver, come
       comentario: comentario,
       idUsuario: (idUsuario !== null && !Number.isNaN(idUsuario)) ? idUsuario : null,
       sessionId: sessionId || null,
+      identificadorHash: fingerprint || undefined,
       valor: 1, // Voto público vale 1
       idcriterio: null,
       idproyecto: seleccionado.id,
@@ -191,16 +194,16 @@ const DashboardVotacionProyectos: React.FC<Props> = ({ categoria, alVolver, come
                     </button>
                     <button
                     onClick={() => isJurado ? setPasoEvaluacion(true) : handleConfirmarPublico()}
-                    disabled={!seleccionado || cargando}
+                    disabled={!seleccionado || cargando || (categoria.estado !== 'activa' && !isJurado)}
                     className={cn(
                         "px-10 py-4 rounded-2xl font-bold text-white shadow-lg transition-all",
-                        seleccionado && !cargando
+                        seleccionado && !cargando && (categoria.estado === 'activa' || isJurado)
                             ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-100'
                             : 'bg-gray-200 cursor-not-allowed shadow-none'
                     )}
-                    style={seleccionado && !cargando ? { backgroundColor: themeColor } : {}}
+                    style={seleccionado && !cargando && (categoria.estado === 'activa' || isJurado) ? { backgroundColor: themeColor } : {}}
                     >
-                    {cargando ? 'Enviando...' : (isJurado ? 'Continuar a Evaluación' : 'Confirmar Voto')}
+                    {cargando ? 'Enviando...' : (isJurado ? 'Continuar a Evaluación' : (categoria.estado !== 'activa' ? 'Voto Registrado' : 'Confirmar Voto'))}
                     </button>
                 </div>
               </>

@@ -23,15 +23,6 @@ const DashboardVotacionCategorias = () => {
   const effectivelyPublic = (!isAuthenticated && isPublic) || userRole === "Público";
   const themeColor = effectivelyPublic ? "#059669" : (userColor || "#2563eb");
 
-  // Efecto para saltar a proyectos si es público y hay datos
-  useEffect(() => {
-    if (effectivelyPublic && datos && (datos as any).categorias && (datos as any).categorias.length > 0 && vistaActual === 'categorias') {
-        // Seleccionamos la primera categoría (normalmente "Global") y vamos a proyectos
-        setCategoriaElegida((datos as any).categorias[0]);
-        setVistaActual('proyectos');
-    }
-  }, [effectivelyPublic, datos, vistaActual]);
-
   // Inicializar contexto si es público y no está seteado
   useEffect(() => {
     if (effectivelyPublic && (!userRole || userRole !== "Público")) {
