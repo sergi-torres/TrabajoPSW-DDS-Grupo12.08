@@ -64,6 +64,8 @@ namespace Votify.API.Models.DTOs
         public DateTime? FechaIni {get; set;}
 
         public DateTime? FechaFin {get; set;} 
+
+        public string? Estado { get; set; }
     }
     
 

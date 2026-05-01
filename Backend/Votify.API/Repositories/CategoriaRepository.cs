@@ -110,7 +110,7 @@ namespace Votify.API.Repositories
             var response = await _supabase
                 .From<Categoria>()
                 .Where(c => c.IdEvento == eventoId)
-                .Filter("estado", Supabase.Postgrest.Constants.Operator.NotEqual, "Finalizada")
+                .Filter("estado", Supabase.Postgrest.Constants.Operator.Equals, "Pendiente")
                 .Select("*")
                 .Get();
 

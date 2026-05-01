@@ -45,6 +45,13 @@ const DashboardVotacionCategorias = () => {
   useEffect(() => {
     if (vistaActual === 'categorias') {
       cargarDashboard();
+      
+      // Sincronización automática cada 10 segundos
+      const interval = setInterval(() => {
+        cargarDashboard();
+      }, 10000);
+
+      return () => clearInterval(interval);
     }
   }, [vistaActual, cargarDashboard]);
 

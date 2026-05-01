@@ -1,4 +1,4 @@
-using Votify.API.Models.Domain;
+﻿using Votify.API.Models.Domain;
 using Votify.API.Models.DTOs;
 using Votify.API.Repositories;
 
@@ -100,8 +100,23 @@ namespace Votify.API.Services
                 CategoriaId = c.CategoriaId,
                 Nombre = c.Nombre,
                 FechaIni = c.FechaIni,
-                FechaFin = c.FechaFin
+                FechaFin = c.FechaFin,
+                Estado = c.Estado
             });
+        }
+
+        public async Task<IEnumerable<CategoriaResponseActualizadoDto>> ListarCategoriasControlAsync(int eventoId)
+        {
+            return await _categoriaRepository.ObtenerTodosCamposAsync(eventoId);
+        }
+
+        public async Task<bool> ActualizarEstadoCategoriaAsync(int categoriaId, string nuevoEstado)
+        {
+            var categoria = await _categoriaRepository.ObtenerPorIdAsync(categoriaId);
+            if (categoria == null) return false;
+
+            categoria.Estado = nuevoEstado;
+            return await _categoriaRepository.ActualizarAsync(categoria);
         }
 
         public async Task<bool> ActualizarTiemposAsync(ConfigTiemposCategoriasDto request)

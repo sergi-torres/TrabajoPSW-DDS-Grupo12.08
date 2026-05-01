@@ -4,7 +4,7 @@ import { AuthContext } from '../../../context/AuthContext';
 interface CategoriaData {
     titulo: string;
     votosRestantes: number;
-    estado: 'activa' | 'completado' | 'pendiente' | 'finalizada';
+    estado: 'activa' | 'completado' | 'pendiente' | 'finalizada' | 'pausada';
 }
 
 interface CategoriaCardProps {
@@ -66,6 +66,19 @@ const CategoriaCard = ({ categoria, alVotar }: CategoriaCardProps) => {
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+        </svg>
+      )
+    },
+    pausada: {
+      colorBg: 'bg-amber-50',
+      colorText: 'text-amber-500',
+      label: 'Votación pausada',
+      btnText: 'Pausada',
+      btnDisabled: true,
+      btnClass: 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none',
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       )
     }

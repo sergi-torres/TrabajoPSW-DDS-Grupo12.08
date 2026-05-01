@@ -55,10 +55,10 @@ const DashboardVotacionProyectos: React.FC<Props> = ({ categoria, alVolver, come
       idcategoria: categoria.id
     };
 
-    const exito = await enviarVoto(votoDto as any);
-    if (exito) {
-      alVolver(); 
-    }
+    await enviarVoto(votoDto as any);
+    // Independientemente de si fue éxito o error (ej: "No se ha podido procesar"),
+    // volvemos a la pantalla de categorías. El Toast informará al usuario.
+    alVolver(); 
   };
 
   const handleExit = () => {
