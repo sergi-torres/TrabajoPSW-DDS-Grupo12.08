@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace Votify.API.Models.DTOs
 {
@@ -34,6 +34,10 @@ namespace Votify.API.Models.DTOs
         [Required]
         public int ProyectoId { get; set; }
 
+        public int? IdCriterio { get; set; }
+
+        public float Valor { get; set; } = 1.0f;
+
         [MaxLength(200)]
         public string? Comentario { get; set; }
 
@@ -42,6 +46,9 @@ namespace Votify.API.Models.DTOs
 
         // Solo para público: identifica una sesión de votación efímera
         public string? SessionId { get; set; }
+
+        // Hash único del dispositivo/navegador para unicidad en voto público
+        public string? IdentificadorHash { get; set; }
     }
 
     public class ProyectosResponseDto
@@ -76,6 +83,41 @@ namespace Votify.API.Models.DTOs
             public int CategoriaId { get; set; }
             public string? Comentario { get; set; }
             public DateTime Fecha { get; set; }
+    }
+
+    // Batch request for Jurado: all criteria evaluations for one project in one request
+    public class VotoBatchRequestDto
+    {
+        [Required]
+        public int EventoId { get; set; }
+
+        [Required]
+        public int CategoriaId { get; set; }
+
+        [Required]
+        public int ProyectoId { get; set; }
+
+        // null = PIN flow (anónimo), valor = Jurado flow (usuario autenticado)
+        public int? IdUsuario { get; set; }
+
+        public string? SessionId { get; set; }
+
+        [MaxLength(500)]
+        public string? ComentarioGlobal { get; set; }
+
+        [Required]
+        public List<EvaluacionCriterioDto> Evaluaciones { get; set; } = new();
+    }
+
+    public class EvaluacionCriterioDto
+    {
+        [Required]
+        public int CriterioId { get; set; }
+
+        public float Valor { get; set; } = 1.0f;
+
+        [MaxLength(200)]
+        public string? Comentario { get; set; }
     }
 
 }

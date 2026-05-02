@@ -1,6 +1,6 @@
 using Votify.API.Models.Domain;
 
-namespace Votify.API.Factories
+namespace Votify.API.Models.Domain.Factories
 {
     public interface IVotoFactory
     {

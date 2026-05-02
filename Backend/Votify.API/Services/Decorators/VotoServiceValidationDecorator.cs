@@ -1,9 +1,9 @@
 using Votify.API.Models.Domain;
 using Votify.API.Models.DTOs;
 using Votify.API.Services;
-using Votify.API.Strategies;
+using Votify.API.Models.Domain.Strategies;
 
-namespace Votify.API.Decorators
+namespace Votify.API.Services.Decorators
 {
     public class VotoServiceValidationDecorator : IVotoService
     {
@@ -16,10 +16,10 @@ namespace Votify.API.Decorators
             _supabase = supabase;
         }
 
-        public async Task<DashboardResponseDto> ObtenerDashboardAsync(int eventoId, int? idUsuario = null, string? sessionId = null)
+        public async Task<DashboardResponseDto> ObtenerDashboardAsync(int eventoId, int? idUsuario = null, string? sessionId = null, string? identificadorHash = null)
         {
             // Delegamos la obtención del dashboard al servicio original
-            var dashboard = await _innerService.ObtenerDashboardAsync(eventoId, idUsuario, sessionId);
+            var dashboard = await _innerService.ObtenerDashboardAsync(eventoId, idUsuario, sessionId, identificadorHash);
             
             // Aquí enriquecemos el DTO resultante consultando el evento
             var eventoResponse = await _supabase.From<EventoLite>()
@@ -53,6 +53,46 @@ namespace Votify.API.Decorators
 
             // 3. Si no hay excepción, delegamos al servicio original (el inner)
             return await _innerService.ProcesarVotoAsync(request, idUsuario, sessionId);
+        }
+
+        public async Task<DashboardResponseDto> ProcesarVotoBatchAsync(VotoBatchRequestDto request)
+        {
+            // 1. Obtener el evento para saber la configuración global
+            var eventoResponse = await _supabase.From<EventoLite>()
+                .Filter("id", Supabase.Postgrest.Constants.Operator.Equals, request.EventoId.ToString())
+                .Get();
+            var evento = eventoResponse.Models.FirstOrDefault() 
+                ?? throw new Exception("Evento no encontrado");
+
+            // 2. Obtener los criterios de la BD para saber cuáles tienen comentario obligatorio individual
+            var criteriosResponse = await _supabase.From<Criterio>()
+                .Get();
+            var criteriosDb = criteriosResponse.Models;
+
+            // 3. Validar comentarios POR CRITERIO: solo los que tienen comentario_obligatorio = true
+            foreach (var evaluacion in request.Evaluaciones)
+            {
+                var criterioBd = criteriosDb.FirstOrDefault(c => c.Id == evaluacion.CriterioId);
+                
+                // Solo el flag individual del criterio determina si SU comentario es obligatorio
+                bool requiereComentario = criterioBd?.ComentarioObligatorio ?? false;
+
+                IComentarioValidationStrategy strategy = requiereComentario
+                    ? new ComentarioObligatorioStrategy()
+                    : new ComentarioOpcionalStrategy();
+
+                strategy.Validar(evaluacion.Comentario);
+            }
+
+            // 4. Validar COMENTARIO GLOBAL: solo si el evento lo exige a nivel global
+            if (evento.ComentariosObligatorios)
+            {
+                IComentarioValidationStrategy globalStrategy = new ComentarioObligatorioStrategy();
+                globalStrategy.Validar(request.ComentarioGlobal);
+            }
+
+            // 5. Delegar al servicio original
+            return await _innerService.ProcesarVotoBatchAsync(request);
         }
 
         public Task<IEnumerable<VotoResponseDto>> ObtenerVotosPorProyectoAsync(int proyectoId)

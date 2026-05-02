@@ -1,4 +1,4 @@
-﻿using Votify.API.Factories;
+﻿using Votify.API.Models.Domain.Factories;
 using Votify.API.Models.Domain;
 using Votify.API.Models.DTOs;
 using Votify.API.Repositories;
@@ -97,57 +97,81 @@ namespace Votify.API.Services
             return (categorias, proyectos);
         }
 
-        public async Task<DashboardResponseDto> ObtenerDashboardAsync(int eventoId, int? idUsuario = null, string? sessionId = null)
+        public async Task<DashboardResponseDto> ObtenerDashboardAsync(int eventoId, int? idUsuario = null, string? sessionId = null, string? identificadorHash = null)
         {
             try
             {
                 var claveSesion = ObtenerClaveSesion(idUsuario, sessionId);
 
-                // Detectar cambio de usuario (nuevo Jurado = reset a zero state)
-                if (idUsuario.HasValue && idUsuario != _ultimoIdUsuarioActivo)
+                // 1. Obtener votos realizados por este usuario
+                List<(int CategoriaId, int ProyectoId)> votosUsuario;
+
+                if (idUsuario.HasValue)
                 {
-                    // Nuevo usuario Jurado: inicializar su lista como vacía
+                    // Jurado flow: persistente en BD
+                    if (!VotosRealizadosPorUsuario.ContainsKey(claveSesion) || idUsuario != _ultimoIdUsuarioActivo)
+                    {
+                        var votosDb = await _votoRepository.ObtenerVotosDeUsuarioAsync(idUsuario.Value);
+                        VotosRealizadosPorUsuario[claveSesion] = votosDb
+                            .Select(v => (v.IdCategoria, v.IdProyecto))
+                            .Distinct()
+                            .ToList();
+                    }
+                    _ultimoIdUsuarioActivo = idUsuario;
+                    votosUsuario = VotosRealizadosPorUsuario[claveSesion];
+                }
+                else if (!string.IsNullOrEmpty(identificadorHash))
+                {
+                    // Public flow with fingerprint: check persistency in registry table
+                    // Note: Since public voting is one vote per category, we might need a way to track which projects were voted if we wanted to show "votado" on specific projects.
+                    // But for now, let's just mark the category state correctly.
+                    
+                    // TODO: Could optimize this by adding a repository method to get all voted categories for a hash
+                    // For now, we'll keep it simple and just use it to mark the status later in the loop if needed.
+                    votosUsuario = VotosRealizadosPorUsuario.ContainsKey(claveSesion) 
+                        ? VotosRealizadosPorUsuario[claveSesion] 
+                        : new List<(int CategoriaId, int ProyectoId)>();
+                }
+                else
+                {
+                    // PIN flow (old): stateless memory
                     if (!VotosRealizadosPorUsuario.ContainsKey(claveSesion))
                     {
                         VotosRealizadosPorUsuario[claveSesion] = new List<(int CategoriaId, int ProyectoId)>();
                     }
-                    _ultimoIdUsuarioActivo = idUsuario;
-                }
-
-                // PIN flow: siempre inicializa lista como vacía (stateless)
-                if (!idUsuario.HasValue && !VotosRealizadosPorUsuario.ContainsKey(claveSesion))
-                {
-                    VotosRealizadosPorUsuario[claveSesion] = new List<(int CategoriaId, int ProyectoId)>();
                     _ultimoIdUsuarioActivo = null;
+                    votosUsuario = VotosRealizadosPorUsuario[claveSesion];
                 }
 
                 // Obtener datos del evento (sin cache)
                 var (categoriasDelEvento, todosProyectos) = await ObtenerDatosEventoAsync(eventoId);
-
-                // Obtener votos realizados por este usuario (o PIN si es anónimo)
-                var votosUsuario = VotosRealizadosPorUsuario.ContainsKey(claveSesion)
-                    ? VotosRealizadosPorUsuario[claveSesion]
-                    : new List<(int CategoriaId, int ProyectoId)>();
 
                 var categoriasResumen = new List<CategoriaResumenDto>();
                 var now = DateTime.Now;
 
                 foreach (var cat in categoriasDelEvento)
                 {
+                    // Check if public user already voted in this category via fingerprint
+                    bool yaVotoPublico = false;
+                    if (!idUsuario.HasValue && !string.IsNullOrEmpty(identificadorHash))
+                    {
+                        yaVotoPublico = await _votoRepository.ExisteVotoPublicoAsync(eventoId, cat.Id, identificadorHash);
+                    }
+
                     // Filtrar proyectos de esta categoría
                     var proyectosCategoria = todosProyectos.Where(p => p.IdCategoria == cat.Id).ToList();
 
-                    // Convertir proyectos a DTO y marcar estado basado en votos de sesión
+                    // Convertir proyectos a DTO y marcar estado basado en votos de sesión o BD
                     var proyectosDto = proyectosCategoria.Select(p => new ProyectosResponseDto
                     {
                         Id = p.Id,
                         Nombre = p.Nombre,
                         Descripcion = p.Descripcion,
-                        Estado = votosUsuario.Any(v => v.CategoriaId == cat.Id && v.ProyectoId == p.Id) ? "votado" : "disponible"
+                        Estado = (yaVotoPublico || votosUsuario.Any(v => v.CategoriaId == cat.Id && v.ProyectoId == p.Id)) ? "votado" : "disponible"
                     }).ToList();
 
-                    var votosEnCategoria = votosUsuario.Count(v => v.CategoriaId == cat.Id);
-                    var votosRestantes = 3 - votosEnCategoria; // Usar valor inicial 3
+                    var votosEnCategoria = yaVotoPublico ? 3 : votosUsuario.Count(v => v.CategoriaId == cat.Id); // Si ya votó público, asumimos que gastó sus votos (o simplemente bloqueamos)
+                    var votosRestantes = 3 - votosEnCategoria;
 
                     // Usar el estado de la base de datos pero verificar si por tiempo debe cambiar
                     string estadoReal = cat.Estado ?? "Pendiente";
@@ -202,8 +226,18 @@ namespace Votify.API.Services
         {
             var claveSesion = ObtenerClaveSesion(idUsuario, sessionId);
 
+            // 1. Validar unicidad para voto público usando el hash del dispositivo
+            if (!idUsuario.HasValue && !string.IsNullOrEmpty(request.IdentificadorHash))
+            {
+                var yaVoto = await _votoRepository.ExisteVotoPublicoAsync(request.EventoId, request.CategoriaId, request.IdentificadorHash);
+                if (yaVoto)
+                {
+                    throw new Exception("Ya se ha registrado un voto desde este dispositivo para esta categoría.");
+                }
+            }
+
             // Obtener dashboard actual para el evento específico
-            var dashboard = await ObtenerDashboardAsync(request.EventoId, idUsuario, sessionId);
+            var dashboard = await ObtenerDashboardAsync(request.EventoId, idUsuario, sessionId, request.IdentificadorHash);
 
             var categoria = dashboard.Categorias.FirstOrDefault(c => c.Id == request.CategoriaId);
 
@@ -225,9 +259,9 @@ namespace Votify.API.Services
             // Crear voto usando el patrón Factory
             var voto = factory.CrearVoto(
                 proyectoId: request.ProyectoId,
-                valorBase: 1.0f, // Valor por defecto para público
+                valorBase: request.Valor, 
                 idCategoria: request.CategoriaId,
-                idCriterio: 1, // TODO: Esto en el futuro seguramente será una lista de criterios
+                idCriterio: request.IdCriterio ?? 1, // Fallback a 1 si no se envía (Público)
                 comentario: request.Comentario,
                 urlAudio: null,
                 idUsuario: idUsuario,
@@ -235,6 +269,20 @@ namespace Votify.API.Services
             );
 
             var votoCreado = await _votoRepository.AgregarVotoAsync(voto);
+
+            // 2. Registrar el hash si es voto público para control de unicidad futuro
+            if (!idUsuario.HasValue && !string.IsNullOrEmpty(request.IdentificadorHash))
+            {
+                await _votoRepository.RegistrarVotoPublicoAsync(new RegistroVotoPublico
+                {
+                    IdEvento = request.EventoId,
+                    IdCategoria = request.CategoriaId,
+                    IdProyecto = request.ProyectoId,
+                    IdentificadorHash = request.IdentificadorHash,
+                    FechaRegistro = DateTime.UtcNow
+                });
+            }
+
 
             // CREAR COMENTARIO
             if (!string.IsNullOrWhiteSpace(request.Comentario))
@@ -246,6 +294,94 @@ namespace Votify.API.Services
             }
 
             // Actualizar estado en memoria para este usuario
+            if (!VotosRealizadosPorUsuario.ContainsKey(claveSesion))
+            {
+                VotosRealizadosPorUsuario[claveSesion] = new List<(int CategoriaId, int ProyectoId)>();
+            }
+            VotosRealizadosPorUsuario[claveSesion].Add((request.CategoriaId, request.ProyectoId));
+            
+
+            return await ObtenerDashboardAsync(request.EventoId, idUsuario, sessionId);
+        }
+
+        public async Task<DashboardResponseDto> ProcesarVotoBatchAsync(VotoBatchRequestDto request)
+        {
+            var idUsuario = request.IdUsuario;
+            var sessionId = request.SessionId;
+            var claveSesion = ObtenerClaveSesion(idUsuario, sessionId);
+
+            // Obtener dashboard actual para verificar VotosRestantes
+            var dashboard = await ObtenerDashboardAsync(request.EventoId, idUsuario, sessionId);
+            var categoria = dashboard.Categorias.FirstOrDefault(c => c.Id == request.CategoriaId);
+
+            if (categoria == null || categoria.VotosRestantes <= 0 || categoria.Estado != "activa")
+            {
+                throw new Exception("No se puede votar: la categoría no está activa o no quedan votos.");
+            }
+
+            var factory = await ObtenerFactoryPorRolAsync(request.EventoId, idUsuario);
+
+            int? primerVotoId = null;
+            string? comentarioPrimerVoto = null;
+
+            // Crear y persistir un voto por cada criterio evaluado
+            for (int i = 0; i < request.Evaluaciones.Count; i++)
+            {
+                var evaluacion = request.Evaluaciones[i];
+                var voto = factory.CrearVoto(
+                    proyectoId: request.ProyectoId,
+                    valorBase: evaluacion.Valor,
+                    idCategoria: request.CategoriaId,
+                    idCriterio: evaluacion.CriterioId,
+                    comentario: evaluacion.Comentario,
+                    urlAudio: null,
+                    idUsuario: idUsuario,
+                    ipDispositivo: "web"
+                );
+
+                var votoCreado = await _votoRepository.AgregarVotoAsync(voto);
+                
+                if (i == 0)
+                {
+                    primerVotoId = votoCreado.Id;
+                    comentarioPrimerVoto = evaluacion.Comentario;
+                }
+                else
+                {
+                    // Crear comentario cualitativo por criterio si hay texto
+                    if (!string.IsNullOrWhiteSpace(evaluacion.Comentario))
+                    {
+                        await _comentarioService.CreateComentarioAsync(
+                            votoCreado.Id,
+                            evaluacion.Comentario
+                        );
+                    }
+                }
+            }
+
+            // Guardar el comentario global del proyecto y el del primer criterio en un solo registro
+            if (primerVotoId.HasValue)
+            {
+                var comentariosACombinar = new List<string>();
+                if (!string.IsNullOrWhiteSpace(request.ComentarioGlobal))
+                {
+                    comentariosACombinar.Add($"[GENERAL] {request.ComentarioGlobal}");
+                }
+                if (!string.IsNullOrWhiteSpace(comentarioPrimerVoto))
+                {
+                    comentariosACombinar.Add(comentarioPrimerVoto);
+                }
+
+                if (comentariosACombinar.Any())
+                {
+                    await _comentarioService.CreateComentarioAsync(
+                        primerVotoId.Value,
+                        string.Join("\n\n---\n\n", comentariosACombinar)
+                    );
+                }
+            }
+
+            // Registrar como UN SOLO voto en la categoría (no uno por criterio)
             if (!VotosRealizadosPorUsuario.ContainsKey(claveSesion))
             {
                 VotosRealizadosPorUsuario[claveSesion] = new List<(int CategoriaId, int ProyectoId)>();

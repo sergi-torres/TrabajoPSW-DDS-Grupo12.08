@@ -1,8 +1,8 @@
 using Votify.API.Models.Domain;
 
-namespace Votify.API.Factories
+namespace Votify.API.Models.Domain.Factories
 {
-    public class SmallEventCreator : EventCreator
+    public class HackatonEventCreator : EventCreator
     {
         public override Event CreateEvent(
          int id,
@@ -16,7 +16,7 @@ namespace Votify.API.Factories
          List<Baremo> baremos,
          int codEvento)
         {
-            return new SmallEvent(
+            return new HackatonEvent(
                 id,
                 nombre,
                 descripcion,
