@@ -36,7 +36,8 @@ export const enviarDatosVoto = async (votoDto: Voto): Promise<any> => {
   });
 
   if (!response.ok) {
-    throw new Error('Error al enviar el voto');
+    const errorText = await response.text();
+    throw new Error(errorText || 'Error al enviar el voto');
   }
 
   return await response.json();

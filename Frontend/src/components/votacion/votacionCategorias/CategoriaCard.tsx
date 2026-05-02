@@ -88,7 +88,7 @@ const CategoriaCard = ({ categoria, alVotar }: CategoriaCardProps) => {
   const labelColor = estado === "activa" ? (isPublic ? 'text-emerald-500' : 'text-orange-400') : actualConfig.colorText;
 
   return (
-    <div className="bg-white rounded-[32px] p-8 shadow-sm border border-gray-100 flex flex-col items-center text-center hover:shadow-md transition-all min-h-[320px]">
+    <div className="bg-white rounded-[32px] p-8 shadow-sm border border-gray-100 flex flex-col items-center text-center hover:shadow-md transition-all min-h-[320px] h-full">
       
       {/* Indicador de estado */}
       <div className={`w-14 h-14 rounded-full flex items-center justify-center mb-4 ${actualConfig.colorBg} ${actualConfig.colorText}`}>
@@ -96,8 +96,8 @@ const CategoriaCard = ({ categoria, alVotar }: CategoriaCardProps) => {
       </div>
       
       {/* Contenedor del título */}
-      <div className="min-h-[60px] flex items-center justify-center mb-2">
-        <h3 className="text-xl font-bold text-gray-900 leading-tight">
+      <div className="h-[60px] flex items-center justify-center mb-2 w-full">
+        <h3 className="text-xl font-bold text-gray-900 leading-tight line-clamp-2">
           {titulo}
         </h3>
       </div>
@@ -107,8 +107,11 @@ const CategoriaCard = ({ categoria, alVotar }: CategoriaCardProps) => {
         {actualConfig.label}
       </p>
 
+      {/* Espaciador para empujar el contenido inferior hacia abajo y alinearlo */}
+      <div className="flex-grow" />
+
       {/* Votos restantes en esta categoría */}
-      <div className="bg-gray-50 px-5 py-2 rounded-2xl mb-6">
+      <div className="bg-gray-50 px-5 py-2 rounded-2xl mb-6 w-full max-w-[240px]">
         <p className="text-gray-500 text-sm font-medium">
           Te quedan <span className="text-gray-900 font-black">{votosRestantes}</span> votos
         </p>
@@ -118,7 +121,7 @@ const CategoriaCard = ({ categoria, alVotar }: CategoriaCardProps) => {
       <button 
         onClick={alVotar}
         disabled={actualConfig.btnDisabled}
-        className={`px-10 py-3 rounded-2xl font-bold transition-all shadow-lg ${actualConfig.btnClass}`}
+        className={`px-10 py-3 rounded-2xl font-bold transition-all shadow-lg w-full max-w-[240px] ${actualConfig.btnClass}`}
       >
         {actualConfig.btnText}
       </button>

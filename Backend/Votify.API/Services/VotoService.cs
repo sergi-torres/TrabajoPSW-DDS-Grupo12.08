@@ -146,17 +146,23 @@ namespace Votify.API.Services
                 // Obtener datos del evento (sin cache)
                 var (categoriasDelEvento, todosProyectos) = await ObtenerDatosEventoAsync(eventoId);
 
+                // 2. Pre-cargar votos públicos si hay hash
+                List<RegistroVotoPublico> todosVotosPublicosHash = new();
+                if (!idUsuario.HasValue && !string.IsNullOrEmpty(identificadorHash))
+                {
+                    todosVotosPublicosHash = await _votoRepository.ObtenerTodosVotosPublicosPorHashAsync(eventoId, identificadorHash);
+                }
+
                 var categoriasResumen = new List<CategoriaResumenDto>();
                 var now = DateTime.Now;
 
                 foreach (var cat in categoriasDelEvento)
                 {
                     // Check if public user already voted in this category via fingerprint
-                    bool yaVotoPublico = false;
-                    if (!idUsuario.HasValue && !string.IsNullOrEmpty(identificadorHash))
-                    {
-                        yaVotoPublico = await _votoRepository.ExisteVotoPublicoAsync(eventoId, cat.Id, identificadorHash);
-                    }
+                    var proyectosVotadosPublico = todosVotosPublicosHash
+                        .Where(v => v.IdCategoria == cat.Id && v.IdProyecto.HasValue)
+                        .Select(v => v.IdProyecto!.Value)
+                        .ToList();
 
                     // Filtrar proyectos de esta categoría
                     var proyectosCategoria = todosProyectos.Where(p => p.IdCategoria == cat.Id).ToList();
@@ -167,10 +173,10 @@ namespace Votify.API.Services
                         Id = p.Id,
                         Nombre = p.Nombre,
                         Descripcion = p.Descripcion,
-                        Estado = (yaVotoPublico || votosUsuario.Any(v => v.CategoriaId == cat.Id && v.ProyectoId == p.Id)) ? "votado" : "disponible"
+                        Estado = (proyectosVotadosPublico.Contains(p.Id) || votosUsuario.Any(v => v.CategoriaId == cat.Id && v.ProyectoId == p.Id)) ? "votado" : "disponible"
                     }).ToList();
 
-                    var votosEnCategoria = yaVotoPublico ? 3 : votosUsuario.Count(v => v.CategoriaId == cat.Id); // Si ya votó público, asumimos que gastó sus votos (o simplemente bloqueamos)
+                    var votosEnCategoria = proyectosVotadosPublico.Count + votosUsuario.Count(v => v.CategoriaId == cat.Id && !proyectosVotadosPublico.Contains(v.ProyectoId)); 
                     var votosRestantes = 3 - votosEnCategoria;
 
                     // Usar el estado de la base de datos pero verificar si por tiempo debe cambiar
@@ -210,7 +216,7 @@ namespace Votify.API.Services
                 return new DashboardResponseDto
                 {
                     VotosGlobalesMaximos = categoriasDelEvento.Count * 3,
-                    VotosGlobalesRealizados = votosUsuario.Count,
+                    VotosGlobalesRealizados = categoriasResumen.Sum(c => 3 - c.VotosRestantes),
                     ProyectosActivos = categoriasResumen.Sum(c => c.Proyectos.Count),
                     TiempoRestante = "05:00",
                     Categorias = categoriasResumen
@@ -229,10 +235,16 @@ namespace Votify.API.Services
             // 1. Validar unicidad para voto público usando el hash del dispositivo
             if (!idUsuario.HasValue && !string.IsNullOrEmpty(request.IdentificadorHash))
             {
-                var yaVoto = await _votoRepository.ExisteVotoPublicoAsync(request.EventoId, request.CategoriaId, request.IdentificadorHash);
-                if (yaVoto)
+                var proyectosVotados = await _votoRepository.ObtenerProyectosVotadosPublicoAsync(request.EventoId, request.CategoriaId, request.IdentificadorHash);
+                
+                if (proyectosVotados.Contains(request.ProyectoId))
                 {
-                    throw new Exception("Ya se ha registrado un voto desde este dispositivo para esta categoría.");
+                    throw new Exception("Ya has votado por este proyecto.");
+                }
+
+                if (proyectosVotados.Count >= 3)
+                {
+                    throw new Exception("Ya has agotado tus 3 votos para esta categoría.");
                 }
             }
 
@@ -301,7 +313,7 @@ namespace Votify.API.Services
             VotosRealizadosPorUsuario[claveSesion].Add((request.CategoriaId, request.ProyectoId));
             
 
-            return await ObtenerDashboardAsync(request.EventoId, idUsuario, sessionId);
+            return await ObtenerDashboardAsync(request.EventoId, idUsuario, sessionId, request.IdentificadorHash);
         }
 
         public async Task<DashboardResponseDto> ProcesarVotoBatchAsync(VotoBatchRequestDto request)
