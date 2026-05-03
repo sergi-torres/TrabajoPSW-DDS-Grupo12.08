@@ -66,13 +66,13 @@ namespace Votify.API.Controllers
         }
 
         [HttpPatch("categoria/{id}/estado")]
-        public async Task<IActionResult> ActualizarEstado(int id, [FromBody] string nuevoEstado)
+        public async Task<IActionResult> ActualizarEstado(int id, [FromBody] ActualizarEstadoRequestDto request)
         {
-            if (string.IsNullOrEmpty(nuevoEstado)) return BadRequest("El estado es obligatorio.");
+            if (request == null || string.IsNullOrEmpty(request.NuevoEstado)) return BadRequest("El estado es obligatorio.");
 
             try
             {
-                var exito = await _eventoService.ActualizarEstadoCategoriaAsync(id, nuevoEstado);
+                var exito = await _eventoService.ActualizarEstadoCategoriaAsync(id, request.NuevoEstado);
                 if (!exito) return NotFound("No se encontró la categoría especificada.");
 
                 return Ok(new { message = "Estado actualizado correctamente." });

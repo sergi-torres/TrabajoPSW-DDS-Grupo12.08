@@ -4,7 +4,7 @@ import { cn } from '../../ui/utils';
 
 interface OpcionesBarProps {
   categoria: {
-    categoriaId: number;
+    id: number;
     nombre: string;
     estado: string;
     fechaIni: string | null;
@@ -28,7 +28,7 @@ export default function OpcionesBar({ categoria, onCambiarEstado, onActualizarTi
     );
   }
 
-  const { categoriaId, nombre, estado, fechaIni, fechaFin } = categoria;
+  const { id: categoriaId, nombre, estado, fechaIni, fechaFin } = categoria;
   const isActiva = estado === "Activa";
   const isPausada = estado === "Pausada";
   const isPendiente = estado === "Pendiente";
