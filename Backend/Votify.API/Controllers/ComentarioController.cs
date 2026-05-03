@@ -2,6 +2,7 @@
 
 using Votify.API.Models.Domain;
 using Votify.API.Models.DTOs;
+using Votify.API.Services;
 
 namespace Votify.API.Controllers
 {
@@ -10,13 +11,41 @@ namespace Votify.API.Controllers
     public class ComentariosController : ControllerBase
     {
         private readonly Supabase.Client _supabase;
+        private readonly IVotoService _votoService;
 
-        public ComentariosController(Supabase.Client supabase)
+        public ComentariosController(Supabase.Client supabase, IVotoService votoService)
         {
             _supabase = supabase;
+            _votoService = votoService;
         }
 
+        [HttpGet("proyecto/{proyectoId}/categoria/{categoriaId}/resumen")]
+        public async Task<IActionResult> GetResumenComentarios(int proyectoId, int categoriaId)
+        {
+            try
+            {
+                var resumen = await _votoService.ObtenerResumenComentariosAsync(proyectoId, categoriaId);
+                return Ok(resumen);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error al obtener resumen de comentarios: {ex.Message}");
+            }
+        }
 
+        [HttpGet("proyecto/{proyectoId}/categoria/{categoriaId}/usuario/{usuarioRef}")]
+        public async Task<IActionResult> GetDetalleComentariosUsuario(int proyectoId, int categoriaId, string usuarioRef)
+        {
+            try
+            {
+                var detalle = await _votoService.ObtenerDetalleComentariosUsuarioAsync(proyectoId, categoriaId, usuarioRef);
+                return Ok(detalle);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error al obtener detalle de comentarios: {ex.Message}");
+            }
+        }
 
         [HttpGet]
         public async Task<IActionResult> GetComentarios([FromQuery] long idVotacion)

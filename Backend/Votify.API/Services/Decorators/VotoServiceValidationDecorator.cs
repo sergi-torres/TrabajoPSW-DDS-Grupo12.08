@@ -99,5 +99,15 @@ namespace Votify.API.Services.Decorators
         {
             return _innerService.ObtenerVotosPorProyectoAsync(proyectoId);
         }
+
+        public Task<List<TipoComentaristaDto>> ObtenerResumenComentariosAsync(int proyectoId, int categoriaId)
+        {
+            return _innerService.ObtenerResumenComentariosAsync(proyectoId, categoriaId);
+        }
+
+        public Task<List<ComentarioDetalleDto>> ObtenerDetalleComentariosUsuarioAsync(int proyectoId, int categoriaId, string usuarioRef)
+        {
+            return _innerService.ObtenerDetalleComentariosUsuarioAsync(proyectoId, categoriaId, usuarioRef);
+        }
     }
 }
