@@ -33,6 +33,20 @@ namespace Votify.API.Controllers
             }
         }
 
+        [HttpGet("evento/{eventoId}/control")]
+        public async Task<IActionResult> ObtenerCategoriasControl(int eventoId)
+        {
+            try 
+            {
+                var resultado = await _eventoService.ListarCategoriasControlAsync(eventoId);
+                return Ok(resultado);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Error al recuperar las categorías");
+            }
+        }
+
         [HttpPost("configurar")]
         public async Task<IActionResult> ConfigurarTiempos([FromBody] ConfigTiemposCategoriasDto request)
         {
@@ -50,7 +64,24 @@ namespace Votify.API.Controllers
                 return BadRequest(new { error = ex.Message });
             }
         }
-       
+
+        [HttpPatch("categoria/{id}/estado")]
+        public async Task<IActionResult> ActualizarEstado(int id, [FromBody] string nuevoEstado)
+        {
+            if (string.IsNullOrEmpty(nuevoEstado)) return BadRequest("El estado es obligatorio.");
+
+            try
+            {
+                var exito = await _eventoService.ActualizarEstadoCategoriaAsync(id, nuevoEstado);
+                if (!exito) return NotFound("No se encontró la categoría especificada.");
+
+                return Ok(new { message = "Estado actualizado correctamente." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
     }
 }
 
