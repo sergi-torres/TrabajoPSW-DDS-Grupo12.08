@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { EventSidebar } from "../components/layout/EventSidebar";
 import { EventContext } from "../context/EventContext";
@@ -15,18 +15,22 @@ const ControlVotacionesPage: React.FC = () => {
     const { categorias, cargando, cargarCategorias, cambiarEstado, actualizarTiempos } = useControlVotaciones();
     const [selectedId, setSelectedId] = useState<number | null>(null);
 
+    const handleActualizarTiempo = useCallback((dto: any) => {
+        return actualizarTiempos({ ...dto, EventoId: Number(eventoId) });
+    }, [actualizarTiempos, eventoId]);
+
     useEffect(() => {
         if (eventoId) {
             cargarCategorias(Number(eventoId));
         }
     }, [eventoId, cargarCategorias]);
 
-    const selectedCategoria = categorias.find(c => (c.id || c.Id) === selectedId) || null;
+    const selectedCategoria = categorias.find(c => c.id === selectedId) || null;
 
-    const activeCount = categorias.filter(c => (c.estado || c.Estado) === "Activa").length;
-    const pendingCount = categorias.filter(c => (c.estado || c.Estado) === "Pendiente").length;
-    const finishedCount = categorias.filter(c => (c.estado || c.Estado) === "Finalizada").length;
-    const pausedCount = categorias.filter(c => (c.estado || c.Estado) === "Pausada").length;
+    const activeCount = categorias.filter(c => c.estado === "Activa").length;
+    const pendingCount = categorias.filter(c => c.estado === "Pendiente").length;
+    const finishedCount = categorias.filter(c => c.estado === "Finalizada").length;
+    const pausedCount = categorias.filter(c => c.estado === "Pausada").length;
 
     return (
         <div className="min-h-screen bg-gray-50 font-body relative">
@@ -86,16 +90,10 @@ const ControlVotacionesPage: React.FC = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-40">
                             {categorias.map((cat) => (
                                 <EstadoCategoriaCard 
-                                    key={cat.id || cat.Id}
-                                    categoria={{
-                                        categoriaId: cat.id || cat.Id,
-                                        nombre: cat.nombre || cat.Nombre,
-                                        fechaIni: cat.fechaIni || cat.FechaIni,
-                                        fechaFin: cat.fechaFin || cat.FechaFin,
-                                        estado: cat.estado || cat.Estado || "Pendiente"
-                                    }}
-                                    isSelected={selectedId === (cat.id || cat.Id)}
-                                    onSelect={() => setSelectedId(cat.id || cat.Id)}
+                                    key={cat.id}
+                                    categoria={cat}
+                                    isSelected={selectedId === cat.id}
+                                    onSelect={() => setSelectedId(cat.id)}
                                     onCambiarEstado={cambiarEstado}
                                 />
                             ))}
@@ -117,15 +115,9 @@ const ControlVotacionesPage: React.FC = () => {
                 )}>
                     <div className="max-w-7xl mx-auto">
                         <OpcionesBar 
-                            categoria={selectedCategoria ? {
-                                categoriaId: selectedCategoria.id || selectedCategoria.Id,
-                                nombre: selectedCategoria.nombre || selectedCategoria.Nombre,
-                                estado: selectedCategoria.estado || selectedCategoria.Estado,
-                                fechaIni: selectedCategoria.fechaIni || selectedCategoria.FechaIni,
-                                fechaFin: selectedCategoria.fechaFin || selectedCategoria.FechaFin
-                            } : null}
+                            categoria={selectedCategoria}
                             onCambiarEstado={cambiarEstado}
-                            onActualizarTiempo={(dto) => actualizarTiempos({ ...dto, EventoId: Number(eventoId) })}
+                            onActualizarTiempo={handleActualizarTiempo}
                         />
                     </div>
                 </div>

@@ -10,7 +10,15 @@ export const useControlVotaciones = () => {
     setCargando(true);
     try {
       const data = await ConfigTiemposVotacion.obtenerParaControl(eventoId);
-      setCategorias(data);
+      // Normalizamos para evitar líos de id/Id o estado/Estado
+      const normalized = data.map((c: any) => ({
+        id: c.id || c.Id || c.categoriaId || c.CategoriaId,
+        nombre: c.nombre || c.Nombre,
+        estado: c.estado || c.Estado || "Pendiente",
+        fechaIni: c.fechaIni || c.FechaIni,
+        fechaFin: c.fechaFin || c.FechaFin,
+      }));
+      setCategorias(normalized);
     } catch (error) {
       console.error("Error al cargar categorías:", error);
       toast.error("No se pudieron cargar las categorías");
@@ -19,14 +27,11 @@ export const useControlVotaciones = () => {
     }
   }, []);
 
-  const cambiarEstado = async (categoriaId: number, nuevoEstado: string) => {
+  const cambiarEstado = useCallback(async (categoriaId: number, nuevoEstado: string) => {
     try {
       await ConfigTiemposVotacion.actualizarEstadoCategoria(categoriaId, nuevoEstado);
       setCategorias(prev => 
-        prev.map(c => (c.categoriaId === categoriaId || c.CategoriaId === categoriaId || c.id === categoriaId || c.Id === categoriaId)
-          ? { ...c, estado: nuevoEstado, Estado: nuevoEstado } 
-          : c
-        )
+        prev.map(c => (c.id === categoriaId) ? { ...c, estado: nuevoEstado } : c)
       );
       toast.success(`Estado actualizado a ${nuevoEstado}`);
       return true;
@@ -35,21 +40,19 @@ export const useControlVotaciones = () => {
       toast.error("Error al actualizar el estado");
       return false;
     }
-  };
+  }, []);
 
-  const actualizarTiempos = async (dto: any) => {
+  const actualizarTiempos = useCallback(async (dto: any) => {
     try {
       await ConfigTiemposVotacion.guardarConfiguracion(dto);
-      // Al actualizar tiempos, el backend puede cambiar el estado a Activa si ya empezó
-      // Refrescamos para tener la info sincronizada
-      if (dto.EventoId) cargarCategorias(dto.EventoId);
+      if (dto.EventoId) await cargarCategorias(dto.EventoId);
       return true;
     } catch (error) {
       console.error("Error al actualizar tiempos:", error);
       toast.error("Error al actualizar tiempos");
       return false;
     }
-  };
+  }, [cargarCategorias]);
 
   return {
     categorias,

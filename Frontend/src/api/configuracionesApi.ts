@@ -37,7 +37,7 @@ export const ConfigTiemposVotacion = {
     const res = await fetch(`${API_URL}/categoria/${id}/estado`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(nuevoEstado)
+      body: JSON.stringify({ nuevoEstado })
     });
     
     if (!res.ok) {
