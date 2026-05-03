@@ -82,6 +82,24 @@ namespace Votify.API.Controllers
                 return BadRequest(new { error = ex.Message });
             }
         }
+
+        [HttpPatch("evento/{eventoId}/limite-votos")]
+        public async Task<IActionResult> ActualizarLimiteVotos(int eventoId, [FromBody] ActualizarLimiteVotosRequestDto request)
+        {
+            if (request == null || request.VotosMaximos <= 0) return BadRequest("El límite de votos es obligatorio y debe ser mayor a 0.");
+
+            try
+            {
+                var exito = await _eventoService.ActualizarLimiteVotosAsync(eventoId, request.CategoriaId, request.VotosMaximos);
+                if (!exito) return StatusCode(500, "Error al actualizar el límite de votos.");
+
+                return Ok(new { message = "Límite de votos actualizado correctamente." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
     }
 }
 

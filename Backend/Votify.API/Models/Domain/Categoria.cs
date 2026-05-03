@@ -22,5 +22,8 @@ namespace Votify.API.Models.Domain
 
         [Column("estado")]
         public string Estado { get; set; } = "Pendiente"; // Pendiente,Activa, Finalizada, Pausada
+
+        [Column("votosmaximos")]
+        public int VotosMaximos { get; set; } = 3;
     }
 }

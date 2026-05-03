@@ -10,7 +10,7 @@ interface OpcionesBarProps {
     fechaIni: string | null;
     fechaFin: string | null;
   } | null;
-  onCambiarEstado: (id: number, nuevoEstado: string) => Promise<boolean>;
+  onCambiarEstado: (id: number, nuevoEstado: string, silent?: boolean) => Promise<boolean>;
   onActualizarTiempo: (dto: any) => Promise<boolean>;
 }
 

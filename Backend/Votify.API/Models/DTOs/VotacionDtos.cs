@@ -125,4 +125,13 @@ namespace Votify.API.Models.DTOs
         [Required]
         public string NuevoEstado { get; set; } = string.Empty;
     }
+
+    public class ActualizarLimiteVotosRequestDto
+    {
+        [Required]
+        public int VotosMaximos { get; set; }
+
+        // Null means apply to all pending categories in the event
+        public int? CategoriaId { get; set; }
+    }
 }
