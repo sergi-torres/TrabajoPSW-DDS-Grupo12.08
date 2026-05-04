@@ -386,9 +386,6 @@ export default function RegisterParticipant() {
           )}
 
           {/* Paso 2: Seleccionar Categoría */}
-
-
-         
 {categories.length > 0 && projectCreated && (
   <Card className="border-purple-200 shadow-lg animate-in slide-in-from-bottom duration-500">
     <CardHeader>
@@ -404,19 +401,17 @@ export default function RegisterParticipant() {
       </CardTitle>
     </CardHeader>
     <CardContent>
-      {/* Las categorías ocupadas se calculan AQUÍ dentro */}
       {(() => {
-        // Obtener IDs de categorías donde el usuario ya tiene proyecto
         const categoriasOcupadas = proyectosUsuario.map(p => p.idCategoria).filter(Boolean);
         const hayCategoriasDisponibles = categories.some(cat => 
-          (cat.status === "pending" || cat.status === "active") && 
+          cat.status === "pending" && 
           !categoriasOcupadas.includes(cat.id)
         );
         
         return hayCategoriasDisponibles ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {categories.map((category) => {
-              const isActive = category.status === "pending" || category.status === "active";
+              const isActive = category.status === "pending";
               const yaTieneProyecto = categoriasOcupadas.includes(category.id);
               const isSelectable = isActive && !yaTieneProyecto;
               const isSelected = selectedCategory === category.id;
@@ -490,12 +485,12 @@ export default function RegisterParticipant() {
               No hay categorías disponibles
             </h3>
             <p className="text-gray-500">
-              {categoriasOcupadas.length > 0 && categories.some(c => c.status === "pending" || c.status === "active")
+              {categoriasOcupadas.length > 0 && categories.some(c => c.status === "pending")
                 ? "Ya tienes un proyecto registrado en todas las categorías activas."
                 : "En estos momentos no hay categorías activas para este evento."}
             </p>
             <p className="text-gray-400 text-sm mt-2">
-              {categoriasOcupadas.length > 0 && categories.some(c => c.status === "pending" || c.status === "active")
+              {categoriasOcupadas.length > 0 && categories.some(c => c.status === "pending")
                 ? "Solo puedes registrar un proyecto por categoría."
                 : "Por favor, espera a que el organizador habilite las categorías."}
             </p>
@@ -506,27 +501,34 @@ export default function RegisterParticipant() {
   </Card>
 )}
 
+{/* Resumen Final - SOLO si hay categorías disponibles Y hay una categoría seleccionada */}
+{projectCreated && selectedCategory && (() => {
+  const categoriasOcupadas = proyectosUsuario.map(p => p.idCategoria).filter(Boolean);
+  const hayCategoriasDisponibles = categories.some(cat => 
+    cat.status === "pending" && 
+    !categoriasOcupadas.includes(cat.id)
+  );
+  return hayCategoriasDisponibles && selectedCategory;
+})() && (
+  <div className="animate-in slide-in-from-bottom-8 duration-700">
+    <button
+      onClick={handleRegister}
+      disabled={!isReadyToRegister}
+      className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white p-8 rounded-[32px] shadow-2xl shadow-purple-200 transition-all hover:scale-[1.01] active:scale-95 group"
+    >
+      <div className="flex items-center justify-between max-w-4xl mx-auto">
+        <div className="text-left">
+          <p className="text-purple-200 text-sm font-black uppercase tracking-widest mb-1">Finalizar Registro</p>
+          <h3 className="text-3xl font-heading font-bold">Inscribir "{projectData.name}"</h3>
+        </div>
+        <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center group-hover:bg-white/30 transition-colors">
+          <Check className="w-8 h-8 text-white" strokeWidth={3} />
+        </div>
+      </div>
+    </button>
+  </div>
+)}
 
-          {/* Resumen Final */}
-          {projectCreated && (selectedCategory || localCategories.length === 0) && (
-            <div className="animate-in slide-in-from-bottom-8 duration-700">
-              <button
-                onClick={handleRegister}
-                disabled={!isReadyToRegister}
-                className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white p-8 rounded-[32px] shadow-2xl shadow-purple-200 transition-all hover:scale-[1.01] active:scale-95 group"
-              >
-                <div className="flex items-center justify-between max-w-4xl mx-auto">
-                  <div className="text-left">
-                    <p className="text-purple-200 text-sm font-black uppercase tracking-widest mb-1">Finalizar Registro</p>
-                    <h3 className="text-3xl font-heading font-bold">Inscribir "{projectData.name}"</h3>
-                  </div>
-                  <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center group-hover:bg-white/30 transition-colors">
-                    <Check className="w-8 h-8 text-white" strokeWidth={3} />
-                  </div>
-                </div>
-              </button>
-            </div>
-          )}
         </main>
       </div>
     </div>

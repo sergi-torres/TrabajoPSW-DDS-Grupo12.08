@@ -12,7 +12,10 @@ import {
   MessageSquare, 
   User, 
   ThumbsUp,
-  Star
+  Star,
+  Trash2,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import { cn } from "../components/ui/utils";
 
@@ -69,68 +72,166 @@ export default function VotosPage() {
   const [categoria, setCategoria] = useState<any>(null);
   const [publicComments, setPublicComments] = useState<any[]>([]);
   const [cargando, setCargando] = useState(true);
+  const [proyectosDisponibles, setProyectosDisponibles] = useState<any[]>([]);
+  const [proyectoActualId, setProyectoActualId] = useState<string | null>(null);
 
   const isPublicRole = userRole === "Público";
   const themeColor = userColor || "#9333ea";
 
-  // FETCH DE COMENTARIOS Y VOTACIONES
+  // Cargar lista de proyectos desde localStorage
   useEffect(() => {
-    const fetchData = async () => {
-      const idProyecto = localStorage.getItem("proyectoId");
-      console.log("Cargando datos para proyectoId:", idProyecto);
+    const storedProyectos = localStorage.getItem("proyectos");
+    if (storedProyectos) {
+      const proyectos = JSON.parse(storedProyectos);
+      setProyectosDisponibles(proyectos);
+    }
+    const currentId = localStorage.getItem("proyectoId");
+    setProyectoActualId(currentId);
+  }, []);
 
-      if (!idProyecto) {
-        setCargando(false);
+  // FETCH DE COMENTARIOS Y VOTACIONES
+  const fetchData = async (proyectoId: string) => {
+    setCargando(true);
+    try {
+      // 1. Obtener votaciones
+      const votoRes = await fetch(`http://localhost:5245/api/votacion/porProyecto?proyectoId=${proyectoId}`);
+      if (!votoRes.ok) throw new Error("Error al obtener votaciones");
+      const dataVoto = await votoRes.json();
+      setVotaciones(dataVoto);
+
+      // 2. Obtener comentarios
+      if (dataVoto && dataVoto.length > 0) {
+        const comentariosPromises = dataVoto.map((voto: any) =>
+          fetch(`http://localhost:5245/api/comentarios?idVotacion=${voto.id}`)
+            .then(res => res.ok ? res.json() : [])
+            .catch(() => [])
+        );
+        const resultadosComentarios = await Promise.all(comentariosPromises);
+        const todosLosComentarios = resultadosComentarios.flat();
+
+        const mapped = todosLosComentarios.map((c: any) => ({
+          id: c.id,
+          author: c.nombreUsuario || c.email || "Anónimo",
+          comment: c.comentario,
+          timestamp: new Date(c.fecha).toLocaleString(),
+          likes: c.likes ?? 0
+        }));
+        setPublicComments(mapped);
+      } else {
+        setPublicComments([]);
+      }
+
+      // 3. Obtener categoría
+      const idCategoria = localStorage.getItem("categoriaProyecto");
+      if (idCategoria) {
+        const catRes = await fetch(`http://localhost:5245/api/categorias/id/${idCategoria}`);
+        if (catRes.ok) {
+          const catData = await catRes.json();
+          setCategoria(catData);
+        }
+      }
+    } catch (err) {
+      console.error("Error cargando datos:", err);
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  useEffect(() => {
+    const idProyecto = localStorage.getItem("proyectoId");
+    if (idProyecto) {
+      fetchData(idProyecto);
+    } else {
+      setCargando(false);
+    }
+  }, []);
+
+  // Navegar a proyecto anterior
+  const goToPreviousProject = () => {
+    if (!proyectosDisponibles.length) return;
+    const currentIndex = proyectosDisponibles.findIndex(p => p.id == proyectoActualId);
+    if (currentIndex > 0) {
+      const prevProject = proyectosDisponibles[currentIndex - 1];
+      localStorage.setItem("proyectoId", prevProject.id);
+      localStorage.setItem("proyectoNombre", prevProject.nombre);
+      localStorage.setItem("proyectoDescripcion", prevProject.descripcion);
+      setProyectoActualId(prevProject.id);
+      fetchData(prevProject.id);
+    } else {
+      alert("No hay proyecto anterior");
+    }
+  };
+
+  // Navegar a proyecto siguiente
+  const goToNextProject = () => {
+    if (!proyectosDisponibles.length) return;
+    const currentIndex = proyectosDisponibles.findIndex(p => p.id == proyectoActualId);
+    if (currentIndex < proyectosDisponibles.length - 1) {
+      const nextProject = proyectosDisponibles[currentIndex + 1];
+      localStorage.setItem("proyectoId", nextProject.id);
+      localStorage.setItem("proyectoNombre", nextProject.nombre);
+      localStorage.setItem("proyectoDescripcion", nextProject.descripcion);
+      setProyectoActualId(nextProject.id);
+      fetchData(nextProject.id);
+    } else {
+      alert("No hay proyecto siguiente");
+    }
+  };
+
+  // Eliminar proyecto actual
+  const deleteProject = async () => {
+    const confirmDelete = window.confirm(
+      "¿Estás seguro de que quieres eliminar este proyecto?\n\nEsta acción no se puede deshacer."
+    );
+    if (!confirmDelete) return;
+
+    try {
+      const proyectoId = localStorage.getItem("proyectoId");
+      if (!proyectoId) {
+        alert("No se encontró el ID del proyecto");
         return;
       }
 
-      try {
-        // 1. Obtener votaciones
-        const votoRes = await fetch(`http://localhost:5245/api/votacion/porProyecto?proyectoId=${idProyecto}`);
-        if (!votoRes.ok) throw new Error("Error al obtener votaciones");
-        const dataVoto = await votoRes.json();
-        setVotaciones(dataVoto);
-        console.log("Votaciones obtenidas:", dataVoto);
+      const response = await fetch(`http://localhost:5245/api/proyecto/${proyectoId}`, {
+        method: "DELETE",
+      });
 
-        // 2. Obtener comentarios
-        if (dataVoto && dataVoto.length > 0) {
-          const comentariosPromises = dataVoto.map((voto: any) =>
-            fetch(`http://localhost:5245/api/comentarios?idVotacion=${voto.id}`)
-              .then(res => res.ok ? res.json() : [])
-              .catch(() => [])
-          );
-          const resultadosComentarios = await Promise.all(comentariosPromises);
-          const todosLosComentarios = resultadosComentarios.flat();
+      if (response.ok) {
+        // Actualizar lista de proyectos
+        const nuevosProyectos = proyectosDisponibles.filter(p => p.id != proyectoId);
+        localStorage.setItem("proyectos", JSON.stringify(nuevosProyectos));
+        
+        // Limpiar datos del proyecto actual
+        localStorage.removeItem("proyectoId");
+        localStorage.removeItem("proyectoNombre");
+        localStorage.removeItem("proyectoDescripcion");
+        localStorage.removeItem("proyectoABCD");
+        localStorage.removeItem("categoriaProyecto");
 
-          const mapped = todosLosComentarios.map((c: any) => ({
-            id: c.id,
-            author: c.nombreUsuario || c.email || "Anónimo",
-            comment: c.comentario,
-            timestamp: new Date(c.fecha).toLocaleString(),
-            likes: c.likes ?? 0
-          }));
-          setPublicComments(mapped);
+        if (nuevosProyectos.length > 0) {
+          // Cargar el primer proyecto disponible
+          const primerProyecto = nuevosProyectos[0];
+          localStorage.setItem("proyectoId", primerProyecto.id);
+          localStorage.setItem("proyectoNombre", primerProyecto.nombre);
+          localStorage.setItem("proyectoDescripcion", primerProyecto.descripcion);
+          setProyectoActualId(primerProyecto.id);
+          setProyectosDisponibles(nuevosProyectos);
+          fetchData(primerProyecto.id);
+        } else {
+          navigate("/eventos");
         }
-
-        // 3. Obtener categoría
-        const idCategoria = localStorage.getItem("categoriaProyecto");
-        if (idCategoria) {
-          const catRes = await fetch(`http://localhost:5245/api/categorias/id/${idCategoria}`);
-          if (catRes.ok) {
-            const catData = await catRes.json();
-            setCategoria(catData);
-          }
-        }
-      } catch (err) {
-        console.error("Error cargando datos:", err);
-      } finally {
-        setCargando(false);
+        
+        alert("Proyecto eliminado exitosamente");
+      } else {
+        alert("Error al eliminar el proyecto");
       }
-    };
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Error al eliminar el proyecto");
+    }
+  };
 
-    fetchData();
-  }, []);
-
+  const currentIndex = proyectosDisponibles.findIndex(p => p.id == proyectoActualId);
   const state = {
     participantName: userName || localStorage.getItem("userName") || "Usuario",
     projectName: localStorage.getItem("eventoNombre") || "Evento",
@@ -195,12 +296,51 @@ export default function VotosPage() {
           {/* PROYECTO Y RESUMEN */}
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <article className="lg:col-span-2 bg-white rounded-2xl shadow-sm p-8 border border-gray-100">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-2.5 rounded-xl" style={{ backgroundColor: `${themeColor}10`, color: themeColor }}>
-                  <Target className="w-6 h-6" />
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-xl" style={{ backgroundColor: `${themeColor}10`, color: themeColor }}>
+                    <Target className="w-6 h-6" />
+                  </div>
+                  <h2 className="text-xl font-heading font-bold text-gray-900">Sobre tu Proyecto</h2>
                 </div>
-                <h2 className="text-xl font-heading font-bold text-gray-900">Sobre tu Proyecto</h2>
+                
+                {/* Botones de navegación */}
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={goToPreviousProject}
+                    disabled={proyectosDisponibles.length <= 1 || currentIndex <= 0}
+                    className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-all font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    Anterior
+                  </button>
+                  
+                  <button
+                    onClick={goToNextProject}
+                    disabled={proyectosDisponibles.length <= 1 || currentIndex >= proyectosDisponibles.length - 1}
+                    className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-all font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Siguiente
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+
+                  <button
+                    onClick={deleteProject}
+                    className="flex items-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl transition-all font-medium text-sm"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Borrar
+                  </button>
+                </div>
               </div>
+
+              {/* Indicador de progreso */}
+              {proyectosDisponibles.length > 0 && (
+                <div className="mb-4 text-sm text-gray-500">
+                  Proyecto {currentIndex + 1} de {proyectosDisponibles.length}
+                </div>
+              )}
+
               <div className="flex flex-col space-y-3 mb-4">
                 <p className="text-xl font-heading font-bold text-gray-900">
                   <span style={{ color: themeColor }}>Nombre:</span> {localStorage.getItem("proyectoNombre") || "Sin nombre"}
