@@ -12,6 +12,7 @@ import { EventContext } from "../context/EventContext";
 import { AuthContext } from "../context/AuthContext";
 import { cn } from "../components/ui/utils";
 
+
 export default function RegisterParticipant() {
   const navigate = useNavigate();
   const { eventoId: eventIdFromUrl } = useParams();
@@ -30,36 +31,37 @@ export default function RegisterParticipant() {
     newMemberEmail: ""
   });
 
-  // Cargar categorías específicas de este evento (desde la URL)
+  const [proyectosUsuario, setProyectosUsuario] = useState<ProyectoUsuario[]>([]);
+
   useEffect(() => {
-    const fetchCategories = async () => {
-      if (!eventIdFromUrl) return;
+    const cargarProyectos = async () => {
       try {
-        setLoadingCategories(true);
-        const response = await fetch(`http://localhost:5245/api/Categorias/evento/${eventIdFromUrl}`);
-        if (!response.ok) throw new Error("Error al cargar categorías");
-        const data = await response.json();
-        setLocalCategories(data);
-      } catch (err) {
-        console.error("Error fetching categories:", err);
-        toast.error("No se pudieron cargar las categorías del evento");
-      } finally {
-        setLoadingCategories(false);
+        const userId = localStorage.getItem("userId");
+        if (userId) {
+          const response = await fetch(`http://localhost:5245/api/proyectos/participante/${userId}`);
+          if (response.ok) {
+            const proyectos = await response.json();
+            setProyectosUsuario(proyectos);
+            console.log("Proyectos del usuario:", proyectos);
+          }
+        }
+      } catch (error) {
+        console.error("Error cargando proyectos:", error);
       }
     };
 
-    fetchCategories();
-  }, [eventIdFromUrl]);
+    cargarProyectos();
+  }, []);
 
   useEffect(() => {
     const userId = localStorage.getItem("userId");
     if (userId && projectData.memberIds.length === 0) {
-      setProjectData((prev: any) => ({
+      setProjectData((prev) => ({
         ...prev,
         memberIds: [parseInt(userId)]
       }));
     }
-  }, [projectData.memberIds.length]);
+  }, []); // Solo se ejecuta una vez al montar
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -121,6 +123,7 @@ export default function RegisterParticipant() {
       }
     }
   };
+;
 
   const isReadyToRegister = projectCreated && (selectedCategory || localCategories.length === 0);
   const isCollapsed = eventContext?.isCollapsed ?? false;
@@ -382,92 +385,125 @@ export default function RegisterParticipant() {
           )}
 
           {/* Paso 2: Seleccionar Categoría */}
-          {loadingCategories ? (
-            <div className="flex flex-col items-center justify-center p-12 bg-white rounded-3xl border border-gray-100">
-              <div className="w-10 h-10 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mb-4" />
-              <p className="text-gray-500 font-medium">Cargando categorías del evento...</p>
-            </div>
-          ) : (
-            localCategories.length > 0 && projectCreated && (
-              <Card className="border-purple-200 shadow-lg animate-in slide-in-from-bottom duration-500">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Target className="w-6 h-6 text-purple-600" />
-                    Paso 2: Selecciona la Categoría del Evento
-                    {selectedCategory && (
-                      <Badge className="bg-purple-600 ml-2">
-                        <Check className="w-3 h-3 mr-1" />
-                        Seleccionado
-                      </Badge>
-                    )}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {localCategories.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {localCategories.map((category) => {
-                        const isSelected = selectedCategory === category.id;
-                        
-                        return (
-                          <div
-                            key={category.id}
-                            onClick={() => setSelectedCategory(category.id)}
-                            className={`
-                              bg-gradient-to-br from-white to-purple-50 border-2 rounded-2xl p-6
-                              transition-all cursor-pointer hover:shadow-xl
-                              ${isSelected
-                                ? "border-purple-600 shadow-lg ring-4 ring-purple-200"
-                                : "border-purple-100 hover:border-purple-300"
-                              }
-                            `}
-                          >
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-4">
-                                <div className={`
-                                  w-12 h-12 rounded-xl flex items-center justify-center
-                                  ${isSelected ? "bg-purple-600" : "bg-purple-100"}
-                                `}>
-                                  <Target className={`w-6 h-6 ${
-                                    isSelected ? "text-white" : "text-purple-600"
-                                  }`} />
-                                </div>
-                                <div>
-                                  <h4 className="text-xl font-bold text-gray-900">{category.nombre}</h4>
-                                  <Badge 
-                                    variant="outline" 
-                                    className="mt-1 border-green-300 text-green-700 bg-green-50"
-                                  >
-                                    Activa
-                                  </Badge>
-                                </div>
-                              </div>
-                              {isSelected && (
-                                <div className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center">
-                                  <Check className="w-6 h-6 text-white" />
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <div className="text-center py-12">
-                      <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Target className="w-10 h-10 text-gray-400" />
+
+
+         
+{categories.length > 0 && projectCreated && (
+  <Card className="border-purple-200 shadow-lg animate-in slide-in-from-bottom duration-500">
+    <CardHeader>
+      <CardTitle className="flex items-center gap-2">
+        <Target className="w-6 h-6 text-purple-600" />
+        Paso 2: Selecciona la Categoría del Evento
+        {selectedCategory && (
+          <Badge className="bg-purple-600 ml-2">
+            <Check className="w-3 h-3 mr-1" />
+            Seleccionado
+          </Badge>
+        )}
+      </CardTitle>
+    </CardHeader>
+    <CardContent>
+      {/* Las categorías ocupadas se calculan AQUÍ dentro */}
+      {(() => {
+        // Obtener IDs de categorías donde el usuario ya tiene proyecto
+        const categoriasOcupadas = proyectosUsuario.map(p => p.idCategoria).filter(Boolean);
+        const hayCategoriasDisponibles = categories.some(cat => 
+          (cat.status === "pending" || cat.status === "active") && 
+          !categoriasOcupadas.includes(cat.id)
+        );
+        
+        return hayCategoriasDisponibles ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {categories.map((category) => {
+              const isActive = category.status === "pending" || category.status === "active";
+              const yaTieneProyecto = categoriasOcupadas.includes(category.id);
+              const isSelectable = isActive && !yaTieneProyecto;
+              const isSelected = selectedCategory === category.id;
+              
+              return (
+                <div
+                  key={category.id}
+                  onClick={() => isSelectable && setSelectedCategory(category.id)}
+                  className={`
+                    bg-gradient-to-br from-white to-purple-50 border-2 rounded-2xl p-6
+                    transition-all cursor-pointer
+                    ${!isSelectable && "opacity-60 cursor-not-allowed"}
+                    ${isSelectable && "hover:shadow-xl"}
+                    ${isSelected && isSelectable
+                      ? "border-purple-600 shadow-lg ring-4 ring-purple-200"
+                      : "border-purple-100 hover:border-purple-300"
+                    }
+                    ${!isSelectable && "border-gray-200 bg-gray-50"}
+                  `}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className={`
+                        w-12 h-12 rounded-xl flex items-center justify-center
+                        ${isSelected && isSelectable ? "bg-purple-600" : !isSelectable ? "bg-gray-300" : "bg-purple-100"}
+                      `}>
+                        <Target className={`w-6 h-6 ${
+                          isSelected && isSelectable ? "text-white" : !isSelectable ? "text-gray-500" : "text-purple-600"
+                        }`} />
                       </div>
-                      <h3 className="text-xl font-semibold text-gray-700 mb-2">
-                        No hay categorías disponibles
-                      </h3>
-                      <p className="text-gray-500">
-                        En estos momentos no hay categorías registradas para este evento.
-                      </p>
+                      <div>
+                        <h4 className={`text-xl ${!isSelectable && "text-gray-500"}`}>{category.name}</h4>
+                        <div className="flex gap-2 mt-1">
+                          <Badge 
+                            variant="outline" 
+                            className={`${
+                              isActive 
+                                ? "border-green-300 text-green-700 bg-green-50"
+                                : "border-gray-300 text-gray-500 bg-gray-100"
+                            }`}
+                          >
+                            {isActive ? "Activa" : "Pendiente"}
+                          </Badge>
+                          {yaTieneProyecto && (
+                            <Badge 
+                              variant="outline" 
+                              className="border-orange-300 text-orange-700 bg-orange-50"
+                            >
+                              Ya tienes proyecto
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  )}
-                </CardContent>
-              </Card>
-            )
-          )}
+                    {isSelected && isSelectable && (
+                      <div className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center">
+                        <Check className="w-6 h-6 text-white" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Target className="w-10 h-10 text-gray-400" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-700 mb-2">
+              No hay categorías disponibles
+            </h3>
+            <p className="text-gray-500">
+              {categoriasOcupadas.length > 0 && categories.some(c => c.status === "pending" || c.status === "active")
+                ? "Ya tienes un proyecto registrado en todas las categorías activas."
+                : "En estos momentos no hay categorías activas para este evento."}
+            </p>
+            <p className="text-gray-400 text-sm mt-2">
+              {categoriasOcupadas.length > 0 && categories.some(c => c.status === "pending" || c.status === "active")
+                ? "Solo puedes registrar un proyecto por categoría."
+                : "Por favor, espera a que el organizador habilite las categorías."}
+            </p>
+          </div>
+        );
+      })()}
+    </CardContent>
+  </Card>
+)}
 
 
           {/* Resumen Final */}

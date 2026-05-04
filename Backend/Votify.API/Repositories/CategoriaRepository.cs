@@ -64,7 +64,7 @@ namespace Votify.API.Repositories
             return categoria;
         }
 
-        public async Task<List<CategoriaResponseDto>> ObtenerPorEventoIdAsync(int eventoId)
+        public async Task<List<CategoriaResponseActualizadoDto>> ObtenerPorEventoIdAsync(int eventoId)
         {
             var response = await _supabase
                 .From<Categoria>()
@@ -72,11 +72,12 @@ namespace Votify.API.Repositories
                 .Select("*")
                 .Get();
 
-            return response.Models.Select(c => new CategoriaResponseDto
+            return response.Models.Select(c => new CategoriaResponseActualizadoDto
             {
                 Id = c.Id,
                 Nombre = c.Nombre,
-                IdEvento = c.IdEvento
+                IdEvento = c.IdEvento,
+                Estado = c.Estado
             }).ToList();
         }
 

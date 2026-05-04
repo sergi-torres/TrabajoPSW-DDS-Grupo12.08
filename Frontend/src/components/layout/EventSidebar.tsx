@@ -70,6 +70,8 @@ export function EventSidebar({ color: propColor }: EventSidebarProps) {
     // Secciones por rol
     const roleLinks: NavLink[] = [];
     
+
+
     if (userRole === "Organizador") {
         roleLinks.push({ label: "Jurado", path: `/eventos/${eventoId}/jurado`, icon: ClipboardList });
         roleLinks.push({ label: "Control Estados", path: `/eventos/${eventoId}/control-estados`, icon: Timer });
@@ -79,12 +81,12 @@ export function EventSidebar({ color: propColor }: EventSidebarProps) {
         roleLinks.push({ label: "Evaluaciones", path: `/eventos/${eventoId}/evaluations`, icon: ClipboardList });
         roleLinks.push({ label: "Votaciones", path: `/eventos/${eventoId}/votar`, icon: Vote });
     } else if (userRole === "Participante") {
-        if (localStorage.getItem("proyectoABCD")) {
+        
+        roleLinks.push({ label: "Registrar Proyecto", path: `/eventos/${eventoId}/participantRegister`, icon: User });
 
-            localStorage.removeItem("proyectoABCD");
-            roleLinks.push({ label: "Mi Proyecto", path: `/eventos/${eventoId}/my-project`, icon: User });
-        } else {    
-            roleLinks.push({ label: "Registrar Proyecto", path: `/eventos/${eventoId}/participantRegister`, icon: User });
+        if (localStorage.getItem("proyectoABCD")) {
+            //console.log("Proyecto ABCD eliminado del localStorage");
+            roleLinks.push({ label: "Mis Proyectos", path: `/eventos/${eventoId}/my-project`, icon: User });           
         }
     }
 

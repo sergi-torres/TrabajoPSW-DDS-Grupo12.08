@@ -1,4 +1,4 @@
-import { VotacionDashboardData, Voto } from '../types';
+﻿import { VotacionDashboardData, Voto } from '../types';
 
 const API_URL = 'http://localhost:5245/api/votacion';
 

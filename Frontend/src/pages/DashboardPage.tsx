@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useContext } from "react";
+﻿import { useState, useEffect, useMemo, useContext } from "react";
 import { Plus, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { DesktopHeader } from "../components/eventos/DesktopHeader";
@@ -127,16 +127,24 @@ export default function DashboardPage() {
 
                                                     // Navegación
                                                     if (rol === "Participante") {
+
+                                                        if (localStorage.getItem("proyectoABCD")) {
+                                                            localStorage.removeItem("proyectoABCD");
+                                                        }
+
                                                         const misProyectosDelEvento = misProyectos.filter(p => p.idEvento === evento.id);
 
                                                         if (misProyectosDelEvento.length > 0) {
+                                                            localStorage.setItem("proyectos", JSON.stringify(misProyectosDelEvento));
                                                             const proyecto = misProyectosDelEvento[0];
                                                             localStorage.setItem("proyectoId", proyecto.id.toString());
                                                             localStorage.setItem("proyectoNombre", proyecto.nombre);
                                                             localStorage.setItem("proyectoDescripcion", proyecto.descripcion);
                                                             localStorage.setItem("categoriaProyecto", proyecto.idCategoria?.toString() || "");
                                                             localStorage.setItem("proyectoABCD", JSON.stringify(proyecto));
+                                                            console.log(localStorage.getItem("proyectoABCD"));
                                                         }
+
                                                         navigate(`/eventos/${evento.id}`);
                                                     } else if (rol === "Jurado") {
                                                         navigate(`/eventos/${evento.id}`);

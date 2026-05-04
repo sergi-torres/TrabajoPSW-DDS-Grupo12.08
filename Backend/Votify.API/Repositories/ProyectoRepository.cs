@@ -69,5 +69,19 @@ namespace Votify.API.Repositories
             var response = await _supabase.From<Proyecto>().Insert(proyecto);
             return response.Model;
         }
+
+        public async Task<bool> EliminarAsync(int id)
+        {
+            try
+            {
+                await _supabase.From<Proyecto>().Where(p => p.Id == id).Delete();
+                return true; // Si no lanza excepción, asumimos éxito
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al eliminar proyecto {id}: {ex.Message}");
+                return false;
+            }
+        }
     }
 }

@@ -1,8 +1,9 @@
-import { useState, useRef, useEffect } from "react";
+﻿import { useState, useRef, useEffect } from "react";
 import { Search, Bell, ChevronDown, LogOut, User } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import logo from "../../assets/LogoSinTexto.png";
-
+import { useNavigate } from "react-router-dom";
+    
 /**
  * DesktopHeader — Barra superior fija para escritorio con menú de usuario.
  */
@@ -17,16 +18,44 @@ export function DesktopHeader({ searchQuery = "", onSearchChange }: DesktopHeade
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 
-    // Cerrar menú al hacer clic fuera
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-                setIsMenuOpen(false);
-            }
-        };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
+    const [unreadCount, setUnreadCount] = useState(0);
+    const navigate = useNavigate();
+
+
+useEffect(() => {
+  // 1. Cargar contador de notificaciones
+  const loadUnreadCount = () => {
+    const stored = localStorage.getItem("notifications");
+    if (stored) {
+      const notifications = JSON.parse(stored);
+      const unread = notifications.filter((n: any) => !n.read).length;
+      setUnreadCount(unread);
+    }
+  };
+  loadUnreadCount();
+
+  // 2. Escuchar cambios en localStorage
+  const handleStorageChange = (e: StorageEvent) => {
+    if (e.key === "notifications") {
+      loadUnreadCount();
+    }
+  };
+  window.addEventListener("storage", handleStorageChange);
+
+  // 3. Cerrar menú al hacer clic fuera
+  const handleClickOutside = (event: MouseEvent) => {
+    if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      setIsMenuOpen(false);
+    }
+  };
+  document.addEventListener("mousedown", handleClickOutside);
+
+  // Cleanup
+  return () => {
+    window.removeEventListener("storage", handleStorageChange);
+    document.removeEventListener("mousedown", handleClickOutside);
+  };
+}, []);
 
     const initials = userName 
         ? userName.split("@")[0].substring(0, 2).toUpperCase() 
@@ -53,56 +82,86 @@ export function DesktopHeader({ searchQuery = "", onSearchChange }: DesktopHeade
             </div>
 
             {/* Perfil + Notificaciones */}
-            <div className="flex items-center justify-end gap-6 w-64">
-                <button className="text-muted-foreground hover:text-foreground transition-colors relative">
-                    <Bell size={20} strokeWidth={1.75} />
-                    <span className="absolute top-0 right-0 w-2 h-2 bg-destructive border-2 border-card rounded-full translate-x-1/2 -translate-y-1/4" />
-                </button>
+<div className="flex items-center justify-end gap-6 w-64">
+  {/* Notificaciones - Ahora navega a /avisos */}
+  <button 
+    onClick={() => navigate("/avisos")}
+    className="text-muted-foreground hover:text-foreground transition-colors relative"
+  >
+    <Bell size={20} strokeWidth={1.75} />
+    {/* Indicador de notificaciones no leídas */}
+    {unreadCount > 0 && (
+      <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 border-2 border-white rounded-full translate-x-1/2 -translate-y-1/4" />
+    )}
+  </button>
 
-                <div className="relative" ref={menuRef}>
-                    <div 
-                        className="flex items-center gap-2 cursor-pointer group"
-                        onClick={() => setIsMenuOpen(!isMenuOpen)}
-                    >
-                        <div className="h-9 w-9 rounded-full bg-gradient-to-tr from-[var(--color-org)] to-[var(--color-part)] flex items-center justify-center text-white font-medium text-sm shadow-sm ring-2 ring-card group-hover:ring-muted transition-all">
-                            {initials}
-                        </div>
-                        <ChevronDown 
-                            size={16} 
-                            strokeWidth={2} 
-                            className={`text-muted-foreground group-hover:text-foreground transition-transform duration-200 ${isMenuOpen ? "rotate-180" : ""}`} 
-                        />
-                    </div>
+  {/* Menú de perfil */}
+  <div className="relative" ref={menuRef}>
+    <div 
+      className="flex items-center gap-2 cursor-pointer group"
+      onClick={() => setIsMenuOpen(!isMenuOpen)}
+    >
+      <div className="h-9 w-9 rounded-full bg-gradient-to-tr from-purple-600 to-purple-400 flex items-center justify-center text-white font-medium text-sm shadow-sm ring-2 ring-white group-hover:ring-gray-200 transition-all">
+        {initials}
+      </div>
+      <ChevronDown 
+        size={16} 
+        strokeWidth={2} 
+        className={`text-gray-500 group-hover:text-gray-700 transition-transform duration-200 ${isMenuOpen ? "rotate-180" : ""}`} 
+      />
+    </div>
 
-                    {/* Desplegable */}
-                    {isMenuOpen && (
-                        <div className="absolute right-0 mt-3 w-64 bg-card border border-border rounded-2xl shadow-xl py-2 z-50 animate-in fade-in zoom-in slide-in-from-top-2 duration-200">
-                            <div className="px-4 py-3 border-b border-border mb-1">
-                                <p className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground mb-0.5">Sesión iniciada</p>
-                                <p className="text-sm font-medium text-foreground truncate">{userName || "Usuario"}</p>
-                            </div>
-                            
-                            <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors">
-                                <User size={16} className="text-muted-foreground" />
-                                Mi Perfil
-                            </button>
+    {/* Desplegable */}
+    {isMenuOpen && (
+      <div className="absolute right-0 mt-3 w-64 bg-white border border-gray-200 rounded-2xl shadow-xl py-2 z-50 animate-in fade-in zoom-in slide-in-from-top-2 duration-200">
+        <div className="px-4 py-3 border-b border-gray-100 mb-1">
+          <p className="text-[10px] uppercase tracking-wider font-bold text-gray-500 mb-0.5">Sesión iniciada</p>
+          <p className="text-sm font-medium text-gray-900 truncate">{userName || "Usuario"}</p>
+        </div>
+        
+        <button 
+          onClick={() => {
+            setIsMenuOpen(false);
+            navigate("/perfil");
+          }}
+          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+        >
+          <User size={16} className="text-gray-500" />
+          Mi Perfil
+        </button>
 
-                            <div className="h-px bg-border my-1" />
-                            
-                            <button 
-                                onClick={() => {
-                                    setIsMenuOpen(false);
-                                    logout();
-                                }}
-                                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-destructive hover:bg-destructive/5 transition-colors font-medium"
-                            >
-                                <LogOut size={16} />
-                                Cerrar sesión
-                            </button>
-                        </div>
-                    )}
-                </div>
-            </div>
+        <button 
+          onClick={() => {
+            setIsMenuOpen(false);
+            navigate("/avisos");
+          }}
+          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+        >
+          <Bell size={16} className="text-gray-500" />
+          Avisos
+          {unreadCount > 0 && (
+            <span className="ml-auto bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+              {unreadCount}
+            </span>
+          )}
+        </button>
+
+        <div className="h-px bg-gray-100 my-1" />
+        
+        <button 
+          onClick={() => {
+            setIsMenuOpen(false);
+            logout();
+          }}
+          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors font-medium"
+        >
+          <LogOut size={16} />
+          Cerrar sesión
+        </button>
+      </div>
+    )}
+  </div>
+</div>
         </header>
     );
 }
