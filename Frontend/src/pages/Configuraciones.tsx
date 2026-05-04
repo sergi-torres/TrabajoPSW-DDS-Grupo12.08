@@ -6,6 +6,7 @@ import { useAuth } from "../hooks/useAuth";
 import { ArrowLeft, LogOut } from "lucide-react";
 import { getDashboard } from "../api/orgDashboardApi";
 import ConfigTiempoVotacionBar from '../components/configuraciones/ConfigTiempoVotacionBar';
+import ConfigLimiteVotos from '../components/configuraciones/ConfigLimiteVotos';
 
 const Configuraciones: React.FC = () => {
   const { eventoId } = useParams<{ eventoId: string }>();
@@ -80,7 +81,12 @@ const Configuraciones: React.FC = () => {
         </header>
 
         <main className={`max-w-7xl mx-auto p-6 lg:p-10 space-y-12 transition-all duration-300 ${isPublicRole ? 'lg:pl-10' : (isCollapsed ? 'lg:pl-28' : 'lg:pl-80')}`}>
-          {eventoId && <ConfigTiempoVotacionBar eventoId={eventoId} />}
+          {eventoId && (
+            <>
+              <ConfigTiempoVotacionBar eventoId={eventoId} />
+              <ConfigLimiteVotos eventoId={eventoId} />
+            </>
+          )}
         </main>
       </div>
     </div>

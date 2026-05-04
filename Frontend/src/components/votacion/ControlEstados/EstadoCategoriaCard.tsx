@@ -10,7 +10,7 @@ interface EstadoCategoriaCardProps {
         fechaFin: string | null;
         estado: string;
     };
-    onCambiarEstado: (id: number, nuevoEstado: string) => Promise<boolean>;
+    onCambiarEstado: (id: number, nuevoEstado: string, silent?: boolean) => Promise<boolean>;
     isSelected: boolean;
     onSelect: () => void;
 }
@@ -39,9 +39,9 @@ export default function EstadoCategoriaCard({
             // 1. Lógica de Activación Automática
             if (estado === "Pendiente" && start && now >= start) {
                 if (end && now >= end) {
-                    onCambiarEstado(categoriaId, "Finalizada");
+                    onCambiarEstado(categoriaId, "Finalizada", true);
                 } else {
-                    onCambiarEstado(categoriaId, "Activa");
+                    onCambiarEstado(categoriaId, "Activa", true);
                 }
                 return false; // Parar el timer para evitar múltiples llamadas a la API mientras se actualiza
             }
@@ -52,7 +52,7 @@ export default function EstadoCategoriaCard({
                 if (diff <= 0) {
                     setTimeLeft("00:00:00");
                     if (estado === "Activa" || estado === "Pausada" || estado === "Pendiente") {
-                        onCambiarEstado(categoriaId, "Finalizada");
+                        onCambiarEstado(categoriaId, "Finalizada", true);
                         return false; 
                     }
                     return false;

@@ -1,10 +1,11 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 import { ConfigTiemposVotacion } from '../../api/configuracionesApi';
 
 export const useControlVotaciones = () => {
   const [categorias, setCategorias] = useState<any[]>([]);
   const [cargando, setCargando] = useState(false);
+  const peticionesEnCurso = useRef<Set<string>>(new Set());
 
   const cargarCategorias = useCallback(async (eventoId: number) => {
     setCargando(true);
@@ -27,18 +28,34 @@ export const useControlVotaciones = () => {
     }
   }, []);
 
-  const cambiarEstado = useCallback(async (categoriaId: number, nuevoEstado: string) => {
+  const cambiarEstado = useCallback(async (categoriaId: number, nuevoEstado: string, silent: boolean = false) => {
+    const key = `${categoriaId}-${nuevoEstado}`;
+    if (peticionesEnCurso.current.has(key)) return true;
+
+    peticionesEnCurso.current.add(key);
     try {
       await ConfigTiemposVotacion.actualizarEstadoCategoria(categoriaId, nuevoEstado);
-      setCategorias(prev => 
-        prev.map(c => (c.id === categoriaId) ? { ...c, estado: nuevoEstado } : c)
-      );
-      toast.success(`Estado actualizado a ${nuevoEstado}`);
+      setCategorias(prev => {
+        const cat = prev.find(c => c.id === categoriaId);
+        if (cat && cat.estado === nuevoEstado) return prev; // Avoid duplicate state updates
+        return prev.map(c => (c.id === categoriaId) ? { ...c, estado: nuevoEstado } : c);
+      });
+      if (!silent) {
+        toast.success(`Estado actualizado a ${nuevoEstado}`);
+      }
       return true;
     } catch (error) {
       console.error("Error al cambiar estado:", error);
-      toast.error("Error al actualizar el estado");
+      if (!silent) {
+        toast.error("Error al actualizar el estado");
+      }
       return false;
+    } finally {
+      // Usamos un setTimeout pequeño para limpiar el lock y permitir la misma transición en el futuro si fuera necesario,
+      // pero bloqueando ejecuciones inmediatas (ej. useEffect en loop).
+      setTimeout(() => {
+        peticionesEnCurso.current.delete(key);
+      }, 1000);
     }
   }, []);
 
