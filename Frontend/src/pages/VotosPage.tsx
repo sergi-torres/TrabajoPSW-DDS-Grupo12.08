@@ -192,7 +192,7 @@ export default function VotosPage() {
         return;
       }
 
-      const response = await fetch(`http://localhost:5245/api/proyecto/${proyectoId}`, {
+      const response = await fetch(`http://localhost:5245/api/proyectos/${proyectoId}`, {
         method: "DELETE",
       });
 
