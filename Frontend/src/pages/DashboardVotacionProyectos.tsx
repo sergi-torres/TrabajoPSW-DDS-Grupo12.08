@@ -43,9 +43,11 @@ const DashboardVotacionProyectos: React.FC<Props> = ({ categoria, alVolver, come
     const userIdRaw = localStorage.getItem('userId');
     const idUsuario = userIdRaw ? parseInt(userIdRaw) : null;
     const sessionId = localStorage.getItem('sessionId');
+    const storedEventoId = localStorage.getItem('eventoId');
+    const finalEventoId = eventoId || (storedEventoId ? parseInt(storedEventoId) : 0);
 
     const votoDto = {
-      eventoId: eventoId || 0,
+      eventoId: finalEventoId,
       categoriaId: categoria.id,
       proyectoId: seleccionado.id,
       comentario: comentario,
@@ -70,11 +72,13 @@ const DashboardVotacionProyectos: React.FC<Props> = ({ categoria, alVolver, come
 
     const userIdRaw = localStorage.getItem('userId');
     const idUsuario = userIdRaw ? parseInt(userIdRaw) : null;
+    const storedEventoId = localStorage.getItem('eventoId');
+    const finalEventoId = eventoId || (storedEventoId ? parseInt(storedEventoId) : 0);
 
     try {
       // Enviar todas las evaluaciones en una sola petición batch
       const batchPayload = {
-        eventoId: eventoId || 0,
+        eventoId: finalEventoId,
         categoriaId: categoria.id,
         proyectoId: seleccionado.id,
         idUsuario: idUsuario,
