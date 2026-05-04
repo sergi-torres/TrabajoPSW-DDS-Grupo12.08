@@ -1,4 +1,4 @@
-using Votify.API.Factories;
+using Votify.API.Models.Domain.Factories;
 using Votify.API.Models.Domain;
 using Votify.API.Models.DTOs;
 

@@ -23,15 +23,6 @@ const DashboardVotacionCategorias = () => {
   const effectivelyPublic = (!isAuthenticated && isPublic) || userRole === "Público";
   const themeColor = effectivelyPublic ? "#059669" : (userColor || "#2563eb");
 
-  // Efecto para saltar a proyectos si es público y hay datos
-  useEffect(() => {
-    if (effectivelyPublic && datos && (datos as any).categorias && (datos as any).categorias.length > 0 && vistaActual === 'categorias') {
-        // Seleccionamos la primera categoría (normalmente "Global") y vamos a proyectos
-        setCategoriaElegida((datos as any).categorias[0]);
-        setVistaActual('proyectos');
-    }
-  }, [effectivelyPublic, datos, vistaActual]);
-
   // Inicializar contexto si es público y no está seteado
   useEffect(() => {
     if (effectivelyPublic && (!userRole || userRole !== "Público")) {
@@ -45,6 +36,13 @@ const DashboardVotacionCategorias = () => {
   useEffect(() => {
     if (vistaActual === 'categorias') {
       cargarDashboard();
+      
+      // Sincronización automática cada 10 segundos
+      const interval = setInterval(() => {
+        cargarDashboard();
+      }, 10000);
+
+      return () => clearInterval(interval);
     }
   }, [vistaActual, cargarDashboard]);
 
@@ -149,17 +147,16 @@ const DashboardVotacionCategorias = () => {
                   <Award className="w-6 h-6" style={{ color: themeColor }} />
                   <h2 className="text-xl font-heading font-bold text-gray-900">Categorías Disponibles</h2>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
                   {(datos as any).categorias.map((cat: any) => (
-                    <div key={cat.id} className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 p-1">
-                      <CategoriaCard
-                        categoria={cat}
-                        alVotar={() => {
-                          setCategoriaElegida(cat);
-                          setVistaActual('proyectos');
-                        }}
-                      />
-                    </div>
+                    <CategoriaCard
+                      key={cat.id}
+                      categoria={cat}
+                      alVotar={() => {
+                        setCategoriaElegida(cat);
+                        setVistaActual('proyectos');
+                      }}
+                    />
                   ))}
                 </div>
               </section>

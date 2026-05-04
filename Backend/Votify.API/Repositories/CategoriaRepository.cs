@@ -82,6 +82,17 @@ namespace Votify.API.Repositories
         }
 
 
+        public async Task<List<Categoria>> ObtenerCategoriasDominioPorEventoIdAsync(int eventoId)
+        {
+            var response = await _supabase
+                .From<Categoria>()
+                .Where(c => c.IdEvento == eventoId)
+                .Select("*")
+                .Get();
+
+            return response.Models;
+        }
+
         //!a parir los asñadiste tu brad 
         //Deberiamos tener siempre el ID de categoria pero por asegurar
         
@@ -111,7 +122,7 @@ namespace Votify.API.Repositories
             var response = await _supabase
                 .From<Categoria>()
                 .Where(c => c.IdEvento == eventoId)
-                .Filter("estado", Supabase.Postgrest.Constants.Operator.NotEqual, "Finalizada")
+                .Filter("estado", Supabase.Postgrest.Constants.Operator.Equals, "Pendiente")
                 .Select("*")
                 .Get();
 
@@ -140,7 +151,8 @@ namespace Votify.API.Repositories
                 IdEvento = c.IdEvento,
                 FechaIni = c.FechaIni,
                 FechaFin = c.FechaFin,
-                Estado = c.Estado
+                Estado = c.Estado,
+                VotosMaximos = c.VotosMaximos
             }).ToList();
         }
 

@@ -1,4 +1,4 @@
-using Votify.API.Models.Domain;
+﻿using Votify.API.Models.Domain;
 using Votify.API.Models.DTOs;
 using Votify.API.Repositories;
 
@@ -9,12 +9,13 @@ namespace Votify.API.Services
         private readonly Supabase.Client _supabase;
 
         private readonly ICategoriaRepository _categoriaRepository;
+        private readonly IProyectoRepository _proyectoRepository;
 
-
-        public EventoService(Supabase.Client supabase, ICategoriaRepository categoriaRepository)
+        public EventoService(Supabase.Client supabase, ICategoriaRepository categoriaRepository, IProyectoRepository proyectoRepository)
         {
             _supabase = supabase;
             _categoriaRepository = categoriaRepository;
+            _proyectoRepository = proyectoRepository;
         }
 
         public async Task<List<EventoResponseDto>> GetEventosByUsuarioAsync(int userId)
@@ -100,8 +101,64 @@ namespace Votify.API.Services
                 CategoriaId = c.CategoriaId,
                 Nombre = c.Nombre,
                 FechaIni = c.FechaIni,
-                FechaFin = c.FechaFin
+                FechaFin = c.FechaFin,
+                Estado = c.Estado
             });
+        }
+
+        public async Task<IEnumerable<CategoriaResponseActualizadoDto>> ListarCategoriasControlAsync(int eventoId)
+        {
+            var categorias = await _categoriaRepository.ObtenerTodosCamposAsync(eventoId);
+            
+            // Fetch projects to count them per category
+            var proyectos = await _proyectoRepository.ObtenerPorEventoIdAsync(eventoId);
+
+            foreach (var cat in categorias)
+            {
+                cat.CantidadProyectos = proyectos.Count(p => p.IdCategoria == cat.Id);
+            }
+
+            return categorias;
+        }
+
+        public async Task<bool> ActualizarLimiteVotosAsync(int eventoId, int? categoriaId, int votosMaximos)
+        {
+            // If categoriaId is provided, update only that category.
+            // If categoriaId is null, update ALL categories in the event that are "Pendiente"
+            var categorias = await _categoriaRepository.ObtenerCategoriasDominioPorEventoIdAsync(eventoId);
+                
+            bool success = true;
+
+            foreach (var cat in categorias)
+            {
+                if (categoriaId.HasValue)
+                {
+                    if (cat.Id == categoriaId.Value)
+                    {
+                        cat.VotosMaximos = votosMaximos;
+                        success &= await _categoriaRepository.ActualizarAsync(cat);
+                    }
+                }
+                else
+                {
+                    if (cat.Estado == "Pendiente")
+                    {
+                        cat.VotosMaximos = votosMaximos;
+                        success &= await _categoriaRepository.ActualizarAsync(cat);
+                    }
+                }
+            }
+
+            return success;
+        }
+
+        public async Task<bool> ActualizarEstadoCategoriaAsync(int categoriaId, string nuevoEstado)
+        {
+            var categoria = await _categoriaRepository.ObtenerPorIdAsync(categoriaId);
+            if (categoria == null) return false;
+
+            categoria.Estado = nuevoEstado;
+            return await _categoriaRepository.ActualizarAsync(categoria);
         }
 
         public async Task<bool> ActualizarTiemposAsync(ConfigTiemposCategoriasDto request)
@@ -296,56 +353,58 @@ namespace Votify.API.Services
                     }
                 }
 
-                // Actualizar categorías si se proporcionan y NO está en votación
+                // Actualizar categorías solo si se proporcionan y el evento NO está en votación
                 if (!enVotacion && dto.Categorias != null)
                 {
-                    // Borrar pesos de categorías existentes
-                    var categoriasExistentes = await _supabase
+                    // Obtener categorías existentes
+                    var categoriasExistentesRes = await _supabase
                         .From<Categoria>()
                         .Filter("idevento", Supabase.Postgrest.Constants.Operator.Equals, eventoId.ToString())
                         .Get();
+                    
+                    var categoriasExistentes = categoriasExistentesRes.Models;
 
-                    foreach (var cat in categoriasExistentes.Models)
-                    {
-                        await _supabase
-                            .From<PesoCategoriaRol>()
-                            .Filter("idcategoria", Supabase.Postgrest.Constants.Operator.Equals, cat.Id.ToString())
-                            .Delete();
-                    }
-
-                    // Borrar categorías existentes
-                    await _supabase
-                        .From<Categoria>()
-                        .Filter("idevento", Supabase.Postgrest.Constants.Operator.Equals, eventoId.ToString())
-                        .Delete();
-
-                    // Crear nuevas categorías
+                    // Para cada categoría en el DTO
                     foreach (var catDto in dto.Categorias)
                     {
-                        var nuevaCat = new Categoria
+                        // Buscar si ya existe por nombre (o podrías usar ID si el DTO lo tuviera)
+                        var existente = categoriasExistentes.FirstOrDefault(c => c.Nombre == catDto.Nombre);
+                        int catId;
+
+                        if (existente != null)
                         {
-                            Nombre = catDto.Nombre,
-                            IdEvento = eventoId
-                        };
+                            catId = existente.Id;
+                            // Actualizar pesos si es necesario (primero borrar pesos viejos de esta cat)
+                            await _supabase.From<PesoCategoriaRol>()
+                                .Filter("idcategoria", Supabase.Postgrest.Constants.Operator.Equals, catId.ToString())
+                                .Delete();
+                        }
+                        else
+                        {
+                            // Crear nueva
+                            var nuevaCat = new Categoria { Nombre = catDto.Nombre, IdEvento = eventoId };
+                            var catCreada = await _supabase.From<Categoria>().Insert(nuevaCat);
+                            catId = catCreada.Models.First().Id;
+                        }
 
-                        var catCreada = await _supabase.From<Categoria>().Insert(nuevaCat);
-                        var catId = catCreada.Models.First().Id;
-
+                        // Insertar nuevos pesos
                         if (catDto.Pesos != null)
                         {
                             foreach (var pesoDto in catDto.Pesos)
                             {
-                                var nuevoPeso = new PesoCategoriaRol
+                                await _supabase.From<PesoCategoriaRol>().Insert(new PesoCategoriaRol
                                 {
                                     IdCategoria = catId,
                                     RolVotante = pesoDto.RolVotante,
                                     Peso = (float)pesoDto.Peso
-                                };
-
-                                await _supabase.From<PesoCategoriaRol>().Insert(nuevoPeso);
+                                });
                             }
                         }
                     }
+
+                    // Opcional: Borrar categorías que NO están en el DTO y NO tienen proyectos
+                    // Pero por seguridad y para evitar el error 23503 que viste, 
+                    // simplemente no borraremos categorías de forma masiva aquí.
                 }
 
                 // Devolver el evento actualizado

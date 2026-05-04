@@ -1,17 +1,15 @@
-﻿import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useEffect, useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { EventContext } from "../context/EventContext";
 import { EventSidebar } from "../components/layout/EventSidebar";
 import { categoriasApi } from "../api/categoriasApi";
+import ComentariosProyecto from "../components/comentarios/ComentariosProyecto";
 import {
   ArrowLeft,
   Target,
   Award,
   TrendingUp,
-  MessageSquare,
-  User,
-  ThumbsUp
 } from "lucide-react";
 import { cn } from "../components/ui/utils";
 
@@ -34,26 +32,7 @@ const CriterionBar = ({ name, score, maxScore, color }: { name: string, score: n
   </div>
 );
 
-const CommentCard = ({ author, comment, timestamp, likes }: { author: string, comment: string, timestamp: string, likes: number }) => (
-  <div className="border border-gray-200 rounded-lg p-4">
-    <div className="flex items-start gap-3">
-      <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
-        <User className="w-5 h-5 text-white" />
-      </div>
-      <div className="flex-1">
-        <div className="flex items-center justify-between mb-1">
-          <h4 className="font-medium">{author}</h4>
-          <span className="text-xs text-gray-500">{timestamp}</span>
-        </div>
-        <p className="text-gray-700 text-sm mb-2">{comment}</p>
-        <div className="flex items-center gap-1 text-gray-500 text-sm">
-          <ThumbsUp className="w-3 h-3" />
-          <span>{likes} personas útil</span>
-        </div>
-      </div>
-    </div>
-  </div>
-);
+
 
 // --- COMPONENTE PRINCIPAL ---
 
@@ -64,7 +43,6 @@ export default function VotosPage() {
 
   const [votaciones, setVotaciones] = useState<any[]>([]);
   const [categoria, setCategoria] = useState<any>(null);
-  const [publicComments, setPublicComments] = useState<any[]>([]);
 
   const isPublicRole = userRole === "Público";
   const themeColor = userColor || "#9333ea";
@@ -73,58 +51,17 @@ export default function VotosPage() {
 
   // FETCH DE COMENTARIOS
   useEffect(() => {
-    const fetchComments = async () => {
+    const fetchProjectData = async () => {
       const idProyecto = localStorage.getItem("proyectoId");
-
-      console.log("Iniciando carga de votaciones y comentarios para proyectoId:", idProyecto);
-
       if (!idProyecto) return;
 
       try {
         const votoRes = await fetch(`http://localhost:5245/api/votacion/porProyecto?proyectoId=${idProyecto}`);
         if (!votoRes.ok) throw new Error("Error al obtener votaciones");
-
         const dataVoto = await votoRes.json();
         setVotaciones(dataVoto);
-
-        console.log("Votaciones obtenidas:", dataVoto);
-
-        if (dataVoto && dataVoto.length > 0) {
-          const comentariosPromises = dataVoto.map((voto: any) => 
-            fetch(`http://localhost:5245/api/comentarios?idVotacion=${voto.id}`)
-              .then(res => res.ok ? res.json() : [])
-              .catch(() => [])
-          );
-
-          console.log("Cargando comentarios para cada votación...", comentariosPromises);
-
-          const resultadosComentarios = await Promise.all(comentariosPromises);
-          const todosLosComentarios = resultadosComentarios.flat();
-
-          let mapped = [];
-          if (todosLosComentarios && todosLosComentarios.length > 0) {
-            mapped = todosLosComentarios.map((c: any) => ({
-              id: c.id,
-              author: c.nombreUsuario || c.email || "Anónimo",
-              comment: c.comentario,
-              timestamp: new Date(c.fecha).toLocaleString(),
-              likes: c.likes ?? 0
-            }));
-          } else {
-            mapped = dataVoto
-              .filter((voto: any) => voto.comentario && voto.comentario.trim() !== "")
-              .map((voto: any) => ({
-                id: voto.id,
-                author: "Participante",
-                comment: voto.comentario,
-                timestamp: new Date(voto.fechaVoto || voto.fecha).toLocaleString(),
-                likes: 0
-              }));
-          }
-          setPublicComments(mapped);
-        }
       } catch (err) {
-        console.error("Error cargando comentarios:", err);
+        console.error("Error cargando votaciones:", err);
       }
 
       const idCategoria = localStorage.getItem("categoriaProyecto");
@@ -138,7 +75,7 @@ export default function VotosPage() {
       }
     };
 
-    fetchComments();
+    fetchProjectData();
   }, []);
 
   const state = {

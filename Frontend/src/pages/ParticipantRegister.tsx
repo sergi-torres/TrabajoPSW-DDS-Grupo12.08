@@ -1,5 +1,5 @@
-﻿import { ArrowLeft, Check, Target, Calendar, Users, Upload, X, Image as ImageIcon } from "lucide-react";
-import { useNavigate } from "react-router";
+import { ArrowLeft, Check, Target, Calendar, Users, Upload, X, Image as ImageIcon } from "lucide-react";
+import { useNavigate, useParams } from "react-router";
 import { useState, useEffect, useContext } from "react"; 
 import { useVoting } from "../context/VotingContext";
 import { Card, CardHeader, CardTitle, CardContent } from "../components/ui/card";
@@ -9,12 +9,18 @@ import { toast } from "sonner";
 import { createProyecto } from "../api/proyectoApi";
 import { EventSidebar } from "../components/layout/EventSidebar";
 import { EventContext } from "../context/EventContext";
+import { AuthContext } from "../context/AuthContext";
+import { cn } from "../components/ui/utils";
 
 
 export default function RegisterParticipant() {
   const navigate = useNavigate();
-  const { categories, eventConfig } = useVoting();
+  const { eventoId: eventIdFromUrl } = useParams();
+  const { eventConfig } = useVoting();
   const eventContext = useContext(EventContext);
+  
+  const [localCategories, setLocalCategories] = useState<any[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<any>(null);
   const [projectData, setProjectData] = useState<any>({
     name: "",
@@ -87,15 +93,15 @@ export default function RegisterParticipant() {
   };
 
   const handleRegister = async () => {
-    if (projectCreated && (selectedCategory || categories.length === 0)) {
+    if (projectCreated && (localCategories.length === 0 || selectedCategory)) {
       try {
         const userId = localStorage.getItem("userId");
-        const eventoId = localStorage.getItem("eventoId");      
+        const eventoId = eventIdFromUrl || localStorage.getItem("eventoId");      
 
         const newProject = {
           nombre: projectData.name,
           descripcion: projectData.description,
-          urlMultimedia: imagePreview || "🚀",
+          urlMultimedia: "🚀", // No enviamos el Base64 porque supera los 500 caracteres del VARCHAR en DB
           idEvento: eventoId ? parseInt(eventoId) : null,
           idParticipante: userId ? parseInt(userId) : 16,
           idCategoria: selectedCategory ? parseInt(selectedCategory) : null,
@@ -108,7 +114,8 @@ export default function RegisterParticipant() {
         
         localStorage.setItem("proyectoABCD", JSON.stringify(res));
 
-        toast.success(`Proyecto registrado exitosamente!\n\nProyecto: ${projectData.name}\nCategoría: ${categories.find((c: any) => c.id === selectedCategory)?.name}`);
+        const catName = localCategories.find((c: any) => c.id === selectedCategory)?.nombre || "N/A";
+        toast.success(`Proyecto registrado exitosamente!\n\nProyecto: ${projectData.name}\nCategoría: ${catName}`);
         navigate("/eventos");
       } catch (error: any) {
         console.error("Error al crear el proyecto:", error);
@@ -118,33 +125,45 @@ export default function RegisterParticipant() {
   };
 ;
 
-  const isReadyToRegister = projectCreated && (selectedCategory || categories.length === 0);
+  const isReadyToRegister = projectCreated && (selectedCategory || localCategories.length === 0);
   const isCollapsed = eventContext?.isCollapsed ?? false;
   const userRole = eventContext?.userRole ?? "Participante";
+  
+  // Determinar si es público de forma robusta
+  const effectivelyPublic = (!isAuthenticated && isPublic) || userRole === "Público";
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] relative">
+    <div className="min-h-screen bg-gray-50 font-body relative">
       <EventSidebar />
       
-      <div className={`transition-all duration-300 ${isCollapsed ? "lg:pl-28" : "lg:pl-80"}`}>
-        {/* Header `*/}
-        <div className="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-6 lg:p-10">
+      <div className="pb-[88px] lg:pb-12">
+        {/* Header - Full Width Background */}
+        <header 
+          className={cn(
+            "text-white p-6 lg:p-10 transition-all duration-300",
+            effectivelyPublic ? "lg:pl-10" : (isCollapsed ? "lg:pl-28" : "lg:pl-80")
+          )}
+          style={{ background: "linear-gradient(to right, #9333ea, #7e22ce)" }}
+        >
           <div className="max-w-7xl mx-auto">
             <button
               onClick={() => navigate("/eventos")}
-              className="flex items-center gap-2 mb-4 hover:opacity-80 transition-opacity bg-white/10 px-4 py-2 rounded-xl"
+              className="inline-flex items-center gap-2 mb-4 hover:opacity-80 transition-opacity bg-white/10 px-4 py-2 rounded-xl font-heading font-semibold text-sm group"
             >
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
               Volver
             </button>
             <div>
-              <h1 className="text-4xl font-heading font-bold mb-2">Registrar Proyecto</h1>
-              <p className="text-purple-100 text-lg">Crea tu proyecto para {eventConfig?.eventName || "el evento"}</p>
+              <h1 className="text-4xl font-heading font-bold mb-2 tracking-tight">Registrar Proyecto</h1>
+              <p className="text-purple-100 text-lg font-medium opacity-90">Crea tu proyecto para {eventConfig?.eventName || "el evento"}</p>
             </div>
           </div>
-        </div>
+        </header>
 
-        <div className="max-w-7xl mx-auto p-6 lg:p-10 space-y-6">
+        <main className={cn(
+          "max-w-7xl mx-auto p-6 lg:p-10 -mt-10 space-y-8 transition-all duration-300",
+          effectivelyPublic ? "" : (isCollapsed ? "lg:pl-28" : "lg:pl-80")
+        )}>
           {/* Paso 1: Crear Proyecto */}
           {!projectCreated ? (
             <Card className="border-purple-200 shadow-lg rounded-3xl overflow-hidden">
@@ -488,7 +507,7 @@ export default function RegisterParticipant() {
 
 
           {/* Resumen Final */}
-          {projectCreated && (selectedCategory || categories.length === 0) && (
+          {projectCreated && (selectedCategory || localCategories.length === 0) && (
             <div className="animate-in slide-in-from-bottom-8 duration-700">
               <button
                 onClick={handleRegister}
@@ -507,7 +526,7 @@ export default function RegisterParticipant() {
               </button>
             </div>
           )}
-        </div>
+        </main>
       </div>
     </div>
   );

@@ -5,7 +5,8 @@ const API_URL = 'http://localhost:5245/api/votacion';
 export const getDashboardData = async (
   eventoId: number, 
   idUsuario: number | null = null, 
-  sessionId: string | null = null
+  sessionId: string | null = null,
+  identificadorHash?: string
 ): Promise<VotacionDashboardData> => {
   const params = new URLSearchParams({ eventoId: String(eventoId) });
   if (idUsuario !== null && idUsuario !== undefined) {
@@ -13,6 +14,9 @@ export const getDashboardData = async (
   }
   if (sessionId) {
     params.append('sessionId', String(sessionId));
+  }
+  if (identificadorHash) {
+    params.append('identificadorHash', identificadorHash);
   }
 
   const response = await fetch(`${API_URL}/dashboard?${params.toString()}`);
@@ -32,7 +36,33 @@ export const enviarDatosVoto = async (votoDto: Voto): Promise<any> => {
   });
 
   if (!response.ok) {
-    throw new Error('Error al enviar el voto');
+    const errorText = await response.text();
+    throw new Error(errorText || 'Error al enviar el voto');
+  }
+
+  return await response.json();
+}
+
+export interface VotoBatchPayload {
+  eventoId: number;
+  categoriaId: number;
+  proyectoId: number;
+  idUsuario: number | null;
+  sessionId?: string | null;
+  comentarioGlobal?: string;
+  evaluaciones: { criterioId: number; valor: number; comentario: string }[];
+}
+
+export const enviarDatosVotoBatch = async (payload: VotoBatchPayload): Promise<any> => {
+  const response = await fetch(`${API_URL}/votar/batch`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(errorText || 'Error al enviar la evaluación');
   }
 
   return await response.json();
