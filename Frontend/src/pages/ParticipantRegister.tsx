@@ -1,4 +1,4 @@
-import { ArrowLeft, Check, Target, Calendar, Users, Upload, X, Image as ImageIcon } from "lucide-react";
+﻿import { ArrowLeft, Check, Target, Calendar, Users, Upload, X, Image as ImageIcon } from "lucide-react";
 import { useNavigate, useParams } from "react-router";
 import { useState, useEffect, useContext } from "react"; 
 import { useVoting } from "../context/VotingContext";
@@ -16,9 +16,10 @@ import { cn } from "../components/ui/utils";
 export default function RegisterParticipant() {
   const navigate = useNavigate();
   const { eventoId: eventIdFromUrl } = useParams();
-  const { eventConfig } = useVoting();
+  const { categories, eventConfig } = useVoting();
   const eventContext = useContext(EventContext);
   
+
   const [localCategories, setLocalCategories] = useState<any[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<any>(null);
@@ -130,7 +131,7 @@ export default function RegisterParticipant() {
   const userRole = eventContext?.userRole ?? "Participante";
   
   // Determinar si es público de forma robusta
-  const effectivelyPublic = (!isAuthenticated && isPublic) || userRole === "Público";
+  const effectivelyPublic = userRole === "Público";
 
   return (
     <div className="min-h-screen bg-gray-50 font-body relative">

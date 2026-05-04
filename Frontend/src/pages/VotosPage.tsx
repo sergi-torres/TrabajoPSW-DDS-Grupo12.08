@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+﻿import { useNavigate } from "react-router-dom";
 import { useEffect, useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { EventContext } from "../context/EventContext";
@@ -10,6 +10,7 @@ import {
   Target,
   Award,
   TrendingUp,
+  MessageSquare,
 } from "lucide-react";
 import { cn } from "../components/ui/utils";
 
@@ -43,6 +44,8 @@ export default function VotosPage() {
 
   const [votaciones, setVotaciones] = useState<any[]>([]);
   const [categoria, setCategoria] = useState<any>(null);
+
+  const [publicComments, setPublicComments] = useState<any[]>([]);
 
   const isPublicRole = userRole === "Público";
   const themeColor = userColor || "#9333ea";
