@@ -18,6 +18,7 @@ import { VotingProvider } from "./context/VotingContext";
 import CreateProject from './pages/CreateProject'
 import ConfigTiempoVotacionPage from './pages/ConfigTiempoVotacion'
 import ProjectPage from './pages/ProjectPage'
+import Avisos from './pages/Avisos'
 
 function App() {
   return (
@@ -48,6 +49,8 @@ function App() {
                 
                 <Route path="/participantRegister" element={<ParticipantRegister />} />
                 <Route path="/create-project" element={<CreateProject />} />
+
+                <Route path="/avisos" element={<Avisos />} />
               </Route>
 
               <Route path="/" element={<Navigate to="/login" replace />} />
