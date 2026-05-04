@@ -80,7 +80,7 @@ namespace Votify.API.Services
                 FechaIni = c.FechaIni,
                 FechaFin = c.FechaFin,
                 Estado = c.Estado,
-                VotosRestantes = 3,
+                VotosRestantes = c.VotosMaximos,
                 PesosPorRol = new List<PesoCategoriaRol>()
             }).ToList();
 
@@ -217,8 +217,8 @@ namespace Votify.API.Services
 
                 return new DashboardResponseDto
                 {
-                    VotosGlobalesMaximos = categoriasDelEvento.Count * 3,
-                    VotosGlobalesRealizados = categoriasResumen.Sum(c => 3 - c.VotosRestantes),
+                    VotosGlobalesMaximos = categoriasDelEvento.Sum(c => c.VotosRestantes),
+                    VotosGlobalesRealizados = categoriasResumen.Sum(c => c.Proyectos.Count(p => p.Estado == "votado")),
                     ProyectosActivos = categoriasResumen.Sum(c => c.Proyectos.Count),
                     TiempoRestante = "05:00",
                     Categorias = categoriasResumen
@@ -244,9 +244,14 @@ namespace Votify.API.Services
                     throw new Exception("Ya has votado por este proyecto.");
                 }
 
-                if (proyectosVotados.Count >= 3)
+                // We need to fetch the category to know the max votes
+                var categoriasDb = await _categoriaRepository.ObtenerTodosCamposAsync(request.EventoId);
+                var catDb = categoriasDb.FirstOrDefault(c => c.Id == request.CategoriaId);
+                var maxVotos = catDb?.VotosMaximos ?? 3;
+
+                if (proyectosVotados.Count >= maxVotos)
                 {
-                    throw new Exception("Ya has agotado tus 3 votos para esta categoría.");
+                    throw new Exception($"Ya has agotado tus {maxVotos} votos para esta categoría.");
                 }
             }
 

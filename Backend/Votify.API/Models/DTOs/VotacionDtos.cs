@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Votify.API.Models.DTOs
 {
@@ -27,10 +27,10 @@ namespace Votify.API.Models.DTOs
     {
         [Required]
         public int EventoId { get; set; }
-        
+
         [Required]
         public int CategoriaId { get; set; }
-        
+
         [Required]
         public int ProyectoId { get; set; }
 
@@ -62,27 +62,27 @@ namespace Votify.API.Models.DTOs
     public class ConfigTiemposCategoriasDto //sirve como request como responses
     {
 
-        public int? EventoId {get; set;}
+        public int? EventoId { get; set; }
 
-        public int CategoriaId {get; set;}
+        public int CategoriaId { get; set; }
 
-        public required string Nombre {get; set;}
+        public required string Nombre { get; set; }
 
-        public DateTime? FechaIni {get; set;}
+        public DateTime? FechaIni { get; set; }
 
-        public DateTime? FechaFin {get; set;} 
+        public DateTime? FechaFin { get; set; }
 
         public string? Estado { get; set; }
     }
-    
+
 
     public class VotoResponseDto
     {
-            public int Id { get; set; }
-            public int ProyectoId { get; set; }
-            public int CategoriaId { get; set; }
-            public string? Comentario { get; set; }
-            public DateTime Fecha { get; set; }
+        public int Id { get; set; }
+        public int ProyectoId { get; set; }
+        public int CategoriaId { get; set; }
+        public string? Comentario { get; set; }
+        public DateTime Fecha { get; set; }
     }
 
     // Batch request for Jurado: all criteria evaluations for one project in one request
@@ -120,4 +120,18 @@ namespace Votify.API.Models.DTOs
         public string? Comentario { get; set; }
     }
 
+    public class ActualizarEstadoRequestDto
+    {
+        [Required]
+        public string NuevoEstado { get; set; } = string.Empty;
+    }
+
+    public class ActualizarLimiteVotosRequestDto
+    {
+        [Required]
+        public int VotosMaximos { get; set; }
+
+        // Null means apply to all pending categories in the event
+        public int? CategoriaId { get; set; }
+    }
 }

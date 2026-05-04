@@ -4,13 +4,13 @@ import { cn } from '../../ui/utils';
 
 interface EstadoCategoriaCardProps {
     categoria: {
-        categoriaId: number;
+        id: number;
         nombre: string;
         fechaIni: string | null;
         fechaFin: string | null;
         estado: string;
     };
-    onCambiarEstado: (id: number, nuevoEstado: string) => Promise<boolean>;
+    onCambiarEstado: (id: number, nuevoEstado: string, silent?: boolean) => Promise<boolean>;
     isSelected: boolean;
     onSelect: () => void;
 }
@@ -23,56 +23,69 @@ export default function EstadoCategoriaCard({
 }: EstadoCategoriaCardProps) {
     const [timeLeft, setTimeLeft] = useState<string>("");
 
-    const { categoriaId, nombre, fechaIni, fechaFin, estado } = categoria;
+    const { id: categoriaId, nombre, fechaIni, fechaFin, estado } = categoria;
 
-    // Lógica de Countdown
     useEffect(() => {
-        // Si no hay fecha de fin o está finalizada, no hay countdown
-        if (!fechaFin || estado === "Finalizada") {
+        if (estado === "Finalizada") {
             setTimeLeft("");
             return;
         }
 
-        const nowTime = new Date().getTime();
-        const startTime = fechaIni ? new Date(fechaIni).getTime() : null;
-        
-        // Si es Pendiente y hay fechaIni futura, no hay countdown real (mostramos estático)
-        if (estado === "Pendiente" && startTime && nowTime < startTime) {
-            setTimeLeft(""); 
-            return;
-        }
+        const calculateTime = () => {
+            const now = new Date().getTime();
+            const start = fechaIni ? new Date(fechaIni).getTime() : null;
+            const end = fechaFin ? new Date(fechaFin).getTime() : null;
 
-        // El countdown solo corre si está Activa o Pausada
-            const calculateTime = () => {
-                const now = new Date().getTime();
-                const end = new Date(fechaFin).getTime();
+            // 1. Lógica de Activación Automática
+            if (estado === "Pendiente" && start && now >= start) {
+                if (end && now >= end) {
+                    onCambiarEstado(categoriaId, "Finalizada", true);
+                } else {
+                    onCambiarEstado(categoriaId, "Activa", true);
+                }
+                return false; // Parar el timer para evitar múltiples llamadas a la API mientras se actualiza
+            }
+
+            // 2. Lógica de Finalización Automática
+            if (end) {
                 const diff = end - now;
-
                 if (diff <= 0) {
                     setTimeLeft("00:00:00");
-                    if (estado === "Activa" || estado === "Pausada") {
-                        onCambiarEstado(categoriaId, "Finalizada");
+                    if (estado === "Activa" || estado === "Pausada" || estado === "Pendiente") {
+                        onCambiarEstado(categoriaId, "Finalizada", true);
+                        return false; 
                     }
                     return false;
                 } else {
-                    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-                    setTimeLeft(
-                        `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
-                    );
+                    if (estado === "Activa" || estado === "Pausada") {
+                        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                        setTimeLeft(
+                            `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+                        );
+                    } else if (estado === "Pendiente" && start && now < start) {
+                        setTimeLeft("");
+                    }
                     return true;
                 }
-            };
-
-            // Cálculo inicial inmediato
-            calculateTime();
-
-            const timer = setInterval(() => {
-                if (!calculateTime()) {
-                    clearInterval(timer);
+            } else {
+                if (estado === "Pendiente" && start && now < start) {
+                    setTimeLeft("");
+                    return true;
                 }
-            }, 1000);
+                setTimeLeft("");
+                return false;
+            }
+        };
+
+        if (!calculateTime()) return;
+
+        const timer = setInterval(() => {
+            if (!calculateTime()) {
+                clearInterval(timer);
+            }
+        }, 1000);
 
         return () => clearInterval(timer);
     }, [fechaFin, fechaIni, estado, categoriaId, onCambiarEstado]);

@@ -9,12 +9,13 @@ namespace Votify.API.Services
         private readonly Supabase.Client _supabase;
 
         private readonly ICategoriaRepository _categoriaRepository;
+        private readonly IProyectoRepository _proyectoRepository;
 
-
-        public EventoService(Supabase.Client supabase, ICategoriaRepository categoriaRepository)
+        public EventoService(Supabase.Client supabase, ICategoriaRepository categoriaRepository, IProyectoRepository proyectoRepository)
         {
             _supabase = supabase;
             _categoriaRepository = categoriaRepository;
+            _proyectoRepository = proyectoRepository;
         }
 
         public async Task<List<EventoResponseDto>> GetEventosByUsuarioAsync(int userId)
@@ -107,7 +108,48 @@ namespace Votify.API.Services
 
         public async Task<IEnumerable<CategoriaResponseActualizadoDto>> ListarCategoriasControlAsync(int eventoId)
         {
-            return await _categoriaRepository.ObtenerTodosCamposAsync(eventoId);
+            var categorias = await _categoriaRepository.ObtenerTodosCamposAsync(eventoId);
+            
+            // Fetch projects to count them per category
+            var proyectos = await _proyectoRepository.ObtenerPorEventoIdAsync(eventoId);
+
+            foreach (var cat in categorias)
+            {
+                cat.CantidadProyectos = proyectos.Count(p => p.IdCategoria == cat.Id);
+            }
+
+            return categorias;
+        }
+
+        public async Task<bool> ActualizarLimiteVotosAsync(int eventoId, int? categoriaId, int votosMaximos)
+        {
+            // If categoriaId is provided, update only that category.
+            // If categoriaId is null, update ALL categories in the event that are "Pendiente"
+            var categorias = await _categoriaRepository.ObtenerCategoriasDominioPorEventoIdAsync(eventoId);
+                
+            bool success = true;
+
+            foreach (var cat in categorias)
+            {
+                if (categoriaId.HasValue)
+                {
+                    if (cat.Id == categoriaId.Value)
+                    {
+                        cat.VotosMaximos = votosMaximos;
+                        success &= await _categoriaRepository.ActualizarAsync(cat);
+                    }
+                }
+                else
+                {
+                    if (cat.Estado == "Pendiente")
+                    {
+                        cat.VotosMaximos = votosMaximos;
+                        success &= await _categoriaRepository.ActualizarAsync(cat);
+                    }
+                }
+            }
+
+            return success;
         }
 
         public async Task<bool> ActualizarEstadoCategoriaAsync(int categoriaId, string nuevoEstado)

@@ -37,7 +37,7 @@ export const ConfigTiemposVotacion = {
     const res = await fetch(`${API_URL}/categoria/${id}/estado`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(nuevoEstado)
+      body: JSON.stringify({ nuevoEstado })
     });
     
     if (!res.ok) {
@@ -45,5 +45,20 @@ export const ConfigTiemposVotacion = {
       throw new Error(errorData.error || "Error al actualizar el estado");
     }
     return await res.json();
+  },
+
+  // Actualizar límite de votos
+  actualizarLimiteVotos: async (eventoId: number, votosMaximos: number, categoriaId?: number): Promise<boolean> => {
+    const body: any = { votosMaximos };
+    if (categoriaId !== undefined) {
+        body.categoriaId = categoriaId;
+    }
+    const res = await fetch(`${API_URL}/evento/${eventoId}/limite-votos`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) throw new Error("Error al actualizar el límite de votos");
+    return true;
   }
 };
