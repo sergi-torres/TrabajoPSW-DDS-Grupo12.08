@@ -80,10 +80,23 @@ namespace Votify.API.Controllers
 
         // GET: api/proyectos/evento/{eventoId}
         [HttpGet("evento/{eventoId}")]
-        public async Task<ActionResult<List<Proyecto>>> ObtenerPorEvento(int eventoId)
+        public async Task<ActionResult<List<ProyectoResponseDto>>> ObtenerPorEvento(int eventoId)
         {
             var proyectos = await _proyectoRepository.ObtenerPorEventoIdAsync(eventoId);
-            return Ok(proyectos);
+
+            var proyectosDto = proyectos.Select(p => new ProyectoResponseDto
+            {
+                Id = p.Id,
+                Nombre = p.Nombre,
+                Descripcion = p.Descripcion,
+                UrlMultimedia = p.UrlMultimedia,
+                IdEvento = p.IdEvento,
+                IdParticipante = p.IdParticipante,
+                IdCategoria = p.IdCategoria,
+                Estado = p.Estado
+            });
+
+            return Ok(proyectosDto); // ← Devuelve DTO limpio
         }
 
         [HttpPost]
@@ -117,6 +130,16 @@ namespace Votify.API.Controllers
             };
 
             return Ok(response);
+        }
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> EliminarProyecto(int id)
+        {
+            var eliminado = await _proyectoRepository.EliminarAsync(id);
+            if (!eliminado)
+            {
+                return NotFound();
+            }
+            return NoContent();
         }
     }
 }

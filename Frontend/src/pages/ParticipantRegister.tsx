@@ -10,6 +10,7 @@ import { createProyecto } from "../api/proyectoApi";
 import { EventSidebar } from "../components/layout/EventSidebar";
 import { EventContext } from "../context/EventContext";
 
+
 export default function RegisterParticipant() {
   const navigate = useNavigate();
   const { categories, eventConfig } = useVoting();
@@ -24,15 +25,37 @@ export default function RegisterParticipant() {
     newMemberEmail: ""
   });
 
+  const [proyectosUsuario, setProyectosUsuario] = useState<ProyectoUsuario[]>([]);
+
+  useEffect(() => {
+    const cargarProyectos = async () => {
+      try {
+        const userId = localStorage.getItem("userId");
+        if (userId) {
+          const response = await fetch(`http://localhost:5245/api/proyectos/participante/${userId}`);
+          if (response.ok) {
+            const proyectos = await response.json();
+            setProyectosUsuario(proyectos);
+            console.log("Proyectos del usuario:", proyectos);
+          }
+        }
+      } catch (error) {
+        console.error("Error cargando proyectos:", error);
+      }
+    };
+
+    cargarProyectos();
+  }, []);
+
   useEffect(() => {
     const userId = localStorage.getItem("userId");
     if (userId && projectData.memberIds.length === 0) {
-      setProjectData((prev: any) => ({
+      setProjectData((prev) => ({
         ...prev,
         memberIds: [parseInt(userId)]
       }));
     }
-  }, [projectData.memberIds.length]);
+  }, []); // Solo se ejecuta una vez al montar
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -93,6 +116,7 @@ export default function RegisterParticipant() {
       }
     }
   };
+;
 
   const isReadyToRegister = projectCreated && (selectedCategory || categories.length === 0);
   const isCollapsed = eventContext?.isCollapsed ?? false;
@@ -343,9 +367,9 @@ export default function RegisterParticipant() {
 
           {/* Paso 2: Seleccionar Categoría */}
 
+
          
 {categories.length > 0 && projectCreated && (
-
   <Card className="border-purple-200 shadow-lg animate-in slide-in-from-bottom duration-500">
     <CardHeader>
       <CardTitle className="flex items-center gap-2">
@@ -360,85 +384,104 @@ export default function RegisterParticipant() {
       </CardTitle>
     </CardHeader>
     <CardContent>
-      {/* Verificar si hay categorías activas */}
-
-      {categories.forEach(category => console.log(category))}
-
-      {categories.some(cat => cat.status === "pending" || cat.status === "active") ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {categories.map((category) => {
-            const isActive = category.status === "pending" || category.status === "active";
-            const isSelected = selectedCategory === category.id;
-            
-            
-
-            return (
-              <div
-                key={category.id}
-                onClick={() => isActive && setSelectedCategory(category.id)}
-                className={`
-                  bg-gradient-to-br from-white to-purple-50 border-2 rounded-2xl p-6
-                  transition-all cursor-pointer
-                  ${!isActive && "opacity-60 cursor-not-allowed"}
-                  ${isActive && "hover:shadow-xl"}
-                  ${isSelected && isActive
-                    ? "border-purple-600 shadow-lg ring-4 ring-purple-200"
-                    : "border-purple-100 hover:border-purple-300"
-                  }
-                  ${!isActive && "border-gray-200 bg-gray-50"}
-                `}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className={`
-                      w-12 h-12 rounded-xl flex items-center justify-center
-                      ${isSelected && isActive ? "bg-purple-600" : !isActive ? "bg-gray-300" : "bg-purple-100"}
-                    `}>
-                      <Target className={`w-6 h-6 ${
-                        isSelected && isActive ? "text-white" : !isActive ? "text-gray-500" : "text-purple-600"
-                      }`} />
+      {/* Las categorías ocupadas se calculan AQUÍ dentro */}
+      {(() => {
+        // Obtener IDs de categorías donde el usuario ya tiene proyecto
+        const categoriasOcupadas = proyectosUsuario.map(p => p.idCategoria).filter(Boolean);
+        const hayCategoriasDisponibles = categories.some(cat => 
+          (cat.status === "pending" || cat.status === "active") && 
+          !categoriasOcupadas.includes(cat.id)
+        );
+        
+        return hayCategoriasDisponibles ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {categories.map((category) => {
+              const isActive = category.status === "pending" || category.status === "active";
+              const yaTieneProyecto = categoriasOcupadas.includes(category.id);
+              const isSelectable = isActive && !yaTieneProyecto;
+              const isSelected = selectedCategory === category.id;
+              
+              return (
+                <div
+                  key={category.id}
+                  onClick={() => isSelectable && setSelectedCategory(category.id)}
+                  className={`
+                    bg-gradient-to-br from-white to-purple-50 border-2 rounded-2xl p-6
+                    transition-all cursor-pointer
+                    ${!isSelectable && "opacity-60 cursor-not-allowed"}
+                    ${isSelectable && "hover:shadow-xl"}
+                    ${isSelected && isSelectable
+                      ? "border-purple-600 shadow-lg ring-4 ring-purple-200"
+                      : "border-purple-100 hover:border-purple-300"
+                    }
+                    ${!isSelectable && "border-gray-200 bg-gray-50"}
+                  `}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className={`
+                        w-12 h-12 rounded-xl flex items-center justify-center
+                        ${isSelected && isSelectable ? "bg-purple-600" : !isSelectable ? "bg-gray-300" : "bg-purple-100"}
+                      `}>
+                        <Target className={`w-6 h-6 ${
+                          isSelected && isSelectable ? "text-white" : !isSelectable ? "text-gray-500" : "text-purple-600"
+                        }`} />
+                      </div>
+                      <div>
+                        <h4 className={`text-xl ${!isSelectable && "text-gray-500"}`}>{category.name}</h4>
+                        <div className="flex gap-2 mt-1">
+                          <Badge 
+                            variant="outline" 
+                            className={`${
+                              isActive 
+                                ? "border-green-300 text-green-700 bg-green-50"
+                                : "border-gray-300 text-gray-500 bg-gray-100"
+                            }`}
+                          >
+                            {isActive ? "Activa" : "Pendiente"}
+                          </Badge>
+                          {yaTieneProyecto && (
+                            <Badge 
+                              variant="outline" 
+                              className="border-orange-300 text-orange-700 bg-orange-50"
+                            >
+                              Ya tienes proyecto
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className={`text-xl ${!isActive && "text-gray-500"}`}>{category.name}</h4>
-                      <Badge 
-                        variant="outline" 
-                        className={`mt-1 ${
-                          isActive 
-                            ? "border-green-300 text-green-700 bg-green-50"
-                            : "border-gray-300 text-gray-500 bg-gray-100"
-                        }`}
-                      >
-                        {isActive ? "Activa" : "Pendiente"}
-                      </Badge>
-                    </div>
+                    {isSelected && isSelectable && (
+                      <div className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center">
+                        <Check className="w-6 h-6 text-white" />
+                      </div>
+                    )}
                   </div>
-                  {isSelected && isActive && (
-                    <div className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center">
-                      <Check className="w-6 h-6 text-white" />
-                    </div>
-                  )}
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        /* Mensaje cuando no hay categorías activas */
-        <div className="text-center py-12">
-          <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Target className="w-10 h-10 text-gray-400" />
+              );
+            })}
           </div>
-          <h3 className="text-xl font-semibold text-gray-700 mb-2">
-            No hay categorías disponibles
-          </h3>
-          <p className="text-gray-500">
-            En estos momentos no hay categorías activas para este evento.
-          </p>
-          <p className="text-gray-400 text-sm mt-2">
-            Por favor, espera a que el organizador habilite las categorías.
-          </p>
-        </div>
-      )}
+        ) : (
+          <div className="text-center py-12">
+            <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Target className="w-10 h-10 text-gray-400" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-700 mb-2">
+              No hay categorías disponibles
+            </h3>
+            <p className="text-gray-500">
+              {categoriasOcupadas.length > 0 && categories.some(c => c.status === "pending" || c.status === "active")
+                ? "Ya tienes un proyecto registrado en todas las categorías activas."
+                : "En estos momentos no hay categorías activas para este evento."}
+            </p>
+            <p className="text-gray-400 text-sm mt-2">
+              {categoriasOcupadas.length > 0 && categories.some(c => c.status === "pending" || c.status === "active")
+                ? "Solo puedes registrar un proyecto por categoría."
+                : "Por favor, espera a que el organizador habilite las categorías."}
+            </p>
+          </div>
+        );
+      })()}
     </CardContent>
   </Card>
 )}

@@ -12,5 +12,7 @@ namespace Votify.API.Repositories
         Task<List<Proyecto>> ObtenerPorEventoIdAsync(int eventoId);
 
         Task<Proyecto?> CrearAsync(Proyecto proyecto);
+
+        Task<bool> EliminarAsync(int id);
     }
 }
