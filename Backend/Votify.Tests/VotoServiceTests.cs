@@ -52,9 +52,15 @@ namespace Votify.Tests
 
             _votoRepoMock.Setup(r => r.ExisteVotoPublicoAsync(request.EventoId, request.CategoriaId, request.IdentificadorHash))
                 .ReturnsAsync(false);
+            
+            _votoRepoMock.Setup(r => r.ObtenerProyectosVotadosPublicoAsync(request.EventoId, request.CategoriaId, request.IdentificadorHash))
+                .ReturnsAsync(new List<int>());
 
             _votoRepoMock.Setup(r => r.AgregarVotoAsync(It.IsAny<Voto>()))
                 .ReturnsAsync(new VotoPublico { Id = 1 });
+
+            _votoRepoMock.Setup(r => r.ObtenerTodosVotosPublicosPorHashAsync(request.EventoId, request.IdentificadorHash))
+                .ReturnsAsync(new List<RegistroVotoPublico>());
 
             // Mock dependencies for ObtenerDashboardAsync (called at the end of ProcesarVotoAsync)
             _categoriaRepoMock.Setup(r => r.ObtenerTodosCamposAsync(request.EventoId))
@@ -82,6 +88,11 @@ namespace Votify.Tests
 
             _votoRepoMock.Setup(r => r.ExisteVotoPublicoAsync(eventoId, 1, hash))
                 .ReturnsAsync(true);
+            
+            _votoRepoMock.Setup(r => r.ObtenerTodosVotosPublicosPorHashAsync(eventoId, hash))
+                .ReturnsAsync(new List<RegistroVotoPublico> { 
+                    new RegistroVotoPublico { IdEvento = eventoId, IdCategoria = 1, IdProyecto = 1, IdentificadorHash = hash }
+                });
 
             _categoriaRepoMock.Setup(r => r.ObtenerTodosCamposAsync(eventoId))
                 .ReturnsAsync(new List<CategoriaResponseActualizadoDto> { 
@@ -113,12 +124,12 @@ namespace Votify.Tests
                 IdentificadorHash = "existing-hash-123"
             };
 
-            _votoRepoMock.Setup(r => r.ExisteVotoPublicoAsync(request.EventoId, request.CategoriaId, request.IdentificadorHash))
-                .ReturnsAsync(true);
+            _votoRepoMock.Setup(r => r.ObtenerProyectosVotadosPublicoAsync(request.EventoId, request.CategoriaId, request.IdentificadorHash))
+                .ReturnsAsync(new List<int> { request.ProyectoId });
 
             // Act & Assert
             var exception = await Assert.ThrowsAsync<Exception>(() => _votoService.ProcesarVotoAsync(request));
-            Assert.Contains("Ya se ha registrado un voto", exception.Message);
+            Assert.Contains("Ya has votado por este proyecto", exception.Message);
         }
 
         [Fact]
@@ -157,6 +168,42 @@ namespace Votify.Tests
             // Assert
             Assert.NotNull(result);
             _votoRepoMock.Verify(r => r.AgregarVotoAsync(It.Is<Voto>(v => v.IdEvaluador == userId && v.Valor == 8)), Times.Once);
+        }
+
+        [Fact]
+        public async Task ObtenerResumenComentariosAsync_ShouldGroupAndAnonymizeCorrectly()
+        {
+            // Arrange
+            int proyectoId = 1;
+            int categoriaId = 1;
+
+            var votos = new List<Voto>
+            {
+                new VotoJurado { Id = 1, IdProyecto = proyectoId, IdCategoria = categoriaId, IdEvaluador = 101, Comentario = "Comentario 1" },
+                new VotoJurado { Id = 2, IdProyecto = proyectoId, IdCategoria = categoriaId, IdEvaluador = 101, Comentario = "Comentario 2" },
+                new VotoJurado { Id = 3, IdProyecto = proyectoId, IdCategoria = categoriaId, IdEvaluador = 102, Comentario = "Comentario 3" },
+                new VotoPublico { Id = 4, IdProyecto = proyectoId, IdCategoria = categoriaId, IpDispositivo = "hash1", Comentario = "Publico 1" }
+            };
+
+            _votoRepoMock.Setup(r => r.ObtenerVotosPorProyectoYCategoriaAsync(proyectoId, categoriaId))
+                .ReturnsAsync(votos);
+
+            // Act
+            var result = await _votoService.ObtenerResumenComentariosAsync(proyectoId, categoriaId);
+
+            // Assert
+            Assert.Equal(2, result.Count); // Jurado y Público
+            var jurado = result.First(t => t.Tipo == "Jurado");
+            Assert.Equal(2, jurado.Usuarios.Count); // Dos jurados distintos
+            Assert.Equal(3, jurado.TotalComentarios);
+            
+            var publico = result.First(t => t.Tipo == "Público");
+            Assert.Single(publico.Usuarios);
+            Assert.Equal(1, publico.TotalComentarios);
+
+            // Verificar anonimato
+            Assert.All(jurado.Usuarios, u => Assert.Equal("Jurado", u.Nombre));
+            Assert.All(jurado.Usuarios, u => Assert.NotEmpty(u.Referencia));
         }
     }
 }

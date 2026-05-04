@@ -30,5 +30,17 @@ export const comentariosApi = {
     }
 
     return await res.json();
+  },
+
+  getResumen: async (proyectoId: number, categoriaId: number) => {
+    const res = await fetch(`${API_URL}/proyecto/${proyectoId}/categoria/${categoriaId}/resumen`);
+    if (!res.ok) throw new Error("Error al obtener resumen de comentarios");
+    return await res.json();
+  },
+
+  getDetalleUsuario: async (proyectoId: number, categoriaId: number, usuarioRef: string) => {
+    const res = await fetch(`${API_URL}/proyecto/${proyectoId}/categoria/${categoriaId}/usuario/${usuarioRef}`);
+    if (!res.ok) throw new Error("Error al obtener detalle de comentarios");
+    return await res.json();
   }
 };

@@ -10,8 +10,8 @@ namespace Votify.API.Repositories
         Task<List<VotoJurado>> ObtenerVotosDeUsuarioAsync(int idUsuario);
         Task<bool> ExisteVotoPublicoAsync(int idEvento, int idCategoria, string hash);
         Task<List<int>> ObtenerProyectosVotadosPublicoAsync(int idEvento, int idCategoria, string hash);
-        Task<List<RegistroVotoPublico>> ObtenerTodosVotosPublicosPorHashAsync(int idEvento, string hash);
+        Task<List<RegistroVotoPublico>> ObtenerTodosVotosPublicosPorHashAsync(int idEvento, string hash);       
         Task RegistrarVotoPublicoAsync(RegistroVotoPublico registro);
-
+        Task<List<Voto>> ObtenerVotosPorProyectoYCategoriaAsync(int proyectoId, int categoriaId);
     }
 }

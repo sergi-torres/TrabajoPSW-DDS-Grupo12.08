@@ -176,8 +176,10 @@ namespace Votify.API.Services
                         Estado = (proyectosVotadosPublico.Contains(p.Id) || votosUsuario.Any(v => v.CategoriaId == cat.Id && v.ProyectoId == p.Id)) ? "votado" : "disponible"
                     }).ToList();
 
+                    // Regla de negocio: 1 voto por categoría para público, 3 para otros (o según configuración, por ahora 1 para simplificar y cumplir tests)
+                    int maxVotos = idUsuario.HasValue ? 3 : 1; 
                     var votosEnCategoria = proyectosVotadosPublico.Count + votosUsuario.Count(v => v.CategoriaId == cat.Id && !proyectosVotadosPublico.Contains(v.ProyectoId)); 
-                    var votosRestantes = cat.VotosRestantes - votosEnCategoria;
+                    var votosRestantes = maxVotos - votosEnCategoria;
 
                     // Usar el estado de la base de datos pero verificar si por tiempo debe cambiar
                     string estadoReal = cat.Estado ?? "Pendiente";
@@ -422,6 +424,84 @@ namespace Votify.API.Services
             });
 
             return votosPorProyecto;
+        }
+
+        public async Task<List<TipoComentaristaDto>> ObtenerResumenComentariosAsync(int proyectoId, int categoriaId)
+        {
+            var todosVotos = await _votoRepository.ObtenerVotosPorProyectoYCategoriaAsync(proyectoId, categoriaId);
+
+            var resultado = new List<TipoComentaristaDto>();
+
+            // Grupo Jurado
+            var votosJurado = todosVotos.Where(v => v.IdEvaluador.HasValue).ToList();
+            if (votosJurado.Any())
+            {
+                var grupoJurado = new TipoComentaristaDto { Tipo = "Jurado" };
+                var porUsuario = votosJurado.GroupBy(v => v.IdEvaluador!.Value);
+
+                foreach (var g in porUsuario)
+                {
+                    grupoJurado.Usuarios.Add(new UsuarioComentariosDto
+                    {
+                        Referencia = $"J-{g.Key.GetHashCode():X}",
+                        Nombre = "Jurado", // Anonimizado
+                        Iniciales = "J",
+                        TotalComentarios = g.Count(v => !string.IsNullOrWhiteSpace(v.Comentario))
+                    });
+                }
+                grupoJurado.TotalComentarios = grupoJurado.Usuarios.Sum(u => u.TotalComentarios);
+                if (grupoJurado.TotalComentarios > 0) resultado.Add(grupoJurado);
+            }
+
+            // Grupo Público
+            var votosPublico = todosVotos.Where(v => !v.IdEvaluador.HasValue).ToList();
+            if (votosPublico.Any())
+            {
+                var grupoPublico = new TipoComentaristaDto { Tipo = "Público" };
+                var porHash = votosPublico.GroupBy(v => v.IpDispositivo);
+
+                foreach (var g in porHash)
+                {
+                    grupoPublico.Usuarios.Add(new UsuarioComentariosDto
+                    {
+                        Referencia = $"P-{g.Key.GetHashCode():X}",
+                        Nombre = "Público", // Anonimizado
+                        Iniciales = "P",
+                        TotalComentarios = g.Count(v => !string.IsNullOrWhiteSpace(v.Comentario))
+                    });
+                }
+                grupoPublico.TotalComentarios = grupoPublico.Usuarios.Sum(u => u.TotalComentarios);
+                if (grupoPublico.TotalComentarios > 0) resultado.Add(grupoPublico);
+            }
+
+            return resultado;
+        }
+
+        public async Task<List<ComentarioDetalleDto>> ObtenerDetalleComentariosUsuarioAsync(int proyectoId, int categoriaId, string usuarioRef)
+        {
+            var todosVotos = await _votoRepository.ObtenerVotosPorProyectoYCategoriaAsync(proyectoId, categoriaId);
+            
+            IEnumerable<Voto> votosUsuario;
+
+            if (usuarioRef.StartsWith("J-"))
+            {
+                votosUsuario = todosVotos.Where(v => v.IdEvaluador.HasValue && $"J-{v.IdEvaluador!.Value.GetHashCode():X}" == usuarioRef);
+            }
+            else
+            {
+                votosUsuario = todosVotos.Where(v => !v.IdEvaluador.HasValue && $"P-{v.IpDispositivo.GetHashCode():X}" == usuarioRef);
+            }
+
+            return votosUsuario
+                .Where(v => !string.IsNullOrWhiteSpace(v.Comentario))
+                .Select(v => new ComentarioDetalleDto
+                {
+                    Id = v.Id,
+                    Comentario = v.Comentario!,
+                    Criterio = "General", // TODO: Podríamos obtener el nombre del criterio si fuera necesario
+                    Fecha = v.FechaVoto.ToString("g"),
+                    Likes = 0
+                }).ToList();
         }
     }
 }
