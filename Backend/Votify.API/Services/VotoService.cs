@@ -176,8 +176,8 @@ namespace Votify.API.Services
                         Estado = (proyectosVotadosPublico.Contains(p.Id) || votosUsuario.Any(v => v.CategoriaId == cat.Id && v.ProyectoId == p.Id)) ? "votado" : "disponible"
                     }).ToList();
 
-                    // Regla de negocio: 1 voto por categoría para público, 3 para otros (o según configuración, por ahora 1 para simplificar y cumplir tests)
-                    int maxVotos = idUsuario.HasValue ? 3 : 1; 
+                    // Usar el valor dinámico configurado en la base de datos para cada categoría
+                    int maxVotos = cat.VotosRestantes; 
                     var votosEnCategoria = proyectosVotadosPublico.Count + votosUsuario.Count(v => v.CategoriaId == cat.Id && !proyectosVotadosPublico.Contains(v.ProyectoId)); 
                     var votosRestantes = maxVotos - votosEnCategoria;
 
@@ -244,10 +244,10 @@ namespace Votify.API.Services
                     throw new Exception("Ya has votado por este proyecto.");
                 }
 
-                // We need to fetch the category to know the max votes
+                // Fetch the category to know the real max votes from DB
                 var categoriasDb = await _categoriaRepository.ObtenerTodosCamposAsync(request.EventoId);
                 var catDb = categoriasDb.FirstOrDefault(c => c.Id == request.CategoriaId);
-                var maxVotos = catDb?.VotosMaximos ?? 3;
+                var maxVotos = catDb?.VotosMaximos ?? 3; // Default to 3 (as requested) if not found
 
                 if (proyectosVotados.Count >= maxVotos)
                 {
