@@ -1,4 +1,4 @@
-﻿using Votify.API.Models.Domain;
+using Votify.API.Models.Domain;
 using Votify.API.Models.DTOs;
 using Votify.API.Repositories;
 
@@ -231,8 +231,15 @@ namespace Votify.API.Services
 
 
                 // Peso jurado/público de la categoría
-                var pesoJurado = pesos.FirstOrDefault(p => p.IdCategoria == proyecto.IdCategoria && p.RolVotante == "Jurado")?.Peso ?? 0.7f;
-                var pesoPublico = pesos.FirstOrDefault(p => p.IdCategoria == proyecto.IdCategoria && p.RolVotante == "Publico")?.Peso ?? 0.3f;
+                var pesoJurado = pesos.FirstOrDefault(p => p.IdCategoria == proyecto.IdCategoria && p.RolVotante == "Jurado")?.Peso ?? 70f;
+                var pesoPublico = pesos.FirstOrDefault(p => p.IdCategoria == proyecto.IdCategoria && p.RolVotante == "Publico")?.Peso ?? 30f;
+
+                // Normalizar los pesos a formato decimal (0-1) si están en base 100
+                if (pesoJurado > 1f || pesoPublico > 1f)
+                {
+                    pesoJurado /= 100f;
+                    pesoPublico /= 100f;
+                }
 
                 float combinedScore = (juryScore * pesoJurado) + (publicScore * pesoPublico);
 
