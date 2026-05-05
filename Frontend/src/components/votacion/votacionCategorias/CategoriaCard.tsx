@@ -121,7 +121,7 @@ const CategoriaCard = ({ categoria, alVotar }: CategoriaCardProps) => {
       <button 
         onClick={alVotar}
         disabled={actualConfig.btnDisabled}
-        className={`px-10 py-3 rounded-2xl font-bold transition-all shadow-lg w-full max-w-[240px] ${actualConfig.btnClass}`}
+        className={`px-4 py-3 rounded-2xl font-bold transition-all shadow-lg w-full max-w-[240px] text-sm md:text-base ${actualConfig.btnClass}`}
       >
         {actualConfig.btnText}
       </button>
