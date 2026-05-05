@@ -161,15 +161,22 @@ const DashboardVotacionProyectos: React.FC<Props> = ({ categoria, alVolver, come
           effectivelyPublic ? 'lg:pl-10' : (isCollapsed ? 'lg:pl-28' : 'lg:pl-80')
         )}>
           <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 lg:p-10">
-            {pasoEvaluacion && isJurado ? (
+            {pasoEvaluacion ? (
               <EvaluacionCriterios 
                 proyecto={seleccionado}
                 eventoId={eventoId || 0}
                 categoriaId={categoria.id}
-                onConfirmar={handleConfirmarJurado}
+                onConfirmar={isJurado ? handleConfirmarJurado : async (evals, global) => {
+                    // Adaptar el flujo de público para que use EvaluacionCriterios
+                    // pero solo enviando el primer voto o simplificado si el backend espera 1 solo valor.
+                    // Para el MVP, si el público ahora usa criterios, enviamos el batch como el jurado
+                    // pero con valores de peso 1 o según se configure.
+                    await handleConfirmarJurado(evals, global);
+                }}
                 onCancelar={() => setPasoEvaluacion(false)}
                 cargando={cargando}
                 comentariosObligatorios={comentariosObligatorios}
+                themeColor={themeColor}
               />
             ) : (
               <>
@@ -179,14 +186,8 @@ const DashboardVotacionProyectos: React.FC<Props> = ({ categoria, alVolver, come
                     alSeleccionar={setSeleccionado} 
                 />
 
-                {!isJurado && (
-                  <OpcionesSeleccionado
-                      seleccionado={seleccionado}
-                      comentario={comentario}
-                      setComentario={setComentario}
-                      comentariosObligatorios={comentariosObligatorios}
-                  />
-                )}
+                {/* Ya no mostramos OpcionesSeleccionado por separado, 
+                    el público también irá al paso de evaluación detallada */}
 
                 <div className="flex justify-end gap-4 mt-12">
                     <button
@@ -197,7 +198,7 @@ const DashboardVotacionProyectos: React.FC<Props> = ({ categoria, alVolver, come
                     {effectivelyPublic ? 'Cancelar' : 'Atrás'}
                     </button>
                     <button
-                    onClick={() => isJurado ? setPasoEvaluacion(true) : handleConfirmarPublico()}
+                    onClick={() => setPasoEvaluacion(true)}
                     disabled={!seleccionado || cargando || (categoria.estado !== 'activa' && !isJurado)}
                     className={cn(
                         "px-10 py-4 rounded-2xl font-bold text-white shadow-lg transition-all",
@@ -207,7 +208,7 @@ const DashboardVotacionProyectos: React.FC<Props> = ({ categoria, alVolver, come
                     )}
                     style={seleccionado && !cargando && (categoria.estado === 'activa' || isJurado) ? { backgroundColor: themeColor } : {}}
                     >
-                    {cargando ? 'Enviando...' : (isJurado ? 'Continuar a Evaluación' : (categoria.estado !== 'activa' ? 'Voto Registrado' : 'Confirmar Voto'))}
+                    {cargando ? 'Enviando...' : (categoria.estado !== 'activa' && !isJurado ? 'Voto Registrado' : 'Continuar a Evaluación')}
                     </button>
                 </div>
               </>

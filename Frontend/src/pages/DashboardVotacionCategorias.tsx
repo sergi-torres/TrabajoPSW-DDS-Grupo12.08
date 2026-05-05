@@ -138,7 +138,7 @@ const DashboardVotacionCategorias = () => {
                   <Target className="w-6 h-6" style={{ color: themeColor }} />
                   <h2 className="text-xl font-heading font-bold text-gray-900">Resumen de Votación</h2>
                 </div>
-                <StatsBar config={datos as any} />
+                <StatsBar config={datos as any} themeColor={themeColor} />
               </section>
 
               {/* Categories Grid */}

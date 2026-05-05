@@ -10,9 +10,10 @@ interface StatsBarConfig {
 
 interface StatsBarProps {
     config: StatsBarConfig;
+    themeColor?: string;
 }
 
-const StatsBar = ({ config }: StatsBarProps) => {
+const StatsBar = ({ config, themeColor = "#2563eb" }: StatsBarProps) => {
   // Extraemos los datos del objeto que viene de la lógica de negocio
   const { categorias, proyectosActivos, votosGlobalesRealizados, votosGlobalesMaximos, tiempoRestante } = config;
 
@@ -23,13 +24,13 @@ const StatsBar = ({ config }: StatsBarProps) => {
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {stats.map((s, i) => (
-        <div key={i} className="bg-white p-7 rounded-[24px] border border-gray-100 shadow-sm flex flex-col justify-center">
+        <div key={i} className="bg-white p-7 rounded-[24px] border border-gray-100 shadow-sm flex flex-col justify-center hover:shadow-md transition-shadow">
           <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-1">
             {s.etiqueta}
           </p>
-          <p className="text-3xl font-black text-gray-900">
+          <p className="text-3xl font-black" style={{ color: themeColor }}>
             {s.valor}
           </p>
         </div>
