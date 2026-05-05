@@ -1,4 +1,4 @@
-﻿using Votify.API.Models.Domain;
+using Votify.API.Models.Domain;
 using Votify.API.Models.DTOs;
 using Votify.API.Repositories;
 
@@ -299,55 +299,119 @@ namespace Votify.API.Services
                 // Solo actualizar baremos/criterios si NO está en votación
                 if (!enVotacion && dto.Baremos != null)
                 {
-                    // Borrar criterios existentes de los baremos del evento
-                    var baremosExistentes = await _supabase
+                    // Obtener baremos existentes
+                    var baremosExistentesRes = await _supabase
                         .From<Baremo>()
                         .Filter("idevento", Supabase.Postgrest.Constants.Operator.Equals, eventoId.ToString())
                         .Get();
+                    var baremosExistentes = baremosExistentesRes.Models;
 
-                    foreach (var baremo in baremosExistentes.Models)
+                    var nombresBaremosDto = dto.Baremos.Select(b => b.Nombre).ToList();
+
+                    // Borrar baremos que ya no están en el DTO
+                    foreach (var baremoExistente in baremosExistentes)
                     {
-                        // Borrar criterios del baremo
-                        await _supabase
-                            .From<Criterio>()
-                            .Filter("idbaremo", Supabase.Postgrest.Constants.Operator.Equals, baremo.Id.ToString())
-                            .Delete();
+                        if (!nombresBaremosDto.Contains(baremoExistente.Nombre))
+                        {
+                            try
+                            {
+                                // Borrar criterios del baremo
+                                await _supabase.From<Criterio>()
+                                    .Filter("idbaremo", Supabase.Postgrest.Constants.Operator.Equals, baremoExistente.Id.ToString())
+                                    .Delete();
+
+                                await _supabase.From<Baremo>()
+                                    .Filter("id", Supabase.Postgrest.Constants.Operator.Equals, baremoExistente.Id.ToString())
+                                    .Delete();
+                            }
+                            catch (Exception ex)
+                            {
+                                if (ex.Message.Contains("23503") || (ex.InnerException != null && ex.InnerException.Message.Contains("23503")))
+                                {
+                                    throw new Exception($"No se puede eliminar el baremo '{baremoExistente.Nombre}' porque ya tiene votos registrados.");
+                                }
+                                throw;
+                            }
+                        }
                     }
 
-                    // Borrar baremos existentes
-                    await _supabase
-                        .From<Baremo>()
-                        .Filter("idevento", Supabase.Postgrest.Constants.Operator.Equals, eventoId.ToString())
-                        .Delete();
-
-                    // Crear nuevos baremos con sus criterios
+                    // Crear o actualizar baremos con sus criterios
                     foreach (var baremoDto in dto.Baremos)
                     {
-                        var nuevoBaremo = new Baremo
-                        {
-                            Nombre = baremoDto.Nombre,
-                            IdEvento = eventoId
-                        };
+                        var baremoExistente = baremosExistentes.FirstOrDefault(b => b.Nombre == baremoDto.Nombre);
+                        int baremoId;
 
-                        var baremoCreado = await _supabase.From<Baremo>().Insert(nuevoBaremo);
-                        var baremoId = baremoCreado.Models.First().Id;
+                        if (baremoExistente != null)
+                        {
+                            baremoId = baremoExistente.Id;
+                        }
+                        else
+                        {
+                            var nuevoBaremo = new Baremo { Nombre = baremoDto.Nombre, IdEvento = eventoId };
+                            var baremoCreado = await _supabase.From<Baremo>().Insert(nuevoBaremo);
+                            baremoId = baremoCreado.Models.First().Id;
+                        }
 
                         if (baremoDto.Criterios != null)
                         {
+                            var criteriosExistentesRes = await _supabase
+                                .From<Criterio>()
+                                .Filter("idbaremo", Supabase.Postgrest.Constants.Operator.Equals, baremoId.ToString())
+                                .Get();
+                            var criteriosExistentes = criteriosExistentesRes.Models;
+
+                            var nombresCriteriosDto = baremoDto.Criterios.Select(c => c.Nombre).ToList();
+
+                            // Borrar los que ya no están en el DTO
+                            foreach (var criterioExistente in criteriosExistentes)
+                            {
+                                if (!nombresCriteriosDto.Contains(criterioExistente.Nombre))
+                                {
+                                    try
+                                    {
+                                        await _supabase.From<Criterio>()
+                                            .Filter("id", Supabase.Postgrest.Constants.Operator.Equals, criterioExistente.Id.ToString())
+                                            .Delete();
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        if (ex.Message.Contains("23503") || (ex.InnerException != null && ex.InnerException.Message.Contains("23503")))
+                                        {
+                                            throw new Exception($"No se puede eliminar el criterio '{criterioExistente.Nombre}' porque ya tiene votos registrados.");
+                                        }
+                                        throw;
+                                    }
+                                }
+                            }
+
                             foreach (var criterioDto in baremoDto.Criterios)
                             {
                                 var tipoCriterio = Enum.Parse<TipoCriterioEnum>(criterioDto.TipoCriterio, ignoreCase: true);
+                                var criterioExistente = criteriosExistentes.FirstOrDefault(c => c.Nombre == criterioDto.Nombre);
 
-                                var nuevoCriterio = new Criterio
+                                if (criterioExistente != null)
                                 {
-                                    Nombre = criterioDto.Nombre,
-                                    Peso = (float)criterioDto.Peso,
-                                    TipoCriterio = tipoCriterio,
-                                    IdBaremo = baremoId,
-                                    ComentarioObligatorio = criterioDto.ComentarioObligatorio
-                                };
-
-                                await _supabase.From<Criterio>().Insert(nuevoCriterio);
+                                    // Actualizar Criterio existente
+                                    await _supabase.From<Criterio>()
+                                        .Filter("id", Supabase.Postgrest.Constants.Operator.Equals, criterioExistente.Id.ToString())
+                                        .Set(c => c.Peso, (float)criterioDto.Peso)
+                                        .Set(c => c.TipoCriterio, tipoCriterio)
+                                        .Set(c => c.ComentarioObligatorio, criterioDto.ComentarioObligatorio)
+                                        .Update();
+                                }
+                                else
+                                {
+                                    // Insertar nuevo Criterio
+                                    var nuevoCriterio = new Criterio
+                                    {
+                                        Nombre = criterioDto.Nombre,
+                                        Peso = (float)criterioDto.Peso,
+                                        TipoCriterio = tipoCriterio,
+                                        IdBaremo = baremoId,
+                                        ComentarioObligatorio = criterioDto.ComentarioObligatorio
+                                    };
+                                    await _supabase.From<Criterio>().Insert(nuevoCriterio);
+                                }
                             }
                         }
                     }
