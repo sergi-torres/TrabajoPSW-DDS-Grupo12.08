@@ -63,6 +63,9 @@ database/pgdata/
 # Gemini
 .gemini/
 GEMINI.md
+
+# Claude
+.claude/
 CLAUDE.md
 
 # Gemini CLI Conductor
