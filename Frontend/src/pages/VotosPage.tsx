@@ -4,6 +4,7 @@ import { AuthContext } from "../context/AuthContext";
 import { EventContext } from "../context/EventContext";
 import { EventSidebar } from "../components/layout/EventSidebar";
 import { MobileNav } from "../components/eventos/MobileNav";
+import { useVoting } from "../context/VotingContext";
 import { 
   ArrowLeft, 
   Target, 
@@ -22,6 +23,10 @@ import { cn } from "../components/ui/utils";
 // ============================================
 // SUB-COMPONENTES
 // ============================================
+// CONTEXTO DE VOTACIÓN
+// ============================================
+
+
 
 const CriterionBar = ({ name, score, maxScore, color }: { name: string; score: number; maxScore: number; color: string }) => (
   <div>
@@ -68,6 +73,8 @@ export default function VotosPage() {
   const { isPublic, userName } = useContext(AuthContext)!;
   const { userColor, isCollapsed, userRole } = useContext(EventContext)!;
 
+  const { addNotification } = useVoting();
+
   const [votaciones, setVotaciones] = useState<any[]>([]);
   const [categoria, setCategoria] = useState<any>(null);
   const [publicComments, setPublicComments] = useState<any[]>([]);
@@ -78,12 +85,28 @@ export default function VotosPage() {
   const isPublicRole = userRole === "Público";
   const themeColor = userColor || "#9333ea";
 
+        // 3. Obtener categoría
+
+  const obtenerCategoria = async () => {
+    const idCategoria = localStorage.getItem("categoriaProyecto");
+
+    if (idCategoria) {
+        const catRes = await fetch(`http://localhost:5245/api/categorias/id/${idCategoria}`);
+        if (catRes.ok) {
+          const catData = await catRes.json();
+          setCategoria(catData);
+          localStorage.setItem("categoriaNombre", catData.nombre);
+        }
+    }
+   };
+
+
   // Cargar lista de proyectos desde localStorage
   useEffect(() => {
     const storedProyectos = localStorage.getItem("proyectos");
     if (storedProyectos) {
       const proyectos = JSON.parse(storedProyectos);
-      setProyectosDisponibles(proyectos);
+      setProyectosDisponibles(proyectos); 
     }
     const currentId = localStorage.getItem("proyectoId");
     setProyectoActualId(currentId);
@@ -121,15 +144,6 @@ export default function VotosPage() {
         setPublicComments([]);
       }
 
-      // 3. Obtener categoría
-      const idCategoria = localStorage.getItem("categoriaProyecto");
-      if (idCategoria) {
-        const catRes = await fetch(`http://localhost:5245/api/categorias/id/${idCategoria}`);
-        if (catRes.ok) {
-          const catData = await catRes.json();
-          setCategoria(catData);
-        }
-      }
     } catch (err) {
       console.error("Error cargando datos:", err);
     } finally {
@@ -155,8 +169,10 @@ export default function VotosPage() {
       localStorage.setItem("proyectoId", prevProject.id);
       localStorage.setItem("proyectoNombre", prevProject.nombre);
       localStorage.setItem("proyectoDescripcion", prevProject.descripcion);
+      localStorage.setItem("categoriaProyecto", prevProject.idCategoria);
       setProyectoActualId(prevProject.id);
       fetchData(prevProject.id);
+      obtenerCategoria();
     } else {
       alert("No hay proyecto anterior");
     }
@@ -171,8 +187,10 @@ export default function VotosPage() {
       localStorage.setItem("proyectoId", nextProject.id);
       localStorage.setItem("proyectoNombre", nextProject.nombre);
       localStorage.setItem("proyectoDescripcion", nextProject.descripcion);
+      localStorage.setItem("categoriaProyecto", nextProject.idCategoria);
       setProyectoActualId(nextProject.id);
       fetchData(nextProject.id);
+      obtenerCategoria();
     } else {
       alert("No hay proyecto siguiente");
     }
@@ -201,12 +219,15 @@ export default function VotosPage() {
         const nuevosProyectos = proyectosDisponibles.filter(p => p.id != proyectoId);
         localStorage.setItem("proyectos", JSON.stringify(nuevosProyectos));
         
+        addNotification("project_deleted", "Proyecto" + localStorage.getItem("proyectoNombre") + " eliminado correctamente");
+
         // Limpiar datos del proyecto actual
         localStorage.removeItem("proyectoId");
         localStorage.removeItem("proyectoNombre");
         localStorage.removeItem("proyectoDescripcion");
         localStorage.removeItem("proyectoABCD");
         localStorage.removeItem("categoriaProyecto");
+
 
         if (nuevosProyectos.length > 0) {
           // Cargar el primer proyecto disponible
@@ -346,7 +367,7 @@ export default function VotosPage() {
                   <span style={{ color: themeColor }}>Nombre:</span> {localStorage.getItem("proyectoNombre") || "Sin nombre"}
                 </p>
                 <p className="text-xl font-heading font-bold text-gray-900">
-                  <span className="text-blue-600">Categoría:</span> {categoria?.nombre || "Global"}
+                  <span className="text-blue-600">Categoría:</span> {localStorage.getItem("categoriaNombre") || "Global"}
                 </p>
               </div>
               <p className="text-gray-600 text-lg leading-relaxed">
