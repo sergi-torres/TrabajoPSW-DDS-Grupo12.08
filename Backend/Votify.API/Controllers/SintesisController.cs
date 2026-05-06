@@ -23,6 +23,10 @@ namespace Votify.API.Controllers
         [HttpGet("proyecto/{idProyecto:int}/categoria/{idCategoria:int}")]
         public async Task<IActionResult> ObtenerAsync(int idProyecto, int idCategoria)
         {
+            // Para el GET, intentamos validar pero permitimos que continúe si falla 
+            // (la validación de ownership en el service decidirá si permite acceso anónimo o no).
+            // Sin embargo, por ahora el service requiere email, así que si falla la validación
+            // devolvemos el error estructurado para que el frontend pueda reaccionar.
             var (email, _, errorResult) = await ValidarJwtAsync();
             if (errorResult != null) return errorResult;
 
@@ -49,6 +53,7 @@ namespace Votify.API.Controllers
         [HttpPost("proyecto/{idProyecto:int}/categoria/{idCategoria:int}")]
         public async Task<IActionResult> GenerarAsync(int idProyecto, int idCategoria, [FromBody] GenerarSintesisRequest body, CancellationToken ct)
         {
+            // El POST sí requiere validación estricta siempre.
             var (email, authUid, errorResult) = await ValidarJwtAsync();
             if (errorResult != null) return errorResult;
 
@@ -102,15 +107,19 @@ namespace Votify.API.Controllers
         // (esta ruta no es del organizador, es del propietario del proyecto).
         private async Task<(string? email, Guid? authUid, IActionResult? error)> ValidarJwtAsync()
         {
-            var token = HttpContext.Request.Headers["Authorization"].ToString()?.Replace("Bearer ", "");
+            var authHeader = HttpContext.Request.Headers["Authorization"].ToString();
+            if (string.IsNullOrEmpty(authHeader))
+                return (null, null, Unauthorized(new { error = "token_missing", message = "Token no proporcionado." }));
+
+            var token = authHeader.Replace("Bearer ", "");
             if (string.IsNullOrEmpty(token))
-                return (null, null, Unauthorized(new { error = "Token no proporcionado." }));
+                return (null, null, Unauthorized(new { error = "token_missing", message = "Token no proporcionado." }));
 
             try
             {
                 var user = await _supabase.Auth.GetUser(token);
                 if (user == null || string.IsNullOrEmpty(user.Email))
-                    return (null, null, Unauthorized(new { error = "Token inválido." }));
+                    return (null, null, Unauthorized(new { error = "token_invalid", message = "Token inválido o usuario no encontrado." }));
 
                 Guid? uid = Guid.TryParse(user.Id, out var parsed) ? parsed : null;
                 return (user.Email, uid, null);
@@ -118,7 +127,17 @@ namespace Votify.API.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine($"[SintesisController.ValidarJwt] Error: {ex.Message}");
-                return (null, null, Unauthorized(new { error = "Token inválido." }));
+                
+                // Si el mensaje contiene "expired" o similar, devolvemos un error específico
+                if (ex.Message.Contains("expired", StringComparison.OrdinalIgnoreCase))
+                {
+                    return (null, null, Unauthorized(new { 
+                        error = "token_expired", 
+                        message = "Tu sesión ha expirado. Por favor, inicia sesión de nuevo." 
+                    }));
+                }
+
+                return (null, null, Unauthorized(new { error = "token_invalid", message = "Token inválido." }));
             }
         }
     }
