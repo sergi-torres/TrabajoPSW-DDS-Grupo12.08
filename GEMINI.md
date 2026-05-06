@@ -4,13 +4,13 @@ Plataforma inteligente de gestión de votaciones para eventos competitivos.
 
 ---
 
-## 🚀 Estado Actual
+## Estado Actual
 - **Fase:** MVP - Sprint 3 (ACTIVO)
 - **Prioridad:** Síntesis con IA (#3387) y Dashboard Organizador (#3982).
 
 ---
 
-## 🛠️ Stack Tecnológico y Arquitectura
+## Stack Tecnológico y Arquitectura
 
 | Capa | Tecnología |
 |------|-----------|
@@ -56,3 +56,4 @@ La UI debe seguir la @Guia_Diseño.md.
 - **Nomenclatura:** Dominio (Español), Técnica (Inglés).
 - **Frontend:** `npm run dev` | **Backend:** `dotnet run`.
 - **Git:** No hacer commits. Rama `feat/[id]-[desc]`.
+- **Documentación** Se puede usar el MCP de context7 para documentación especifica del código

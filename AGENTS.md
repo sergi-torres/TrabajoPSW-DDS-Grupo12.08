@@ -6,7 +6,7 @@ Este proyecto utiliza una arquitectura de **Orquestador Estratégico**. El agent
 
 | Rol | Foco y Responsabilidad | Herramienta Preferida |
 | :--- | :--- | :--- |
-| **@architect** | Diseño, Análisis y Spec. Asegura el Factory Method. | `codebase_investigator` |
+| **@architect** | Diseño, Análisis y Spec. Asegura la correcta implementación de diferentes patrones. | `codebase_investigator` |
 | **@developer** | Implementación Full-Stack (.NET/React). | `generalist` |
 | **@tester** | TDD, QA y Validación de Reglas de Negocio. | `generalist` (para ejecución) |
 | **@cleaner** | Refactor, Calidad y Simplificación. | `generalist` (limpieza en lote) |
