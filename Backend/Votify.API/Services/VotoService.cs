@@ -458,7 +458,7 @@ namespace Votify.API.Services
             if (votosPublico.Any())
             {
                 var grupoPublico = new TipoComentaristaDto { Tipo = "Público" };
-                var porHash = votosPublico.GroupBy(v => v.IpDispositivo);
+                var porHash = votosPublico.GroupBy(v => v.IpDispositivo ?? "anon");
 
                 foreach (var g in porHash)
                 {

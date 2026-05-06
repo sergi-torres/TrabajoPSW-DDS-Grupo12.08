@@ -119,7 +119,7 @@ namespace Votify.API.Repositories
 
         public async Task<List<Voto>> ObtenerVotosPorProyectoYCategoriaAsync(int proyectoId, int categoriaId)
         {
-            // 1. Obtener votos básicos
+            // 1. Obtener votos básicos (Jurado y Público comparten la misma tabla 'voto')
             var response = await _supabase
                 .From<VotoJurado>()
                 .Filter("idproyecto", Supabase.Postgrest.Constants.Operator.Equals, proyectoId.ToString())
@@ -137,16 +137,17 @@ namespace Votify.API.Repositories
                     .Filter("idVotacion", Supabase.Postgrest.Constants.Operator.In, idsVotacion)
                     .Get();
 
-                var comentarios = responseComentarios.Models;
+                var comentariosExt = responseComentarios.Models;
 
                 // 3. Vincular los comentarios a los votos. 
-                // El campo 'Comentario' en Voto suele venir de la tabla 'voto'. 
-                // Si preferimos el de 'comentario_cualitativo', lo sobreescribimos o concatenamos.
+                // Priorizamos el de 'comentario_cualitativo' si existe.
                 foreach (var v in votos)
                 {
-                    var c = comentarios.FirstOrDefault(cc => cc.IdVotacion == v.Id);
-                    if (c != null)
+                    var c = comentariosExt.FirstOrDefault(cc => cc.IdVotacion == v.Id);
+                    if (c != null && !string.IsNullOrWhiteSpace(c.Comentario))
                     {
+                        // Si el voto ya tenía comentario, los combinamos o sobreescribimos según preferencia.
+                        // Para la síntesis e historial, lo más seguro es asegurar que el texto esté presente.
                         v.Comentario = c.Comentario; 
                     }
                 }

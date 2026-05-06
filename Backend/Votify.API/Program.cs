@@ -18,6 +18,12 @@ if (string.IsNullOrEmpty(supabaseUrl) || string.IsNullOrEmpty(supabaseKey))
     throw new Exception("SUPABASE_URL o SUPABASE_KEY no están definidos en el archivo .env");
 }
 
+var geminiApiKey = Environment.GetEnvironmentVariable("GEMINI_API_KEY");
+if (string.IsNullOrEmpty(geminiApiKey))
+{
+    Console.WriteLine("Warning: GEMINI_API_KEY no está definida en el archivo .env. La síntesis IA no funcionará.");
+}
+
 builder.Services.AddScoped<Supabase.Client>(_ =>
     new Supabase.Client(supabaseUrl, supabaseKey, new Supabase.SupabaseOptions { AutoConnectRealtime = true })
 );
@@ -50,6 +56,14 @@ builder.Services.AddScoped<Votify.API.Services.ICategoriaService, Votify.API.Ser
 builder.Services.AddScoped<Votify.API.Services.IJuradoService, Votify.API.Services.JuradoService>();
 builder.Services.AddScoped<Votify.API.Services.IEmailService, Votify.API.Services.ResendEmailService>();
 builder.Services.AddScoped<Votify.API.Filters.OrganizerOnlyFilter>();
+
+// Síntesis de comentarios por IA
+builder.Services.AddHttpClient<Votify.API.Adapters.Gemini.IGeminiClient, Votify.API.Adapters.Gemini.GeminiClient>();
+builder.Services.AddScoped<Votify.API.Repositories.ISintesisRepository, Votify.API.Repositories.SintesisRepository>();
+builder.Services.AddScoped<Votify.API.Services.Strategies.Sintesis.SintesisJuradoStrategy>();
+builder.Services.AddScoped<Votify.API.Services.Strategies.Sintesis.SintesisPublicoStrategy>();
+builder.Services.AddScoped<Votify.API.Services.Strategies.Sintesis.SintesisStrategyFactory>();
+builder.Services.AddScoped<Votify.API.Services.ISintesisComentariosService, Votify.API.Services.SintesisComentariosService>();
 
 var resendApiKey = Environment.GetEnvironmentVariable("RESEND_API_KEY");
 if (!string.IsNullOrEmpty(resendApiKey))
