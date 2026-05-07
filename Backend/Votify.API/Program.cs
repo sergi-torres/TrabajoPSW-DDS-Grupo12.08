@@ -41,6 +41,8 @@ builder.Services.AddScoped<Votify.API.Repositories.IInvitacionPendienteRepositor
 builder.Services.AddScoped<Votify.API.Models.Domain.Factories.VotoPublicoFactory>();
 builder.Services.AddScoped<Votify.API.Models.Domain.Factories.VotoJuradoFactory>();
 builder.Services.AddScoped<Votify.API.Services.IAuthService, Votify.API.Services.AuthService>();
+builder.Services.AddScoped<Votify.API.Repositories.IEventoRepository, Votify.API.Repositories.EventoRepository>();
+builder.Services.AddScoped<Votify.API.Repositories.IBaremoRepository, Votify.API.Repositories.BaremoRepository>();
 builder.Services.AddScoped<Votify.API.Services.IEventoService, Votify.API.Services.EventoService>();
 builder.Services.AddScoped<Votify.API.Services.IComentarioCualitativoService, Votify.API.Services.ComentarioCualitativoService>();
 // El servicio IVotoService ya está registrado arriba con el Decorator

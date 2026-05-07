@@ -157,5 +157,33 @@ namespace Votify.API.Repositories
         }
 
 
+        public async Task<List<PesoCategoriaRol>> ObtenerPesosPorCategoriaIdAsync(int categoriaId)
+        {
+            var response = await _supabase
+                .From<PesoCategoriaRol>()
+                .Filter("idcategoria", Supabase.Postgrest.Constants.Operator.Equals, categoriaId.ToString())
+                .Get();
+            return response.Models;
+        }
+
+        public async Task<bool> EliminarPesosPorCategoriaIdAsync(int categoriaId)
+        {
+            await _supabase.From<PesoCategoriaRol>()
+                .Filter("idcategoria", Supabase.Postgrest.Constants.Operator.Equals, categoriaId.ToString())
+                .Delete();
+            return true;
+        }
+
+        public async Task<bool> InsertarPesoAsync(PesoCategoriaRol peso)
+        {
+            await _supabase.From<PesoCategoriaRol>().Insert(peso);
+            return true;
+        }
+
+        public async Task<Categoria> InsertarAsync(Categoria categoria)
+        {
+            var response = await _supabase.From<Categoria>().Insert(categoria);
+            return response.Models.First();
+        }
     }
 }
