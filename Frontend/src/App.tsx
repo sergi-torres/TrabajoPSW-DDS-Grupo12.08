@@ -16,7 +16,6 @@ import AcceptInvitePage from './pages/AcceptInvitePage'
 import ParticipantRegister from './pages/ParticipantRegister'
 import { VotingProvider } from "./context/VotingContext";
 import CreateProject from './pages/CreateProject'
-import ConfigTiempoVotacionPage from './pages/ConfigTiempoVotacion'
 import ProjectPage from './pages/ProjectPage'
 import Avisos from './pages/Avisos'
 import Configuraciones from './pages/Configuraciones'
