@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { EventContext } from "../context/EventContext";
 import { EventSidebar } from "../components/layout/EventSidebar";
-import { ArrowLeft, Trophy, TrendingUp, TrendingDown, Minus, Target, Medal, Star } from "lucide-react";
+import { useVoting } from "../context/VotingContext";
+import { ArrowLeft, Trophy, TrendingUp, TrendingDown, Minus, Target, Medal, Star, Trash2 , Plus, Pencil} from "lucide-react";
 import { cn } from "../components/ui/utils";
 
 // ============================================
@@ -81,20 +82,47 @@ export default function ProjectPage() {
   const isPublicRole = userRole === "Público";
   const themeColor = userColor || "#9333ea";
 
+  const { addNotification } = useVoting();
+
+  // Obtener rol del organizador
+  const getRol = () => {
+    try {
+      const rolData = JSON.parse(localStorage.getItem("propsRol") || "{}");
+      return rolData.label;
+    } catch {
+      return null;
+    }
+  };
+
+  const esOrganizador = getRol() === "Organizador";
+
   // Obtener puntuación de un proyecto en una categoría específica
   const obtenerPuntaje = (
-  proyectoId: number,
-  categoriaId: number,
-  tipo: "JURADO" | "PUBLICO"
-) => {
-  const puntuacion = puntuaciones.find(
-    p =>
-      p.proyectoId === proyectoId &&
-      p.categoriaId === categoriaId &&
-      p.tipo === tipo
-  );
+    proyectoId: number,
+    categoriaId: number,
+    tipo: "JURADO" | "PUBLICO"
+  ) => {
+    const puntuacion = puntuaciones.find(
+      p =>
+        p.proyectoId === proyectoId &&
+        p.categoriaId === categoriaId &&
+        p.tipo === tipo
+    );
+    return puntuacion?.puntaje || 0;
+  };
 
-  return puntuacion?.puntaje || 0;
+  const editarProyecto = (proyecto: Project) => {
+  // Guardar datos del proyecto a editar en localStorage
+  localStorage.setItem("proyectoEditando", JSON.stringify({
+    id: proyecto.id,
+    nombre: proyecto.nombre,
+    descripcion: proyecto.descripcion,
+    urlMultimedia: proyecto.urlMultimedia,
+    idCategoria: proyecto.idCategoria
+  }));
+  
+  // Redirigir a la página de edición (crea esta página después)
+  navigate(`/editar-proyecto/${proyecto.id}`);
 };
 
   // Calcular puntaje total de un proyecto en la categoría activa
@@ -104,16 +132,42 @@ export default function ProjectPage() {
     return jurado + publico;
   };
 
+  // Eliminar proyecto
+  const eliminarProyecto = async (proyectoId: number) => {
+    const confirmDelete = window.confirm(
+      "¿Estás seguro de que quieres eliminar este proyecto?\n\nEsta acción no se puede deshacer."
+    );
+    if (!confirmDelete) return;
+
+    try {
+      const response = await fetch(`http://localhost:5245/api/proyectos/${proyectoId}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        // Actualizar la lista de proyectos
+        setProyectos(prev => prev.filter(p => p.id !== proyectoId));
+        toast.success("Proyecto eliminado exitosamente");
+        addNotification(`El proyecto "${proyectos.find(p => p.id === proyectoId)?.nombre}" ha sido eliminado.`, "error");
+        
+      } else {
+        toast.error("Error al eliminar el proyecto");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("Error al eliminar el proyecto");
+    }
+  };
 
   const proyectosFiltrados = categoriaActiva
-        ? proyectos.filter(p => p.idCategoria === categoriaActiva)
-        : proyectos;
+    ? proyectos.filter(p => p.idCategoria === categoriaActiva)
+    : proyectos;
 
-   // Ordenar proyectos por puntaje total
+  // Ordenar proyectos por puntaje total
   const proyectosOrdenados = [...proyectosFiltrados].sort((a, b) => {
-  const puntajeA = categoriaActiva ? obtenerPuntajeTotal(a.id, categoriaActiva) : 0;
-  const puntajeB = categoriaActiva ? obtenerPuntajeTotal(b.id, categoriaActiva) : 0;
-  return puntajeB - puntajeA;
+    const puntajeA = categoriaActiva ? obtenerPuntajeTotal(a.id, categoriaActiva) : 0;
+    const puntajeB = categoriaActiva ? obtenerPuntajeTotal(b.id, categoriaActiva) : 0;
+    return puntajeB - puntajeA;
   });
 
   // Cargar datos
@@ -136,28 +190,21 @@ export default function ProjectPage() {
           setCategoriaActiva(categoriasData[0].id);
         }
 
-        // 2. Cargar proyectos del evento (CORREGIDO)
+        // 2. Cargar proyectos del evento
         const proyectosRes = await fetch(`http://localhost:5245/api/proyectos/evento/${eventoId}`);
         const proyectosData = await proyectosRes.json();
         setProyectos(proyectosData);
 
         // 3. Cargar puntuaciones
-        const cargarPuntuaciones = async () => {
-            const all = [];
-
-            for (const proyecto of proyectos) {
-                const res = await fetch(
-            `/api/votacion/porProyecto?proyectoId=${proyecto.id}`
-            );
-
-            if (res.ok) {
-                const data = await res.json();
-                all.push(...data);
-            }
+        const todasPuntuaciones: Puntuacion[] = [];
+        for (const proyecto of proyectosData) {
+          const res = await fetch(`http://localhost:5245/api/votacion/porProyecto?proyectoId=${proyecto.id}`);
+          if (res.ok) {
+            const data = await res.json();
+            todasPuntuaciones.push(...data);
+          }
         }
-
-  setPuntuaciones(all);
-};
+        setPuntuaciones(todasPuntuaciones);
 
       } catch (error) {
         console.error("Error cargando datos:", error);
@@ -217,133 +264,165 @@ export default function ProjectPage() {
           isPublicRole ? "" : (isCollapsed ? "lg:pl-28" : "lg:pl-80")
         )}>
           
-        {/* Tabs de Categorías */}
-<div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
-  <div className="flex items-center gap-3 mb-6">
-    <div className="p-2.5 rounded-xl bg-purple-50 text-purple-600">
-      <Target size={20} />
-    </div>
-    <h2 className="text-xl font-heading font-bold text-gray-900">Categorías del Evento</h2>
-  </div>
-  
-  <div className="flex flex-wrap gap-3">
-    {categorias.map((cat) => (
-      <TabButton
-        key={cat.id}
-        active={categoriaActiva === cat.id}
-        onClick={() => setCategoriaActiva(cat.id)}
-        icon={<Target size={16} />}
-      >
-        {cat.nombre}
-      </TabButton>
-    ))}
-  </div>
-</div>
-
-{/* Ranking de Proyectos por Categoría */}
-{categoriaActiva && (
-  <div className="bg-white rounded-2xl shadow-sm p-8 border border-gray-100 animate-in slide-in-from-bottom duration-300">
-    <div className="flex items-center gap-3 mb-6">
-      <div className="p-2.5 rounded-xl bg-yellow-50 text-yellow-500">
-        <Trophy size={20} />
-      </div>
-      <h2 className="text-xl font-heading font-bold text-gray-900">
-        Ranking - {categorias.find(c => c.id === categoriaActiva)?.nombre}
-      </h2>
-    </div>
-
-    {proyectosOrdenados.length === 0 ? (
-      <div className="text-center py-12 text-gray-500">
-        No hay proyectos registrados en esta categoría.
-      </div>
-    ) : (
-      <div className="space-y-4">
-        {proyectosOrdenados.map((proyecto, idx) => {
-          const puntajeJurado = obtenerPuntaje(proyecto.id, categoriaActiva, "JURADO");
-          const puntajePublico = obtenerPuntaje(proyecto.id, categoriaActiva, "PUBLICO");
-          const puntajeTotal = puntajeJurado + puntajePublico;
-          const percentage = Math.min(100, (puntajeTotal / 200) * 100);
-          
-          const medalColors = ["#F59E0B", "#9CA3AF", "#CD7F32"];
-          const medalColor = idx < 3 ? medalColors[idx] : "#9CA3AF";
-
-          return (
-            <div
-              key={proyecto.id}
-              className="bg-gradient-to-r from-white to-gray-50 border border-gray-100 rounded-xl p-5 hover:shadow-md transition-all"
-            >
-              <div className="flex items-center gap-4 mb-3">
-                <div
-                  className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-sm"
-                  style={{ backgroundColor: medalColor }}
-                >
-                  {idx + 1}
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-bold text-gray-900">{proyecto.nombre}</h3>
-                  <p className="text-sm text-gray-500 line-clamp-1">{proyecto.descripcion}</p>
-                </div>
-                <div className="text-right">
-                  <div className="text-2xl font-bold text-purple-600">{puntajeTotal}%</div>
-                  <div className="text-xs text-gray-400">Puntaje Total</div>
-                </div>
+          {/* Tabs de Categorías */}
+          <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2.5 rounded-xl bg-purple-50 text-purple-600">
+                <Target size={20} />
               </div>
-
-              {/* Barra de progreso */}
-              <div className="mt-3">
-                <div className="flex justify-between text-xs text-gray-500 mb-1">
-                  <span className="flex items-center gap-1">
-                    <Star size={12} className="text-purple-600" />
-                    Jurado: {puntajeJurado}%
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Star size={12} className="text-blue-600" />
-                    Público: {puntajePublico}%
-                  </span>
-                  <span>Total: {puntajeTotal}%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all duration-500"
-                    style={{ 
-                      width: `${percentage}%`,
-                      background: `linear-gradient(90deg, ${themeColor}, ${themeColor}dd)`
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* Barras separadas Jurado vs Público */}
-              <div className="mt-3 flex gap-2">
-                <div className="flex-1">
-                  <div className="text-xs text-purple-600 mb-1">Jurado</div>
-                  <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                    <div
-                      className="h-full bg-purple-600 rounded-full transition-all"
-                      style={{ width: `${puntajeJurado}%` }}
-                    />
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <div className="text-xs text-blue-600 mb-1">Público</div>
-                  <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                    <div
-                      className="h-full bg-blue-500 rounded-full transition-all"
-                      style={{ width: `${puntajePublico}%` }}
-                    />
-                  </div>
-                </div>
-              </div>
+              <h2 className="text-xl font-heading font-bold text-gray-900">Categorías del Evento</h2>
             </div>
-          );
-        })}
-      </div>
-    )}
-  </div>
-)}
+            
+            <div className="flex flex-wrap gap-3">
+              {categorias.map((cat) => (
+                <TabButton
+                  key={cat.id}
+                  active={categoriaActiva === cat.id}
+                  onClick={() => setCategoriaActiva(cat.id)}
+                  icon={<Target size={16} />}
+                >
+                  {cat.nombre}
+                </TabButton>
+              ))}
+            </div>
+          </div>
 
+          {/* Ranking de Proyectos por Categoría */}
+          {categoriaActiva && (
+            <div className="bg-white rounded-2xl shadow-sm p-8 border border-gray-100 animate-in slide-in-from-bottom duration-300">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-xl bg-yellow-50 text-yellow-500">
+                    <Trophy size={20} />
+                  </div>
+                  <h2 className="text-xl font-heading font-bold text-gray-900">
+                    Ranking - {categorias.find(c => c.id === categoriaActiva)?.nombre}
+                  </h2>
+                </div>
+                
+                {/* Botón para crear nuevo proyecto (solo organizador) */}
+                {esOrganizador && (
+                  <button
+                    onClick={() => navigate("/create-project")}
+                    className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl transition-all text-sm font-medium"
+                  >
+                    <Plus size={16} />
+                    Crear proyecto
+                  </button>
+                )}
+              </div>
 
+              {proyectosOrdenados.length === 0 ? (
+                <div className="text-center py-12 text-gray-500">
+                  No hay proyectos registrados en esta categoría.
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {proyectosOrdenados.map((proyecto, idx) => {
+                    const puntajeJurado = obtenerPuntaje(proyecto.id, categoriaActiva, "JURADO");
+                    const puntajePublico = obtenerPuntaje(proyecto.id, categoriaActiva, "PUBLICO");
+                    const puntajeTotal = puntajeJurado + puntajePublico;
+                    const percentage = Math.min(100, (puntajeTotal / 200) * 100);
+                    
+                    const medalColors = ["#F59E0B", "#9CA3AF", "#CD7F32"];
+                    const medalColor = idx < 3 ? medalColors[idx] : "#9CA3AF";
 
+                    return (
+                      <div
+                        key={proyecto.id}
+                        className="bg-gradient-to-r from-white to-gray-50 border border-gray-100 rounded-xl p-5 hover:shadow-md transition-all"
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-4">
+                            <div
+                              className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-sm"
+                              style={{ backgroundColor: medalColor }}
+                            >
+                              {idx + 1}
+                            </div>
+                            <div>
+                              <h3 className="text-lg font-bold text-gray-900">{proyecto.nombre}</h3>
+                              <p className="text-sm text-gray-500 line-clamp-1">{proyecto.descripcion}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <div className="text-right">
+                              <div className="text-2xl font-bold text-purple-600">{puntajeTotal}%</div>
+                              <div className="text-xs text-gray-400">Puntaje Total</div>
+                            </div>
+                            {/* Botón de eliminar - solo organizador */}
+                            {esOrganizador && (
+                              <button
+                                onClick={() => eliminarProyecto(proyecto.id)}
+                                className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                                title="Eliminar proyecto"
+                              >
+                                <Trash2 size={18} />
+                              </button>
+                            )}
+                            {/* Botón Modificar */}
+                                <button
+                                onClick={() => editarProyecto(proyecto)}
+                                className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-all"
+                                title="Modificar proyecto"
+                                >
+                                  <Pencil size={18} />
+                                </button>
+                          </div>
+                        </div>
+
+                        {/* Barra de progreso */}
+                        <div className="mt-3">
+                          <div className="flex justify-between text-xs text-gray-500 mb-1">
+                            <span className="flex items-center gap-1">
+                              <Star size={12} className="text-purple-600" />
+                              Jurado: {puntajeJurado}%
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Star size={12} className="text-blue-600" />
+                              Público: {puntajePublico}%
+                            </span>
+                            <span>Total: {puntajeTotal}%</span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                            <div
+                              className="h-full rounded-full transition-all duration-500"
+                              style={{ 
+                                width: `${percentage}%`,
+                                background: `linear-gradient(90deg, ${themeColor}, ${themeColor}dd)`
+                              }}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Barras separadas Jurado vs Público */}
+                        <div className="mt-3 flex gap-2">
+                          <div className="flex-1">
+                            <div className="text-xs text-purple-600 mb-1">Jurado</div>
+                            <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                              <div
+                                className="h-full bg-purple-600 rounded-full transition-all"
+                                style={{ width: `${puntajeJurado}%` }}
+                              />
+                            </div>
+                          </div>
+                          <div className="flex-1">
+                            <div className="text-xs text-blue-600 mb-1">Público</div>
+                            <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                              <div
+                                className="h-full bg-blue-500 rounded-full transition-all"
+                                style={{ width: `${puntajePublico}%` }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
         </main>
       </div>
     </div>

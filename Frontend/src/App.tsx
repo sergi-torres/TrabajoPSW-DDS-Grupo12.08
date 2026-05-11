@@ -21,6 +21,7 @@ import ProjectPage from './pages/ProjectPage'
 import Avisos from './pages/Avisos'
 import Configuraciones from './pages/Configuraciones'
 import ControlVotacionesPage from './pages/ControlVotacionesPage'
+import EditarProyectoPage from './pages/EditarProyectoPage'
 
 function App() {
   return (
@@ -49,6 +50,7 @@ function App() {
                 <Route path="/eventos/:eventoId/proyectos" element={<ProjectPage />} />
                 <Route path="/eventos/:eventoId/my-project" element={<VotosPage />} />
                 <Route path="/eventos/:eventoId/participantRegister" element={<ParticipantRegister />} />
+                <Route path="/editar-proyecto/:proyectoId" element={<EditarProyectoPage />} />
                 
                 <Route path="/participantRegister" element={<ParticipantRegister />} />
                 <Route path="/create-project" element={<CreateProject />} />
