@@ -4,7 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Target, Award, TrendingUp, LogOut, CheckSquare, Users, FileText, Heart } from "lucide-react";
 import LiveHeader from "../components/organizator_dashboard/LiveHeader";
 import StatsCard from "../components/organizator_dashboard/StatsCard";
-import RankingList from "../components/organizator_dashboard/RankingList";
+import CategoryRankingPodium, { CategoryRankingData } from "../components/organizator_dashboard/CategoryRankingPodium";
 import { getDashboard, extenderTiempo, cerrarVotacion } from "../api/orgDashboardApi";
 import { AuthContext } from "../context/AuthContext";
 import { EventContext } from "../context/EventContext";
@@ -24,7 +24,7 @@ export default function OrganizerDashboard() {
   const [error, setError] = useState<string | null>(null);
   const { eventoId: paramEventoId } = useParams<{ eventoId: string }>();
 
-  const [categorias, setCategorias] = useState<any[]>([]);     
+  const [categorias, setCategorias] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<any>(null);
 
   const eventoId = paramEventoId || (contextEventoId ? contextEventoId.toString() : null);
@@ -131,6 +131,32 @@ export default function OrganizerDashboard() {
   }
 
   const { liveInfo, stats, ranking } = dashboardData;
+
+  // Build CategoryRankingData from categorias + ranking
+  const categoryRankingData: CategoryRankingData[] = categorias.map((cat: any) => {
+    const now = new Date();
+    const fechaFin = cat.fechaFin ? new Date(cat.fechaFin) : null;
+    const finalizada = fechaFin ? fechaFin < now : false;
+
+    // Filter ranking projects for this category and take top 3
+    const catProjects = (ranking || [])
+      .filter((p: any) => p.categoriaId === cat.id || p.idCategoria === cat.id)
+      .sort((a: any, b: any) => (b.score ?? b.puntuacion ?? 0) - (a.score ?? a.puntuacion ?? 0))
+      .slice(0, 3)
+      .map((p: any, idx: number) => ({
+        id: p.id,
+        name: p.name || p.nombre || `Proyecto ${p.id}`,
+        team: p.team || p.equipo || '',
+        score: p.score ?? p.puntuacion ?? 0,
+      }));
+
+    return {
+      id: cat.id,
+      nombre: cat.nombre,
+      finalizada,
+      ganadores: finalizada ? catProjects : undefined,
+    };
+  });
   const isPublicRole = userRole === "Público";
 
   return (
@@ -221,17 +247,17 @@ export default function OrganizerDashboard() {
           </section>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            {/* RANKING SECTION (Main Area) */}
+            {/* RANKING POR CATEGORÍA (Main Area) */}
             <div className="lg:col-span-8 space-y-8">
               <section className="bg-white rounded-[32px] shadow-sm border border-gray-100 overflow-hidden">
                 <div className="p-8 border-b border-gray-100 flex items-center justify-between">
-                  <h3 className="text-xl font-heading font-bold text-gray-900">Ranking en Directo</h3>
+                  <h3 className="text-xl font-heading font-bold text-gray-900">Ranking por Categoría</h3>
                   <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-widest">
                     <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                    Actualizado ahora
+                    En directo
                   </div>
                 </div>
-                <RankingList projects={ranking || []} />
+                <CategoryRankingPodium categorias={categoryRankingData} />
               </section>
             </div>
 
