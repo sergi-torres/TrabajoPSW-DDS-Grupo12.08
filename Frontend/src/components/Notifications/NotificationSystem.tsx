@@ -65,7 +65,7 @@ const notificationConfig: Record<string, any> = {
   project_registered: {
     icon: Trophy,
     title: "¡Proyecto Registrado!",
-    description: "Proyecto registrado en la categoría",
+    description: "Proyecto registrado: ",
     color: "text-purple-500",
     bgColor: "bg-purple-50",
     borderColor: "border-purple-500",
