@@ -114,13 +114,26 @@ namespace Votify.API.Services
                     VotosPublicoCount = votosDePublico.Count
                 };
 
-                // 8) Construir ranking
-                var ranking = BuildRanking(todosProyectos, todosVotos, usuarios, todosPesos);
+                // 8) Obtener datos de usuarios para nombres de participantes
+                var participanteIds = todosProyectos.Select(p => p.IdParticipante).Distinct().ToList();
+                var todosUsuarios = new List<Usuario>();
+                foreach (var pid in participanteIds)
+                {
+                    var userRes = await _supabase
+                        .From<Usuario>()
+                        .Filter("id", Supabase.Postgrest.Constants.Operator.Equals, pid.ToString())
+                        .Get();
+                    if (userRes.Models.Any())
+                        todosUsuarios.Add(userRes.Models.First());
+                }
 
-                // 9) Construir feed de proyectos recientes
+                // 9) Construir ranking
+                var ranking = BuildRanking(todosProyectos, todosVotos, usuarios, todosPesos, todosUsuarios);
+
+                // 10) Construir feed de proyectos recientes
                 var feed = BuildFeed(todosProyectos, todosVotos);
 
-                // 10) Construir live header info
+                // 11) Construir live header info
                 var liveInfo = new LiveHeaderDto
                 {
                     EventName = evento.Nombre,
@@ -205,7 +218,8 @@ namespace Votify.API.Services
             List<Proyecto> proyectos,
             List<VotoPublico> votos,
             List<EventoUsuario> usuarios,
-            List<PesoCategoriaRol> pesos)
+            List<PesoCategoriaRol> pesos,
+            List<Usuario> participantes)
         {
             var ranking = new List<RankingItemDto>();
 
@@ -243,10 +257,15 @@ namespace Votify.API.Services
 
                 float combinedScore = (juryScore * pesoJurado) + (publicScore * pesoPublico);
 
+                // Nombre del participante (team)
+                var participante = participantes.FirstOrDefault(u => u.Id == proyecto.IdParticipante);
+                var teamName = participante?.NombreCompleto ?? $"Participante #{proyecto.IdParticipante}";
+
                 ranking.Add(new RankingItemDto
                 {
                     Id = proyecto.Id,
                     Name = proyecto.Nombre,
+                    Team = teamName,
                     Score = MathF.Round(combinedScore, 1),
                     JuryScore = MathF.Round(juryScore, 1),
                     IdCategoria = proyecto.IdCategoria ?? 0,

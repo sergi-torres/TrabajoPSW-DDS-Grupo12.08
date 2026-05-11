@@ -134,20 +134,20 @@ export default function OrganizerDashboard() {
 
   // Build CategoryRankingData from categorias + ranking
   const categoryRankingData: CategoryRankingData[] = categorias.map((cat: any) => {
-    const now = new Date();
-    const fechaFin = cat.fechaFin ? new Date(cat.fechaFin) : null;
-    const finalizada = fechaFin ? fechaFin < now : false;
+    // Use the Estado field from backend categories API (Pendiente / Activa / Finalizada)
+    const finalizada = cat.estado === "Finalizada";
 
     // Filter ranking projects for this category and take top 3
+    // Backend returns camelCase: idCategoria, name, score, team
     const catProjects = (ranking || [])
-      .filter((p: any) => p.categoriaId === cat.id || p.idCategoria === cat.id)
-      .sort((a: any, b: any) => (b.score ?? b.puntuacion ?? 0) - (a.score ?? a.puntuacion ?? 0))
+      .filter((p: any) => p.idCategoria === cat.id)
+      .sort((a: any, b: any) => (b.score ?? 0) - (a.score ?? 0))
       .slice(0, 3)
-      .map((p: any, idx: number) => ({
+      .map((p: any) => ({
         id: p.id,
-        name: p.name || p.nombre || `Proyecto ${p.id}`,
-        team: p.team || p.equipo || '',
-        score: p.score ?? p.puntuacion ?? 0,
+        name: p.name || `Proyecto ${p.id}`,
+        team: p.team || '',
+        score: Math.round(p.score ?? 0),
       }));
 
     return {
