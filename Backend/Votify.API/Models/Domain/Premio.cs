@@ -1,7 +1,4 @@
 using Supabase.Postgrest.Attributes;
-using Supabase.Postgrest.Models;
-using System.Collections.Generic;
-using System;
 
 namespace Votify.API.Models.Domain
 {
@@ -23,17 +20,21 @@ namespace Votify.API.Models.Domain
         [Column("posicion")]
         public int Posicion { get; set; } = 1;
 
+        [Column("icono")]
+        public string? Icono { get; set; } = string.Empty;
+
         // Constructor sin parámetros (necesario para Supabase/deserialización)
         public Premio() { }
 
         // Constructor con parámetros (usado por las Factories)
-        public Premio(int id, string nombre, int idCategoria, string descripcion, int posicion)
+        public Premio(int id, string nombre, int idCategoria, string descripcion, int posicion, string icono)
         {
             Id = id;
             Nombre = nombre;
             Descripcion = descripcion;
             IdCategoria = idCategoria;
             Posicion = posicion;
+            Icono = icono
         }
     }
 }
