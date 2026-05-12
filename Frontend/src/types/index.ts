@@ -95,3 +95,5 @@ export interface Premio
   posicion: number;
   icono?: string;
 }
+
+export type CrearPremioRequest =  Omit<Premio, 'id'>;

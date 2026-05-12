@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import {toast} from "sonner";
 import {premiosApi} from "../api/premiosApi";
 import {categoriasApi} from "../api/categoriasApi";
-import {Categoria, Premio} from "../types/index";
+import {Categoria, CrearPremioRequest, Premio} from "../types/index";
 
 interface UsePremioReturn {
     // Estados de datos
@@ -56,7 +56,7 @@ export const usePremio = (): UsePremioReturn => {
         }
     },[]);
 
-    const crearPremios = useCallback(async (premioDto : Premio) => {
+    const crearPremios = useCallback(async (premioDto : CrearPremioRequest) => {
         if(premioDto=== null ||premioDto === undefined){
             toast.error("No se asigno categoria al guardar"); return;
         }

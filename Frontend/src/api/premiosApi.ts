@@ -1,4 +1,4 @@
-import { Premio } from "@/types";
+import { CrearPremioRequest, Premio } from "@/types";
 
 const API_URL = "http://localhost:5245/api/premios";
 
@@ -13,7 +13,7 @@ export const premiosApi = {
 
     },
 
-    crearPremio: async (premioDto: Premio): Promise<void> => {
+    crearPremio: async (premioDto: CrearPremioRequest): Promise<void> => {
         const res = await fetch(`${API_URL}/guardar`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
