@@ -86,9 +86,12 @@ export interface ReenviarInvitacionRequest {
   email: string;
 }
 
-export interface ConfigPremioDto {
+export interface Premio 
+{
+  id: number;
   idCategoria: number;
-  nombrePremio: string;
-  descripcionPremio?: string;
-  icon?: string;
+  nombre: string;
+  descripcion?: string;
+  posicion: number;
+  icono?: string;
 }
