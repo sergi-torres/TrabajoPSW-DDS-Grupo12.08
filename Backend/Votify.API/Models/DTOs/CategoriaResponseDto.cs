@@ -10,6 +10,7 @@ namespace Votify.API.Models.DTOs
         public int Id { get; set; }
         public string Nombre { get; set; } = string.Empty;
         public int IdEvento { get; set; }
+        public string Estado { get; set; } = "Pendiente";
     }
 
     public class CategoriaResponseActualizadoDto
