@@ -34,7 +34,7 @@ namespace Votify.API.Models.Domain
             Descripcion = descripcion;
             IdCategoria = idCategoria;
             Posicion = posicion;
-            Icono = icono
+            Icono = icono;
         }
     }
 }
