@@ -13,6 +13,10 @@ namespace Votify.API.Repositories
         Task<Categoria> ObtenerPorIdAsync(int id);
 
         Task<bool> ActualizarAsync(Categoria categoria);
+        Task<List<PesoCategoriaRol>> ObtenerPesosPorCategoriaIdAsync(int categoriaId);
+        Task<bool> EliminarPesosPorCategoriaIdAsync(int categoriaId);
+        Task<bool> InsertarPesoAsync(PesoCategoriaRol peso);
+        Task<Categoria> InsertarAsync(Categoria categoria);
 
         Task<List<ConfigTiemposCategoriasDto>> ObtenerPorEventoIdConFechasAsync(int eventoId);
 

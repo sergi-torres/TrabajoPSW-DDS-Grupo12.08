@@ -1,4 +1,4 @@
-﻿namespace Votify.API.Models.DTOs
+namespace Votify.API.Models.DTOs
 {
     /// <summary>
     /// Respuesta principal del endpoint GET /api/OrgDashboard/{eventoId}
@@ -33,6 +33,7 @@
         public int Id { get; set; }
         public int Position { get; set; }
         public string Name { get; set; } = string.Empty;
+        public string Team { get; set; } = string.Empty;
         public float Score { get; set; }
         public float JuryScore { get; set; }
         public float PublicScore { get; set; }
