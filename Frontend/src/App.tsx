@@ -20,7 +20,7 @@ import ProjectPage from './pages/ProjectPage'
 import Avisos from './pages/Avisos'
 import Configuraciones from './pages/Configuraciones'
 import ControlVotacionesPage from './pages/ControlVotacionesPage'
-import AsignarPremios from './pages/AsignarPremios'
+import AsignarPremios from './pages/AsignarPremiosPage'
 
 function App() {
   return (
