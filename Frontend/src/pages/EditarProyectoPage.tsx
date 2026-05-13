@@ -1,6 +1,7 @@
 ﻿import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Save, X } from "lucide-react";
+import { editarProyecto } from "../api/proyectoApi";
 
 export default function EditarProyectoPage() {
   const navigate = useNavigate();
@@ -36,11 +37,7 @@ export default function EditarProyectoPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch(`http://localhost:5245/api/proyectos/${proyecto.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(proyecto)
-      });
+      const updatedProyecto = await editarProyecto(proyecto.id, proyecto);
       
       if (response.ok) {
         localStorage.removeItem("proyectoEditando");

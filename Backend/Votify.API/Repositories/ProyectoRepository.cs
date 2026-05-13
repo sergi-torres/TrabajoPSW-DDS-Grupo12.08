@@ -83,5 +83,19 @@ namespace Votify.API.Repositories
                 return false;
             }
         }
+
+        public async Task<bool> ActualizarAsync(Proyecto proyecto)
+        {
+            try
+            {
+                await _supabase.From<Proyecto>().Where(p => p.Id == proyecto.Id).Update(proyecto);
+                return true; // Si no lanza excepción, asumimos éxito
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al actualizar proyecto {proyecto.Id}: {ex.Message}");
+                return false;
+            }
+        }
     }
 }

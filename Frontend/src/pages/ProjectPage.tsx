@@ -303,7 +303,7 @@ export default function ProjectPage() {
                 {/* Botón para crear nuevo proyecto (solo organizador) */}
                 {esOrganizador && (
                   <button
-                    onClick={() => navigate("/create-project")}
+                    onClick={() => navigate(`/eventos/${localStorage.getItem("eventoId")}/participantRegister`)}
                     className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl transition-all text-sm font-medium"
                   >
                     <Plus size={16} />

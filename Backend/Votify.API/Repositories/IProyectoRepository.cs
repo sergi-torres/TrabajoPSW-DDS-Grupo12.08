@@ -14,5 +14,7 @@ namespace Votify.API.Repositories
         Task<Proyecto?> CrearAsync(Proyecto proyecto);
 
         Task<bool> EliminarAsync(int id);
+
+        Task<bool> ActualizarAsync(Proyecto proyecto);
     }
 }

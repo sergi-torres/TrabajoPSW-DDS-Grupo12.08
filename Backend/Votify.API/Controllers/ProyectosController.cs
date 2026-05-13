@@ -141,5 +141,20 @@ namespace Votify.API.Controllers
             }
             return NoContent();
         }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> ActualizarProyecto(int id, [FromBody] Proyecto proyecto)
+        {
+            if (proyecto == null || id != proyecto.Id)
+            {
+                return BadRequest("El proyecto no puede ser null y el ID debe coincidir");
+            }
+            var actualizado = await _proyectoRepository.ActualizarAsync(proyecto);
+            if (!actualizado)
+            {
+                return NotFound();
+            }
+            return NoContent();
+        }
     }
 }
