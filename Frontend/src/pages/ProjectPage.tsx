@@ -6,6 +6,7 @@ import { EventSidebar } from "../components/layout/EventSidebar";
 import { useVoting } from "../context/VotingContext";
 import { ArrowLeft, Trophy, TrendingUp, TrendingDown, Minus, Target, Medal, Star, Trash2 , Plus, Pencil} from "lucide-react";
 import { cn } from "../components/ui/utils";
+import { toast } from "sonner";
 
 // ============================================
 // TIPOS
@@ -122,6 +123,8 @@ export default function ProjectPage() {
   }));
   
   // Redirigir a la página de edición (crea esta página después)
+  localStorage.setItem("idEvento", String(proyecto.idEvento));
+  localStorage.setItem("categorias", JSON.stringify(categorias));
   navigate(`/editar-proyecto/${proyecto.id}`);
 };
 
