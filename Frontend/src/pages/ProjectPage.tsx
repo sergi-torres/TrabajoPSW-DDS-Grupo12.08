@@ -125,6 +125,8 @@ export default function ProjectPage() {
   // Redirigir a la página de edición (crea esta página después)
   localStorage.setItem("idEvento", String(proyecto.idEvento));
   localStorage.setItem("categorias", JSON.stringify(categorias));
+  localStorage.setItem("usuarios", JSON.stringify(proyecto.idMiembros)); // Asumiendo que idMiembros es un array de IDs de usuarios
+  console.log(proyecto);
   navigate(`/editar-proyecto/${proyecto.id}`);
 };
 

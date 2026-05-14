@@ -80,11 +80,11 @@ namespace Votify.API.Controllers
 
         // GET: api/proyectos/evento/{eventoId}
         [HttpGet("evento/{eventoId}")]
-        public async Task<ActionResult<List<ProyectoResponseDto>>> ObtenerPorEvento(int eventoId)
+        public async Task<ActionResult<List<ProyectoRequestDto>>> ObtenerPorEvento(int eventoId)
         {
             var proyectos = await _proyectoRepository.ObtenerPorEventoIdAsync(eventoId);
 
-            var proyectosDto = proyectos.Select(p => new ProyectoResponseDto
+            var proyectosDto = proyectos.Select(p => new ProyectoRequestDto
             {
                 Id = p.Id,
                 Nombre = p.Nombre,
@@ -93,7 +93,8 @@ namespace Votify.API.Controllers
                 IdEvento = p.IdEvento,
                 IdParticipante = p.IdParticipante,
                 IdCategoria = p.IdCategoria,
-                Estado = p.Estado
+                Estado = p.Estado,
+                IdMiembros = p.IdMiembros
             });
 
             return Ok(proyectosDto); // ← Devuelve DTO limpio

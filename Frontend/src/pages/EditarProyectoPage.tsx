@@ -13,71 +13,149 @@ export default function EditarProyectoPage() {
   const [newMemberEmail, setNewMemberEmail] = useState("");
   const [memberIds, setMemberIds] = useState<number[]>([]);
 
+  // Función para cargar los datos de los miembros por sus IDs
+  const miembros = localStorage.getItem("usuarios") || "[]";
+  //console.log(miembros);
+
   useEffect(() => {
-    const cargarProyecto = async () => {
-      try {
-        const stored = localStorage.getItem("proyectoEditando");
-        if (stored) {
-          const data = JSON.parse(stored);
-          setProyecto(data);
-          setMemberIds(data.memberIds || []);
-          setAdditionalMembers(data.additionalMembers || []);
-        } else if (id) {
-          const response = await fetch(`http://localhost:5245/api/proyectos/${id}`);
-          if (response.ok) {
-            const data = await response.json();
-            setProyecto(data);
-            setMemberIds(data.memberIds || []);
-            setAdditionalMembers(data.additionalMembers || []);
-          }
-        }
-      } catch (error) {
-        console.error("Error cargando proyecto:", error);
-      } finally {
-        setCargando(false);
-      }
-    };
-
-    cargarProyecto();
-  }, [id]);
-
-  // Agregar miembro por email
-  const handleAddMember = async () => {
-    if (!newMemberEmail || !newMemberEmail.includes("@")) {
-      toast.error("Correo inválido");
-      return;
-    }
-
+  const cargarProyecto = async () => {
     try {
-      const response = await fetch(`http://localhost:5245/api/usuario/email/${encodeURIComponent(newMemberEmail)}`);
-      if (!response.ok) {
-        toast.error("Usuario no encontrado");
-        return;
-      }
-
-      const usuario = await response.json();
+      let proyectoData = null;
       
-      if (memberIds.includes(usuario.id)) {
-        toast.error("Usuario ya agregado");
-        return;
+      // Intentar cargar desde localStorage primero
+      const stored = localStorage.getItem("proyectoEditando");
+      if (stored) {
+        try {
+          proyectoData = JSON.parse(stored);
+          console.log("Cargado desde localStorage:", proyectoData);
+        } catch (parseError) {
+          console.error("Error parseando localStorage:", parseError);
+        }
+      }
+      
+      // Si no está en localStorage, cargar desde API
+      if (!proyectoData && id) {
+        console.log("Cargando desde API:", id);
+        const response = await fetch(`http://localhost:5245/api/proyectos/${id}`);
+        if (response.ok) {
+          proyectoData = await response.json();
+          console.log("Cargado desde API:", proyectoData);
+        } else {
+          console.error("Error en API:", response.status);
+        }
       }
 
-      setMemberIds([...memberIds, usuario.id]);
-      setAdditionalMembers([...additionalMembers, { id: usuario.id, email: usuario.email }]);
-      setNewMemberEmail("");
-      toast.success(`Usuario ${usuario.email} agregado`);
+      if (proyectoData) {
+        // Asegurar que idParticipante existe
+        if (!proyectoData.idParticipante) {
+          proyectoData.idParticipante = proyectoData.idCreador || 
+                                        proyectoData.liderId || 
+                                        parseInt(localStorage.getItem("userId") || "0");
+        }
+        
+        setProyecto(proyectoData);
+        
+        // Filtrar al líder de los miembros
+        const liderId = proyectoData.idParticipante;
+        const idsMiembros = (proyectoData.idMiembros || []).filter((id: number) => id !== liderId);
+        setMemberIds(idsMiembros);
+        
+        if (idsMiembros.length > 0) {
+          const miembrosData = await cargarMiembrosPorIds(idsMiembros);
+          setAdditionalMembers(miembrosData);
+        } else {
+          setAdditionalMembers([]);
+        }
+      } else {
+        console.warn("No se pudo cargar el proyecto");
+      }
     } catch (error) {
-      console.error("Error:", error);
-      toast.error("Error al buscar usuario");
+      console.error("Error cargando proyecto:", error);
+    } finally {
+      setCargando(false);
     }
   };
 
+  cargarProyecto();
+}, [id]);
+
+  // Agregar miembro por email
+ const handleAddMember = async () => {
+  console.log("1. Iniciando handleAddMember");
+  console.log("2. newMemberEmail:", newMemberEmail);
+  
+  if (!newMemberEmail || !newMemberEmail.includes("@")) {
+    toast.error("Correo inválido");
+    return;
+  }
+
+  try {
+    console.log("3. Buscando usuario...");
+    const response = await fetch(`http://localhost:5245/api/usuario/email/${encodeURIComponent(newMemberEmail)}`);
+    console.log("4. Response status:", response.status);
+    
+    if (!response.ok) {
+      toast.error("Usuario no encontrado");
+      return;
+    }
+
+    const usuario = await response.json();
+    console.log("5. Usuario encontrado:", usuario);
+    console.log("6. memberIds actuales:", memberIds);
+    console.log("7. additionalMembers actuales:", additionalMembers);
+    console.log("8. proyecto.idParticipante:", proyecto?.idParticipante);
+    
+    // ✅ Verificar que no sea el líder
+    if (usuario.id === proyecto?.idParticipante) {
+      toast.error("No puedes agregar al líder del proyecto como miembro");
+      return;
+    }
+    
+    // ✅ Verificar si ya existe
+    if (memberIds.includes(usuario.id)) {
+      toast.error("Usuario ya está en el equipo");
+      return;
+    }
+
+    // Crear nuevos arrays
+    const nuevosMemberIds = [...memberIds, usuario.id];
+    const nuevosAdditionalMembers = [...additionalMembers, { 
+      id: usuario.id, 
+      email: usuario.email,
+      nombre: usuario.nombreCompleto || usuario.email
+    }];
+    
+    console.log("9. nuevosMemberIds:", nuevosMemberIds);
+    console.log("10. nuevosAdditionalMembers:", nuevosAdditionalMembers);
+    
+    // Actualizar estados
+    setMemberIds(nuevosMemberIds);
+    setAdditionalMembers(nuevosAdditionalMembers);
+    setNewMemberEmail("");
+    
+    toast.success(`Usuario ${usuario.email} agregado al equipo`);
+    
+    // ✅ Forzar actualización del proyecto después de agregar
+    // Actualizar también el objeto proyecto para mantener consistencia
+    setProyecto((prev: any) => ({
+      ...prev,
+      idMiembros: nuevosMemberIds
+    }));
+    
+  } catch (error) {
+    console.error("Error:", error);
+    toast.error("Error al buscar usuario");
+  }
+};
+
   // Eliminar miembro
   const handleRemoveMember = (index: number) => {
+    const memberToRemove = additionalMembers[index];
     const newMembers = [...additionalMembers];
-    const removed = newMembers.splice(index, 1)[0];
+    newMembers.splice(index, 1);
     setAdditionalMembers(newMembers);
-    setMemberIds(memberIds.filter(id => id !== removed.id));
+    setMemberIds(memberIds.filter(id => id !== memberToRemove.id));
+    toast.success("Miembro eliminado del equipo");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -85,6 +163,15 @@ export default function EditarProyectoPage() {
 
     const userId = localStorage.getItem("userId");
     const proyectoIdEvento = proyecto.idEvento;
+
+    const miembrosOriginales = proyecto.idMiembros || []; // Los que ya tenía el proyecto
+    const miembrosNuevos = memberIds; // Los que agregaste en el formulario
+  
+    // Combinar sin duplicados
+    const todosLosMiembros = [...new Set([...miembrosOriginales, ...miembrosNuevos])];
+  
+    // Excluir al líder (idParticipante) de la lista de miembros
+    const miembrosFinales = todosLosMiembros.filter(id => id !== proyecto.idParticipante);
 
     const proyectoActualizado = {
       id: proyecto.id,
@@ -95,8 +182,7 @@ export default function EditarProyectoPage() {
       idCategoria: proyecto.idCategoria,
       idEvento: proyectoIdEvento || parseInt(localStorage.getItem("idEvento") || "0"),
       estado: proyecto.estado,
-      memberIds: memberIds,
-      additionalMembers: additionalMembers
+      idMiembros: miembrosFinales
     };
 
     try {
@@ -251,42 +337,53 @@ export default function EditarProyectoPage() {
           <div className="mb-6">
             <label className="block text-sm font-bold text-gray-700 mb-4 ml-1">
               <Users className="w-4 h-4 inline mr-2 text-purple-600" />
-              Equipo ({1 + additionalMembers.length} miembros)
+              Equipo ({additionalMembers.length + 1} miembros)
             </label>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Participante actual */}
+              {/* Líder del proyecto */}
               <div className="flex items-center gap-3 p-4 bg-purple-50 rounded-2xl border border-purple-200 shadow-sm">
                 <div className="w-10 h-10 rounded-xl bg-purple-600 flex items-center justify-center text-white font-bold">
-                  {localStorage.getItem("email")?.charAt(0).toUpperCase() || "U"}
+                  {localStorage.getItem("email")?.charAt(0).toUpperCase() || "L"}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-bold text-gray-900 truncate">{localStorage.getItem("email") || "Usuario"}</p>
-                  <p className="text-[10px] text-purple-600 uppercase font-black tracking-widest">Tú (Creador)</p>
+                  <p className="font-bold text-gray-900 truncate">
+                    {localStorage.getItem("email") || "Usuario"}
+                  </p>
+                  <p className="text-[10px] text-purple-600 uppercase font-black tracking-widest">Líder / Creador</p>
                 </div>
                 <Badge className="bg-purple-100 text-purple-700 font-bold border-none">Líder</Badge>
               </div>
 
-              {/* Lista de participantes adicionales */}
+              {/* Lista de miembros adicionales */}
               {additionalMembers.map((member: any, index: number) => (
-                <div key={index} className="flex items-center gap-3 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm animate-in zoom-in-95">
+                <div key={index} className="flex items-center gap-3 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm group">
                   <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-gray-500 font-bold">
                     {member.email?.charAt(0).toUpperCase() || "M"}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-bold text-gray-900 truncate">{member.email}</p>
+                    <p className="font-bold text-gray-900 truncate">{member.email || member.nombre}</p>
                     <p className="text-[10px] text-gray-400 uppercase font-black tracking-widest">Miembro</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => handleRemoveMember(index)}
-                    className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                    className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all opacity-0 group-hover:opacity-100"
                   >
                     <X className="w-4 h-4" />
                   </button>
                 </div>
               ))}
             </div>
+
+            {/* Mensaje cuando no hay miembros adicionales */}
+            {additionalMembers.length === 0 && (
+              <div className="text-center py-8 bg-gray-50 rounded-2xl border border-dashed border-gray-200 mt-4">
+                <Users className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                <p className="text-sm text-gray-400">No hay miembros adicionales en el equipo</p>
+                <p className="text-xs text-gray-300">Agrega miembros usando el campo de abajo</p>
+              </div>
+            )}
 
             {/* Input para agregar nuevo miembro */}
             <div className="mt-4 flex gap-2">
@@ -296,6 +393,7 @@ export default function EditarProyectoPage() {
                 value={newMemberEmail}
                 onChange={(e) => setNewMemberEmail(e.target.value)}
                 className="flex-1 px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
+                onKeyPress={(e) => e.key === 'Enter' && handleAddMember()}
               />
               <button
                 type="button"
