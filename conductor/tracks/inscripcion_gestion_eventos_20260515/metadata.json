@@ -1,0 +1,8 @@
+{
+  "track_id": "inscripcion_gestion_eventos_20260515",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-05-15T23:03:00Z",
+  "updated_at": "2026-05-15T23:03:00Z",
+  "description": "Inscripción y Gestión de Eventos para Participantes Objetivo: Crear un "Hub" central para el participante donde gestione su presencia en la plataforma. Logro: La página principal del usuario autenticado debe dividirse en dos secciones claras: 1. "Mis Eventos": Una lista de los eventos donde el usuario ya está inscrito (como participante, jurado u organizador). Cada evento debe mostrar un acceso directo a su dashboard correspondiente. Esto se puede quedar con las tarjetas que tenemos 2. "Unirse a un Evento": Un listado de eventos activos/públicos. El usuario debe poder pulsar un botón de "Unirse"."
+}
