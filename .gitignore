@@ -65,3 +65,11 @@ database/pgdata/
 UsoAgentes.md
 
 .worktrees/
+
+# Ruflo / Claude-Flow runtime
+.claude-flow/
+.claude/
+.swarm/
+
+# AgentDB / RuVector
+ruvector.db
