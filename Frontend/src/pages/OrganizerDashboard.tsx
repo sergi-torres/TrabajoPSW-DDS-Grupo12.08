@@ -6,6 +6,7 @@ import LiveHeader from "../components/organizator_dashboard/LiveHeader";
 import StatsCard from "../components/organizator_dashboard/StatsCard";
 import CategoryRankingPodium, { CategoryRankingData } from "../components/organizator_dashboard/CategoryRankingPodium";
 import { getDashboard, extenderTiempo, cerrarVotacion } from "../api/orgDashboardApi";
+import { abandonarEvento } from "../api/eventosApi";
 import { AuthContext } from "../context/AuthContext";
 import { EventContext } from "../context/EventContext";
 import { categoriasApi } from "../api/categoriasApi";
@@ -15,10 +16,11 @@ import "../components/organizator_dashboard/Dashboard.css";
 
 export default function OrganizerDashboard() {
   const navigate = useNavigate();
-  const { logout } = useContext(AuthContext)!;
+  const { logout, userId } = useContext(AuthContext)! as any;
   const { eventoId: contextEventoId, userRole, userColor, isCollapsed, clearEventContext } = useContext(EventContext)!;
   
   const [toast, setToast] = useState<any>(null);
+  const [showConfirmAbandonar, setShowConfirmAbandonar] = useState(false);
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -73,6 +75,16 @@ export default function OrganizerDashboard() {
     logout();
     clearEventContext();
     navigate('/login');
+  };
+
+  const handleAbandonar = async () => {
+    try {
+      await abandonarEvento(Number(eventoId), userId);
+      clearEventContext();
+      navigate('/eventos');
+    } catch (err: any) {
+      showToast(err.message || "Error al abandonar el evento", "warning");
+    }
   };
 
   const handleExtend = async () => {
@@ -174,13 +186,24 @@ export default function OrganizerDashboard() {
           <div className="max-w-7xl mx-auto">
             <div className="flex justify-between items-start mb-6">
               {!isPublicRole ? (
-                <button
-                  onClick={() => navigate('/eventos')}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-xl transition-all duration-200 border border-white/10 font-heading font-semibold text-sm group"
-                >
-                  <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" strokeWidth={2.5} />
-                  Volver a eventos
-                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => navigate('/eventos')}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-xl transition-all duration-200 border border-white/10 font-heading font-semibold text-sm group"
+                  >
+                    <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" strokeWidth={2.5} />
+                    Volver a eventos
+                  </button>
+                  {(userRole === "Participante" || userRole === "Jurado") && (
+                    <button
+                      onClick={() => setShowConfirmAbandonar(true)}
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-white text-rose-600 hover:bg-rose-50 rounded-xl transition-all duration-200 font-heading font-bold text-sm shadow-md hover:shadow-lg active:scale-[0.98]"
+                    >
+                      <LogOut className="w-4 h-4" strokeWidth={2.5} />
+                      Abandonar evento
+                    </button>
+                  )}
+                </div>
               ) : (
                 <div />
               )}
@@ -297,6 +320,34 @@ export default function OrganizerDashboard() {
         <div className={`fixed bottom-8 right-8 z-50 flex items-center gap-3 bg-gray-900 text-white px-6 py-4 rounded-2xl shadow-2xl animate-in slide-in-from-bottom-4 duration-300`}>
           <div className={`w-2 h-2 rounded-full ${toast.type === 'success' ? 'bg-green-400' : 'bg-orange-400'}`} />
           <p className="font-bold text-sm">{toast.message}</p>
+        </div>
+      )}
+
+      {showConfirmAbandonar && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-[32px] shadow-2xl p-8 max-w-sm w-full mx-4">
+            <div className="w-14 h-14 bg-rose-50 rounded-2xl flex items-center justify-center mx-auto mb-5">
+              <LogOut className="w-7 h-7 text-rose-500" strokeWidth={2} />
+            </div>
+            <h2 className="text-xl font-heading font-bold text-gray-900 text-center mb-2">¿Abandonar el evento?</h2>
+            <p className="text-gray-500 text-sm text-center mb-8">
+              Dejarás de formar parte de este evento. Podrás volver a unirte desde el dashboard si el evento sigue disponible.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowConfirmAbandonar(false)}
+                className="flex-1 py-3 rounded-2xl border border-gray-200 font-heading font-bold text-gray-700 hover:bg-gray-50 transition-all"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => { setShowConfirmAbandonar(false); handleAbandonar(); }}
+                className="flex-1 py-3 rounded-2xl bg-rose-500 hover:bg-rose-600 text-white font-heading font-bold transition-all shadow-lg shadow-rose-100"
+              >
+                Sí, abandonar
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
