@@ -386,5 +386,67 @@ namespace Votify.API.Services
                 throw new Exception("Error al actualizar el evento", ex);
             }
         }
+
+        public async Task<List<EventoResponseDto>> GetEventosDisponiblesAsync(int userId)
+        {
+            try
+            {
+                var todos = await _eventoRepository.GetAllAsync();
+                var misRelaciones = await _eventoUsuarioRepository.GetByUsuarioAsync(userId);
+                var misEventoIds = misRelaciones.Select(r => r.IdEvento).ToHashSet();
+
+                return todos
+                    .Where(e => !misEventoIds.Contains(e.Id))
+                    .Select(e => new EventoResponseDto
+                    {
+                        Id = e.Id,
+                        CodEvento = e.CodEvento,
+                        Nombre = e.Nombre,
+                        Descripcion = e.Descripcion,
+                        FechaIni = e.FechaInicio,
+                        FechaFin = e.FechaFin,
+                        Estado = e.Estado
+                    })
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error al obtener los eventos disponibles", ex);
+            }
+        }
+
+        public async Task<bool> UnirseAEventoAsync(int eventoId, int userId)
+        {
+            try
+            {
+                var existing = await _eventoUsuarioRepository.GetAsync(eventoId, userId);
+                if (existing != null)
+                    throw new Exception("Ya estás inscrito en este evento.");
+
+                await _eventoUsuarioRepository.CreateAsync(new EventoUsuario
+                {
+                    IdEvento = eventoId,
+                    IdUsuario = userId,
+                    Rol = "Participante"
+                });
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error al unirse al evento", ex);
+            }
+        }
+
+        public async Task<bool> AbandonarEventoAsync(int eventoId, int userId)
+        {
+            try
+            {
+                return await _eventoUsuarioRepository.DeleteAsync(eventoId, userId);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error al abandonar el evento", ex);
+            }
+        }
     }
 }
