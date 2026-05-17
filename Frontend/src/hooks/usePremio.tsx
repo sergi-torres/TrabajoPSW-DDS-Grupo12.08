@@ -58,14 +58,17 @@ export const usePremio = (): UsePremioReturn => {
 
     const crearPremios = useCallback(async (premioDto : CrearPremioRequest) => {
         if(premioDto=== null ||premioDto === undefined){
+            toast.dismiss();
             toast.error("No se asigno categoria al guardar"); return;
         }
         setCreandoPremio(true);
         try{
             await premiosApi.crearPremio(premioDto);
+            toast.dismiss();
             toast.success("Se guardo el premio correctamente");
         }catch(error){
             console.error("Error al guardar premio:", error);
+            toast.dismiss();
             toast.error("Error al guardar el premio");
         }finally{
             setCreandoPremio(false);
@@ -74,14 +77,15 @@ export const usePremio = (): UsePremioReturn => {
 
     const obtenerPremios = useCallback(async (eventoId: number) => {
         if(eventoId === null || eventoId === undefined){
+            toast.dismiss();
             toast.error("No se trajo ningún premio"); return;
         }
         setcargandoPremio(true);
         try{
             setPremios(await premiosApi.obtenerPremios(eventoId));
-            toast.success("Se obtuvieron los premios correctamente");
         }catch(error){
             console.error("Error al obtener premios:", error);
+            toast.dismiss();
             toast.error("Error al obtener los premios");
         }finally{
             setcargandoPremio(false);
@@ -90,14 +94,17 @@ export const usePremio = (): UsePremioReturn => {
 
     const actualizarPremio = useCallback(async (premioDto : Premio) => {
         if(premioDto=== null ||premioDto === undefined){
+            toast.dismiss();
             toast.error("No se asigno categoria al modificar"); return;
         }
         setActualizandoPremio(true);
         try{
             await premiosApi.actualizarPremio(premioDto);
+            toast.dismiss();
             toast.success("Se actualizo el premio correctamente");
         }catch(error){
             console.error("Error al actualizar premio:", error);
+            toast.dismiss();
             toast.error("Error al actualizar el premio");
         }finally{
             setActualizandoPremio(false);
@@ -106,14 +113,17 @@ export const usePremio = (): UsePremioReturn => {
 
     const eliminarPremio = useCallback(async (premioId : number) => {
         if(premioId === null || premioId === undefined){
+            toast.dismiss();
             toast.error("No se asigno premio al eliminar"); return;
         }  
         setEliminandoPremio(true);
         try{
             await premiosApi.eliminarPremio(premioId);
+            toast.dismiss();
             toast.success("Se elimino el premio correctamente");
         }catch(error){
             console.error("Error al eliminar premio:", error);
+            toast.dismiss();
             toast.error("Error al eliminar el premio");
         }finally{
             setEliminandoPremio(false);
