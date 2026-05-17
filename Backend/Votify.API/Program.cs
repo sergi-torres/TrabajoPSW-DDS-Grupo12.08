@@ -52,6 +52,8 @@ builder.Services.AddScoped<Votify.API.Services.ICategoriaService, Votify.API.Ser
 builder.Services.AddScoped<Votify.API.Services.IJuradoService, Votify.API.Services.JuradoService>();
 builder.Services.AddScoped<Votify.API.Services.IEmailService, Votify.API.Services.ResendEmailService>();
 builder.Services.AddScoped<Votify.API.Filters.OrganizerOnlyFilter>();
+builder.Services.AddScoped<Votify.API.Repositories.IPremioRepository, Votify.API.Repositories.PremioRespository>();
+builder.Services.AddScoped<Votify.API.Services.IPremioService, Votify.API.Services.PremioService>();
 
 var resendApiKey = Environment.GetEnvironmentVariable("RESEND_API_KEY");
 if (!string.IsNullOrEmpty(resendApiKey))

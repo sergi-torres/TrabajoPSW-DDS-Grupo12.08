@@ -20,7 +20,7 @@ interface UsePremioReturn {
 
     // Acciones
     obtenerCategorias: (eventoId: number) => Promise<void>;
-    crearPremio: (premioDto: Premio) => Promise<void>;
+    crearPremio: (premioDto: CrearPremioRequest) => Promise<void>;
     obtenerPremios: (eventoId: number) => Promise<void>;
     actualizarPremio: (premioDto: Premio) => Promise<void>;
     eliminarPremio: (premioId: number) => Promise<void>;

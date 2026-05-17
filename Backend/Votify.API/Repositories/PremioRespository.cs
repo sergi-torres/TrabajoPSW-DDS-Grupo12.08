@@ -11,29 +11,45 @@ namespace Votify.API.Repositories
             _supabase = client;
         }
 
-        public async Task<List<Premio>> ObtenerPremiosDelEventoAsync(int eventoId)
+        public async Task<List<Categoria>> ObtenerCategoriasPorEventoAsync(int eventoId)
         {
-            var premios = await _supabase.From<Premio>()
-                .Where(p => p.IdCategoria == eventoId)
+            var response = await _supabase.From<Categoria>()
+                .Where(c => c.IdEvento == eventoId)
+                .Get();
+            return response.Models;
+        }
+
+        public async Task<List<Premio>> ObtenerPremiosPorCategoriasAsync(List<int> categoriasIds)
+        {
+            var response = await _supabase.From<Premio>()
+                .Filter(p => p.IdCategoria, Supabase.Postgrest.Constants.Operator.In, categoriasIds)
                 .Get();
 
-            return premios.Models;
+            return response.Models;
         }
 
         public async Task<Premio> ObtenerPorIdAsync(int id)
         {
-            var response = await _supabase
-                    .From<Premio>()
-                    .Where(p => p.Id == id)
-                    .Select("*")
-                    .Get();
+            var response = await _supabase.From<Premio>()
+                .Where(p => p.Id == id)
+                .Get();
 
             var premio = response.Models.FirstOrDefault();
-
             if (premio == null)
                 throw new Exception("No se encontró el premio");
 
             return premio;
+        }
+
+        // Implementación conforme a la interfaz: devuelve los premios del evento
+        public async Task<List<Premio>> ObtenerPremiosDelEventoAsync(int eventoId)
+        {
+            var categorias = await ObtenerCategoriasPorEventoAsync(eventoId);
+            if (categorias == null || categorias.Count == 0)
+                return new List<Premio>();
+
+            var categoriasIds = categorias.Select(c => c.Id).ToList();
+            return await ObtenerPremiosPorCategoriasAsync(categoriasIds);
         }
 
         public async Task<bool> CrearPremioAsync(Premio premio)

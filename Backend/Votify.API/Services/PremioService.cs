@@ -18,6 +18,9 @@ namespace Votify.API.Services
         {
             var premio = await _premioRepository.ObtenerPorIdAsync(premioId);
 
+            if(premio == null)
+                return false;
+
             premio.Nombre = premioDto.Nombre;
             premio.Descripcion = premioDto.Descripcion; 
             premio.IdCategoria = premioDto.IdCategoria;
@@ -47,16 +50,17 @@ namespace Votify.API.Services
 
         public async Task<List<PremioResponseDto>> ObtenerPremiosDelEventoAsync(int eventoId)
         {   
-            var premios = await ObtenerPremiosDelEventoAsync(eventoId);
+            var premios = await _premioRepository.ObtenerPremiosDelEventoAsync(eventoId);
+
             return premios.Select(p => new PremioResponseDto
-                {
-                    Id = p.Id,
-                    Nombre = p.Nombre,
-                    Descripcion = p.Descripcion,
-                    IdCategoria = p.IdCategoria,
-                    Posicion = p.Posicion,
-                    Icono = p.Icono,
-                }).ToList();
+            {
+                Id = p.Id,
+                Nombre = p.Nombre,
+                Descripcion = p.Descripcion,
+                IdCategoria = p.IdCategoria,
+                Posicion = p.Posicion,
+                Icono = p.Icono
+            }).ToList();
         }
     }
 }

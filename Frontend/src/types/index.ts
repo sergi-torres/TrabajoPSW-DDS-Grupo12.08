@@ -25,6 +25,7 @@ export interface Categoria {
   idevento: number;
   fechaInicio?: string;
   fechaFin?: string;
+  estado?: string;
 }
 
 export interface ComentarioCualitativo {
