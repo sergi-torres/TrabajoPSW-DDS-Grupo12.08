@@ -23,6 +23,7 @@ export interface Categoria {
   id: number;
   nombre: string;
   idevento: number;
+  estado: string;
   fechaInicio?: string;
   fechaFin?: string;
   estado?: string;

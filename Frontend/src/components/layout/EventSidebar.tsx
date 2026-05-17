@@ -1,5 +1,5 @@
 ﻿import { Link, useLocation, useParams, useNavigate } from "react-router-dom";
-import { Info, FolderOpen, Trophy, Settings, ClipboardList, User, LogOut, ChevronUp, ChevronLeft, ChevronRight, Vote, Timer, Lightbulb, LucideIcon, } from "lucide-react";
+import { Info, FolderOpen, Trophy, Settings, ClipboardList, User, LogOut, ChevronUp, ChevronLeft, ChevronRight, Vote, Timer, Lightbulb, Sparkles, LucideIcon, } from "lucide-react";
 import { useState, useRef, useEffect, useContext } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { EventContext } from "../../context/EventContext";
@@ -83,7 +83,7 @@ export function EventSidebar({ color: propColor, position = 'left' }: EventSideb
     } else if (userRole === "Jurado") {
         roleLinks.push({ label: "Votaciones", path: `/eventos/${eventoId}/votar`, icon: Vote });
     } else if (userRole === "Participante") {
-        
+
         roleLinks.push({ label: "Registrar Proyecto", path: `/eventos/${eventoId}/participantRegister`, icon: User });
 
         if (localStorage.getItem("proyectoABCD")) {

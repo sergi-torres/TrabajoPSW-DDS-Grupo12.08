@@ -1,6 +1,5 @@
-# Environment variables (NUNCA subir claves a Git)
+# Environment variables
 .env
-.
 .env.local
 
 # .NET build artifacts
@@ -35,6 +34,7 @@ project.fragment.lock.json
 appsettings.Development.json
 appsettings.Local.json
 
+# Markdown temporales
 /0[0-9]_*.md
 /1[0-9]_*.md
 
@@ -60,16 +60,8 @@ pnpm-debug.log*
 database/data/
 database/pgdata/
 
-# Gemini
+# Gemini (Configuración persistente)
 .gemini/
-GEMINI.md
-CLAUDE.md
-
-# Gemini CLI Conductor
-conductor/
-
-# Superpowers
-docs/superpowers/
-.superpowers/
+UsoAgentes.md
 
 .worktrees/
