@@ -4,6 +4,7 @@ import { LoginDrawer } from "./LoginDrawer";
 import logo from "../../assets/LogoSinTexto.png";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
+import { toast } from "sonner";
 
 /**
  * MobileLayout.tsx
@@ -35,7 +36,7 @@ export function MobileLayout() {
                 navigate(`/eventos/${data.id}/votar`, { replace: true });
             } catch (error: any) {
                 console.error("Error validando PIN:", error);
-                alert(error.message);
+                toast.error(error?.message || "Error validando PIN");
             }
         }
     };

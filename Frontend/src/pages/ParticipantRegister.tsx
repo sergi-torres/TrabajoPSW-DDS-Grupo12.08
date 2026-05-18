@@ -115,8 +115,7 @@ export default function RegisterParticipant() {
         
         localStorage.setItem("proyectoABCD", JSON.stringify(res));
 
-        const catName = localCategories.find((c: any) => c.id === selectedCategory)?.nombre || "N/A";
-        toast.success(`Proyecto registrado exitosamente!\n\nProyecto: ${projectData.name}\nCategoría: ${catName}`);
+        toast.success("Tu proyecto ha sido registrado con éxito");
         navigate("/eventos");
       } catch (error: any) {
         console.error("Error al crear el proyecto:", error);

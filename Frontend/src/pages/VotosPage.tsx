@@ -13,6 +13,7 @@ import {
   ChevronRight
 } from "lucide-react";
 import { cn } from "../components/ui/utils";
+import { toast } from "sonner";
 import { categoriasApi } from "../api/categoriasApi";
 import { comentariosApi } from "../api/comentariosApi";
 import { deleteProyecto, getProyectosByParticipante } from "../api/proyectoApi";
@@ -150,7 +151,7 @@ export default function VotosPage() {
     if (currentIndex > 0) {
       setProyectoActual(proyectosDisponibles[currentIndex - 1]);
     } else {
-      alert("No hay proyecto anterior");
+      toast.error("No hay proyecto anterior");
     }
   };
 
@@ -161,7 +162,7 @@ export default function VotosPage() {
     if (currentIndex < proyectosDisponibles.length - 1) {
       setProyectoActual(proyectosDisponibles[currentIndex + 1]);
     } else {
-      alert("No hay proyecto siguiente");
+      toast.error("No hay proyecto siguiente");
     }
   };
 
@@ -192,11 +193,11 @@ export default function VotosPage() {
           navigate("/eventos");
         }
         
-        alert("Proyecto eliminado exitosamente");
+        toast.success("Proyecto eliminado exitosamente");
       }
     } catch (error) {
       console.error("Error al eliminar proyecto:", error);
-      alert("Error al eliminar el proyecto");
+      toast.error("Error al eliminar el proyecto");
     }
   };
 
