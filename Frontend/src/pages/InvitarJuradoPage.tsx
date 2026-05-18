@@ -286,7 +286,7 @@ export default function InvitarJuradoPage() {
                         </div>
 
                         <h1 className="text-3xl lg:text-4xl font-heading font-bold tracking-tight mb-2">
-                            {eventInfo?.eventName || "Cargando evento..."}
+                            Jurado
                         </h1>
                         <p className="text-blue-100 text-lg opacity-90">Gestión de Invitaciones al Jurado</p>
                     </div>
