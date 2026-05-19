@@ -84,7 +84,8 @@ namespace Votify.API.Controllers
                 {
                     Id = categoria.Id,
                     Nombre = categoria.Nombre,
-                    IdEvento = categoria.IdEvento
+                    IdEvento = categoria.IdEvento,
+                    Estado = categoria.Estado
                 };
 
                 return Ok(dto);

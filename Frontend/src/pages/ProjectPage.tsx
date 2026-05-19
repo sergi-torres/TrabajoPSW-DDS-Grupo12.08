@@ -256,7 +256,7 @@ export default function ProjectPage() {
 
             <div>
               <h1 className="text-3xl lg:text-4xl font-heading font-bold tracking-tight mb-2">
-                {localStorage.getItem("eventoNombre") || "Evento"}
+                Proyectos
               </h1>
               <p className="opacity-90 text-lg font-medium">
                 Ranking por categorías

@@ -1,4 +1,4 @@
-using Votify.API.Models.Domain;
+﻿using Votify.API.Models.Domain;
 using Votify.API.Models.DTOs;
 using Votify.API.Repositories;
 
@@ -6,38 +6,36 @@ namespace Votify.API.Services
 {
     public class EventoService : IEventoService
     {
-        private readonly Supabase.Client _supabase;
-
         private readonly ICategoriaRepository _categoriaRepository;
         private readonly IProyectoRepository _proyectoRepository;
+        private readonly IEventoRepository _eventoRepository;
+        private readonly IEventoUsuarioRepository _eventoUsuarioRepository;
+        private readonly IBaremoRepository _baremoRepository;
 
-        public EventoService(Supabase.Client supabase, ICategoriaRepository categoriaRepository, IProyectoRepository proyectoRepository)
+        public EventoService(
+            ICategoriaRepository categoriaRepository, 
+            IProyectoRepository proyectoRepository,
+            IEventoRepository eventoRepository,
+            IEventoUsuarioRepository eventoUsuarioRepository,
+            IBaremoRepository baremoRepository)
         {
-            _supabase = supabase;
             _categoriaRepository = categoriaRepository;
             _proyectoRepository = proyectoRepository;
+            _eventoRepository = eventoRepository;
+            _eventoUsuarioRepository = eventoUsuarioRepository;
+            _baremoRepository = baremoRepository;
         }
 
         public async Task<List<EventoResponseDto>> GetEventosByUsuarioAsync(int userId)
         {
             try
             {
-                // Buscar en la tabla relación evento_usuario los eventos de este usuario
-                var relaciones = await _supabase
-                    .From<EventoUsuario>()
-                    .Filter("idusuario", Supabase.Postgrest.Constants.Operator.Equals, userId.ToString())
-                    .Get();
-
+                var relaciones = await _eventoUsuarioRepository.GetByUsuarioAsync(userId);
                 var resultado = new List<EventoResponseDto>();
 
-                foreach (var rel in relaciones.Models)
+                foreach (var rel in relaciones)
                 {
-                    var eventoResponse = await _supabase
-                        .From<EventoLite>()
-                        .Filter("id", Supabase.Postgrest.Constants.Operator.Equals, rel.IdEvento.ToString())
-                        .Get();
-
-                    var evento = eventoResponse.Models.FirstOrDefault();
+                    var evento = await _eventoRepository.GetByIdAsync(rel.IdEvento);
                     if (evento != null)
                     {
                         resultado.Add(new EventoResponseDto
@@ -66,12 +64,7 @@ namespace Votify.API.Services
         {
             try
             {
-                var response = await _supabase
-                    .From<EventoLite>()
-                    .Filter("cod_evento", Supabase.Postgrest.Constants.Operator.Equals, codEvento.ToString())
-                    .Get();
-
-                var evento = response.Models.FirstOrDefault();
+                var evento = await _eventoRepository.GetByCodigoAsync(codEvento);
                 if (evento == null)
                 {
                     throw new Exception("El PIN no corresponde a ningun evento.");
@@ -123,8 +116,6 @@ namespace Votify.API.Services
 
         public async Task<bool> ActualizarLimiteVotosAsync(int eventoId, int? categoriaId, int votosMaximos)
         {
-            // If categoriaId is provided, update only that category.
-            // If categoriaId is null, update ALL categories in the event that are "Pendiente"
             var categorias = await _categoriaRepository.ObtenerCategoriasDominioPorEventoIdAsync(eventoId);
                 
             bool success = true;
@@ -168,7 +159,7 @@ namespace Votify.API.Services
 
             if (categoria == null)
             {
-                return false; // El controlador devolverá un 404
+                return false;
             }
             
             categoria.FechaIni = request.FechaIni;
@@ -176,39 +167,26 @@ namespace Votify.API.Services
            
             return await _categoriaRepository.ActualizarAsync(categoria);
         }
+
         public async Task<EventoDetalleDto> GetEventoDetalleAsync(int eventoId)
         {
             try
             {
-                // Obtener el evento básico
-                var eventoResponse = await _supabase
-                    .From<EventoLite>()
-                    .Filter("id", Supabase.Postgrest.Constants.Operator.Equals, eventoId.ToString())
-                    .Get();
-
-                var evento = eventoResponse.Models.FirstOrDefault()
+                var evento = await _eventoRepository.GetByIdAsync(eventoId)
                     ?? throw new Exception("Evento no encontrado.");
 
-                // Obtener baremos del evento
-                var baremosResponse = await _supabase
-                    .From<Baremo>()
-                    .Filter("idevento", Supabase.Postgrest.Constants.Operator.Equals, eventoId.ToString())
-                    .Get();
-
+                var baremos = await _baremoRepository.GetByEventoIdAsync(eventoId);
                 var baremosDto = new List<BaremoDetalleDto>();
-                foreach (var baremo in baremosResponse.Models)
+
+                foreach (var baremo in baremos)
                 {
-                    // Obtener criterios de cada baremo
-                    var criteriosResponse = await _supabase
-                        .From<Criterio>()
-                        .Filter("idbaremo", Supabase.Postgrest.Constants.Operator.Equals, baremo.Id.ToString())
-                        .Get();
+                    var criterios = await _baremoRepository.GetCriteriosByBaremoIdAsync(baremo.Id);
 
                     baremosDto.Add(new BaremoDetalleDto
                     {
                         Id = baremo.Id,
                         Nombre = baremo.Nombre,
-                        Criterios = criteriosResponse.Models.Select(c => new CriterioDetalleDto
+                        Criterios = criterios.Select(c => new CriterioDetalleDto
                         {
                             Id = c.Id,
                             Nombre = c.Nombre,
@@ -219,26 +197,18 @@ namespace Votify.API.Services
                     });
                 }
 
-                // Obtener categorías del evento
-                var categoriasResponse = await _supabase
-                    .From<Categoria>()
-                    .Filter("idevento", Supabase.Postgrest.Constants.Operator.Equals, eventoId.ToString())
-                    .Get();
-
+                var categorias = await _categoriaRepository.ObtenerCategoriasDominioPorEventoIdAsync(eventoId);
                 var categoriasDto = new List<CategoriaDetalleDto>();
-                foreach (var cat in categoriasResponse.Models)
+
+                foreach (var cat in categorias)
                 {
-                    // Obtener pesos de cada categoría
-                    var pesosResponse = await _supabase
-                        .From<PesoCategoriaRol>()
-                        .Filter("idcategoria", Supabase.Postgrest.Constants.Operator.Equals, cat.Id.ToString())
-                        .Get();
+                    var pesos = await _categoriaRepository.ObtenerPesosPorCategoriaIdAsync(cat.Id);
 
                     categoriasDto.Add(new CategoriaDetalleDto
                     {
                         Id = cat.Id,
                         Nombre = cat.Nombre,
-                        Pesos = pesosResponse.Models.Select(p => new PesoRolDetalleDto
+                        Pesos = pesos.Select(p => new PesoRolDetalleDto
                         {
                             RolVotante = p.RolVotante,
                             Peso = p.Peso
@@ -272,57 +242,26 @@ namespace Votify.API.Services
         {
             try
             {
-                // Verificar que el evento existe
-                var eventoResponse = await _supabase
-                    .From<EventoLite>()
-                    .Filter("id", Supabase.Postgrest.Constants.Operator.Equals, eventoId.ToString())
-                    .Get();
-
-                var evento = eventoResponse.Models.FirstOrDefault()
+                var evento = await _eventoRepository.GetByIdAsync(eventoId)
                     ?? throw new Exception("Evento no encontrado.");
 
-                // Verificar si el evento está en votación (bloquear edición de baremos)
                 bool enVotacion = evento.Estado == "Activo" || evento.Estado == "EnVotacion";
 
-                // Actualizar campos básicos del evento
-                await _supabase
-                    .From<EventoLite>()
-                    .Filter("id", Supabase.Postgrest.Constants.Operator.Equals, eventoId.ToString())
-                    .Set(e => e.Nombre, dto.Nombre)
-                    .Set(e => e.Descripcion, dto.Descripcion)
-                    .Set(e => e.FechaInicio, dto.FechaInicio)
-                    .Set(e => e.FechaFin, dto.FechaFin)
-                    .Set(e => e.TipoEvento, dto.TipoEvento)
-                    .Set(e => e.ComentariosObligatorios, dto.ComentariosObligatorios)
-                    .Update();
+                await _eventoRepository.UpdateBasicAsync(eventoId, dto);
 
-                // Solo actualizar baremos/criterios si NO está en votación
                 if (!enVotacion && dto.Baremos != null)
                 {
-                    // Obtener baremos existentes
-                    var baremosExistentesRes = await _supabase
-                        .From<Baremo>()
-                        .Filter("idevento", Supabase.Postgrest.Constants.Operator.Equals, eventoId.ToString())
-                        .Get();
-                    var baremosExistentes = baremosExistentesRes.Models;
-
+                    var baremosExistentes = await _baremoRepository.GetByEventoIdAsync(eventoId);
                     var nombresBaremosDto = dto.Baremos.Select(b => b.Nombre).ToList();
 
-                    // Borrar baremos que ya no están en el DTO
                     foreach (var baremoExistente in baremosExistentes)
                     {
                         if (!nombresBaremosDto.Contains(baremoExistente.Nombre))
                         {
                             try
                             {
-                                // Borrar criterios del baremo
-                                await _supabase.From<Criterio>()
-                                    .Filter("idbaremo", Supabase.Postgrest.Constants.Operator.Equals, baremoExistente.Id.ToString())
-                                    .Delete();
-
-                                await _supabase.From<Baremo>()
-                                    .Filter("id", Supabase.Postgrest.Constants.Operator.Equals, baremoExistente.Id.ToString())
-                                    .Delete();
+                                await _baremoRepository.DeleteCriteriosByBaremoIdAsync(baremoExistente.Id);
+                                await _baremoRepository.DeleteAsync(baremoExistente.Id);
                             }
                             catch (Exception ex)
                             {
@@ -335,7 +274,6 @@ namespace Votify.API.Services
                         }
                     }
 
-                    // Crear o actualizar baremos con sus criterios
                     foreach (var baremoDto in dto.Baremos)
                     {
                         var baremoExistente = baremosExistentes.FirstOrDefault(b => b.Nombre == baremoDto.Nombre);
@@ -348,30 +286,22 @@ namespace Votify.API.Services
                         else
                         {
                             var nuevoBaremo = new Baremo { Nombre = baremoDto.Nombre, IdEvento = eventoId };
-                            var baremoCreado = await _supabase.From<Baremo>().Insert(nuevoBaremo);
-                            baremoId = baremoCreado.Models.First().Id;
+                            var baremoCreado = await _baremoRepository.InsertAsync(nuevoBaremo);
+                            baremoId = baremoCreado.Id;
                         }
 
                         if (baremoDto.Criterios != null)
                         {
-                            var criteriosExistentesRes = await _supabase
-                                .From<Criterio>()
-                                .Filter("idbaremo", Supabase.Postgrest.Constants.Operator.Equals, baremoId.ToString())
-                                .Get();
-                            var criteriosExistentes = criteriosExistentesRes.Models;
-
+                            var criteriosExistentes = await _baremoRepository.GetCriteriosByBaremoIdAsync(baremoId);
                             var nombresCriteriosDto = baremoDto.Criterios.Select(c => c.Nombre).ToList();
 
-                            // Borrar los que ya no están en el DTO
                             foreach (var criterioExistente in criteriosExistentes)
                             {
                                 if (!nombresCriteriosDto.Contains(criterioExistente.Nombre))
                                 {
                                     try
                                     {
-                                        await _supabase.From<Criterio>()
-                                            .Filter("id", Supabase.Postgrest.Constants.Operator.Equals, criterioExistente.Id.ToString())
-                                            .Delete();
+                                        await _baremoRepository.DeleteCriterioAsync(criterioExistente.Id);
                                     }
                                     catch (Exception ex)
                                     {
@@ -391,17 +321,13 @@ namespace Votify.API.Services
 
                                 if (criterioExistente != null)
                                 {
-                                    // Actualizar Criterio existente
-                                    await _supabase.From<Criterio>()
-                                        .Filter("id", Supabase.Postgrest.Constants.Operator.Equals, criterioExistente.Id.ToString())
-                                        .Set(c => c.Peso, (float)criterioDto.Peso)
-                                        .Set(c => c.TipoCriterio, tipoCriterio)
-                                        .Set(c => c.ComentarioObligatorio, criterioDto.ComentarioObligatorio)
-                                        .Update();
+                                    criterioExistente.Peso = (float)criterioDto.Peso;
+                                    criterioExistente.TipoCriterio = tipoCriterio;
+                                    criterioExistente.ComentarioObligatorio = criterioDto.ComentarioObligatorio;
+                                    await _baremoRepository.UpdateCriterioAsync(criterioExistente);
                                 }
                                 else
                                 {
-                                    // Insertar nuevo Criterio
                                     var nuevoCriterio = new Criterio
                                     {
                                         Nombre = criterioDto.Nombre,
@@ -410,53 +336,39 @@ namespace Votify.API.Services
                                         IdBaremo = baremoId,
                                         ComentarioObligatorio = criterioDto.ComentarioObligatorio
                                     };
-                                    await _supabase.From<Criterio>().Insert(nuevoCriterio);
+                                    await _baremoRepository.InsertCriterioAsync(nuevoCriterio);
                                 }
                             }
                         }
                     }
                 }
 
-                // Actualizar categorías solo si se proporcionan y el evento NO está en votación
                 if (!enVotacion && dto.Categorias != null)
                 {
-                    // Obtener categorías existentes
-                    var categoriasExistentesRes = await _supabase
-                        .From<Categoria>()
-                        .Filter("idevento", Supabase.Postgrest.Constants.Operator.Equals, eventoId.ToString())
-                        .Get();
-                    
-                    var categoriasExistentes = categoriasExistentesRes.Models;
+                    var categoriasExistentes = await _categoriaRepository.ObtenerCategoriasDominioPorEventoIdAsync(eventoId);
 
-                    // Para cada categoría en el DTO
                     foreach (var catDto in dto.Categorias)
                     {
-                        // Buscar si ya existe por nombre (o podrías usar ID si el DTO lo tuviera)
                         var existente = categoriasExistentes.FirstOrDefault(c => c.Nombre == catDto.Nombre);
                         int catId;
 
                         if (existente != null)
                         {
                             catId = existente.Id;
-                            // Actualizar pesos si es necesario (primero borrar pesos viejos de esta cat)
-                            await _supabase.From<PesoCategoriaRol>()
-                                .Filter("idcategoria", Supabase.Postgrest.Constants.Operator.Equals, catId.ToString())
-                                .Delete();
+                            await _categoriaRepository.EliminarPesosPorCategoriaIdAsync(catId);
                         }
                         else
                         {
-                            // Crear nueva
                             var nuevaCat = new Categoria { Nombre = catDto.Nombre, IdEvento = eventoId };
-                            var catCreada = await _supabase.From<Categoria>().Insert(nuevaCat);
-                            catId = catCreada.Models.First().Id;
+                            var catCreada = await _categoriaRepository.InsertarAsync(nuevaCat);
+                            catId = catCreada.Id;
                         }
 
-                        // Insertar nuevos pesos
                         if (catDto.Pesos != null)
                         {
                             foreach (var pesoDto in catDto.Pesos)
                             {
-                                await _supabase.From<PesoCategoriaRol>().Insert(new PesoCategoriaRol
+                                await _categoriaRepository.InsertarPesoAsync(new PesoCategoriaRol
                                 {
                                     IdCategoria = catId,
                                     RolVotante = pesoDto.RolVotante,
@@ -465,13 +377,8 @@ namespace Votify.API.Services
                             }
                         }
                     }
-
-                    // Opcional: Borrar categorías que NO están en el DTO y NO tienen proyectos
-                    // Pero por seguridad y para evitar el error 23503 que viste, 
-                    // simplemente no borraremos categorías de forma masiva aquí.
                 }
 
-                // Devolver el evento actualizado
                 return await GetEventoDetalleAsync(eventoId);
             }
             catch (Exception ex)
@@ -481,6 +388,3 @@ namespace Votify.API.Services
         }
     }
 }
-
-
-

@@ -1,5 +1,5 @@
 ﻿import { Link, useLocation, useParams, useNavigate } from "react-router-dom";
-import { Info, FolderOpen, Trophy, Settings, ClipboardList, User, LogOut, ChevronUp, ChevronLeft, ChevronRight, Vote, Timer, Lightbulb, LucideIcon, List} from "lucide-react";
+import { Info, FolderOpen, Trophy, Settings, ClipboardList, User, LogOut, ChevronUp, ChevronLeft, ChevronRight, Vote, Timer, Lightbulb, LucideIcon, Sparkles, List} from "lucide-react";
 import { useState, useRef, useEffect, useContext } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { EventContext } from "../../context/EventContext";
@@ -8,6 +8,8 @@ import logo from "../../assets/LogoSinTexto.png";
 
 export interface EventSidebarProps {
     color?: string;
+    // position: 'left' (default) or 'right' to place the sidebar on the right side
+    position?: 'left' | 'right';
 }
 
 interface NavLink {
@@ -19,7 +21,7 @@ interface NavLink {
 /**
  * EventSidebar — Sidebar responsiva para navegación de eventos con color del rol.
  */
-export function EventSidebar({ color: propColor }: EventSidebarProps) {
+export function EventSidebar({ color: propColor, position = 'left' }: EventSidebarProps) {
     const { eventoId: paramId } = useParams<{ eventoId: string }>();
     const navigate = useNavigate();
     const location = useLocation();
@@ -77,10 +79,11 @@ export function EventSidebar({ color: propColor }: EventSidebarProps) {
         roleLinks.push({ label: "Control Estados", path: `/eventos/${eventoId}/control-estados`, icon: Timer });
         roleLinks.push({ label: "Configuraciones", path: `/eventos/${eventoId}/configuraciones`, icon: Lightbulb });
         roleLinks.push({ label: "Ajustes del evento", path: `/eventos/${eventoId}/ajustes`, icon: Settings });
+        roleLinks.push({ label: "premios", path: `/eventos/${eventoId}/premios`, icon: Trophy });
     } else if (userRole === "Jurado") {
         roleLinks.push({ label: "Votaciones", path: `/eventos/${eventoId}/votar`, icon: Vote });
     } else if (userRole === "Participante") {
-        
+
         roleLinks.push({ label: "Registrar Proyecto", path: `/eventos/${eventoId}/participantRegister`, icon: User });
 
         if (localStorage.getItem("proyectoABCD")) {
@@ -116,19 +119,26 @@ export function EventSidebar({ color: propColor }: EventSidebarProps) {
         );
     };
 
+    const isRight = position === 'right';
+
     return (
         <>
             {/* Desktop Sidebar (lg and up) */}
             <aside className={cn(
-                "hidden lg:flex flex-col fixed left-4 top-6 bottom-6 z-40 bg-white shadow-xl rounded-2xl transition-all duration-300",
+                "hidden lg:flex flex-col fixed top-6 bottom-6 z-40 bg-white shadow-xl rounded-2xl transition-all duration-300",
+                isRight ? 'right-4' : 'left-4',
                 isCollapsed ? "w-20" : "w-64"
             )}>
                 {/* Toggle Button */}
                 <button
                     onClick={toggleSidebar}
-                    className="absolute -right-4 top-10 h-8 w-8 bg-white border border-slate-200 rounded-full shadow-lg flex items-center justify-center text-slate-500 hover:text-slate-800 hover:scale-110 transition-all z-50 cursor-pointer"
+                    className={cn(
+                        "absolute top-10 h-8 w-8 bg-white border border-slate-200 rounded-full shadow-lg flex items-center justify-center text-slate-500 hover:text-slate-800 hover:scale-110 transition-all z-50 cursor-pointer",
+                        isRight ? '-left-4' : '-right-4'
+                    )}
                 >
-                    {isCollapsed ? <ChevronRight size={20} strokeWidth={2.5} /> : <ChevronLeft size={20} strokeWidth={2.5} />}
+                    {/* Icon direction should be mirrored when sidebar is right */}
+                    {isCollapsed ? (isRight ? <ChevronLeft size={20} strokeWidth={2.5} /> : <ChevronRight size={20} strokeWidth={2.5} />) : (isRight ? <ChevronRight size={20} strokeWidth={2.5} /> : <ChevronLeft size={20} strokeWidth={2.5} />)}
                 </button>
 
                 {/* Logo Section */}

@@ -26,6 +26,7 @@ interface Props {
   onCancelar: () => void;
   cargando?: boolean;
   comentariosObligatorios?: boolean;
+  themeColor?: string;
 }
 
 const EvaluacionCriterios: React.FC<Props> = ({ 
@@ -35,13 +36,20 @@ const EvaluacionCriterios: React.FC<Props> = ({
   onConfirmar, 
   onCancelar,
   cargando,
-  comentariosObligatorios 
+  comentariosObligatorios,
+  themeColor = "#2563eb"
 }) => {
   const [criterios, setCriterios] = useState<Criterio[]>([]);
   const [evaluaciones, setEvaluaciones] = useState<Record<number, { valor: number, comentario: string }>>({});
   const [comentarioGlobal, setComentarioGlobal] = useState("");
   const [fetching, setFetching] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const isGreen = themeColor === "#059669";
+  const bgSoft = isGreen ? "from-emerald-50 to-teal-50" : "from-blue-50 to-indigo-50";
+  const borderSoft = isGreen ? "border-emerald-100" : "border-blue-100";
+  const focusRing = isGreen ? "focus:ring-emerald-50/50" : "focus:ring-blue-50/50";
+  const focusBorder = isGreen ? "focus:border-emerald-200" : "focus:border-blue-200";
 
   useEffect(() => {
     const fetchCriterios = async () => {
@@ -108,7 +116,10 @@ const EvaluacionCriterios: React.FC<Props> = ({
   if (fetching) {
     return (
       <div className="flex flex-col items-center justify-center py-20 space-y-4">
-        <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+        <div 
+          className="w-12 h-12 border-4 border-t-transparent rounded-full animate-spin" 
+          style={{ borderColor: `${themeColor} transparent transparent ${themeColor}` }}
+        />
         <p className="text-gray-500 font-medium animate-pulse">Cargando criterios de evaluación...</p>
       </div>
     );
@@ -155,14 +166,19 @@ const EvaluacionCriterios: React.FC<Props> = ({
       className="space-y-8"
     >
       <div className="flex items-center gap-4 mb-8">
-        <div className="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-100">
+        <div 
+          className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg"
+          style={{ backgroundColor: themeColor, boxShadow: `0 10px 15px -3px ${themeColor}33` }}
+        >
           <Target className="w-6 h-6" />
         </div>
         <div>
           <h3 className="text-2xl font-heading font-bold text-gray-900">
-            Evaluando: <span className="text-blue-600">{proyecto.nombre}</span>
+            Evaluación Detallada
           </h3>
-          <p className="text-gray-500 text-sm">Proporciona una calificación y feedback para cada criterio.</p>
+          <p className="text-gray-500 text-sm">
+            Proyecto: <span className="font-bold" style={{ color: themeColor }}>{proyecto.nombre}</span>
+          </p>
         </div>
       </div>
 
@@ -171,10 +187,13 @@ const EvaluacionCriterios: React.FC<Props> = ({
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-[32px] p-6 lg:p-8"
+          className={cn("bg-gradient-to-br border rounded-[32px] p-6 lg:p-8", bgSoft, borderSoft)}
         >
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white">
+            <div 
+                className="w-10 h-10 rounded-xl flex items-center justify-center text-white"
+                style={{ backgroundColor: themeColor }}
+            >
               <MessageSquare className="w-5 h-5" />
             </div>
             <div>
@@ -193,7 +212,9 @@ const EvaluacionCriterios: React.FC<Props> = ({
             value={comentarioGlobal}
             onChange={(e) => setComentarioGlobal(e.target.value)}
             className={cn(
-              "w-full bg-white border-2 border-transparent rounded-2xl px-5 py-4 text-sm font-medium focus:border-blue-200 focus:ring-4 focus:ring-blue-50/50 outline-none transition-all resize-none h-28",
+              "w-full bg-white border-2 border-transparent rounded-2xl px-5 py-4 text-sm font-medium focus:ring-4 outline-none transition-all resize-none h-28",
+              focusBorder,
+              focusRing,
               comentariosObligatorios && !comentarioGlobal.trim() && "border-amber-200 bg-amber-50/30"
             )}
           />
@@ -212,7 +233,10 @@ const EvaluacionCriterios: React.FC<Props> = ({
                 {/* Info Criterio */}
                 <div className="lg:w-1/3">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-widest">
+                    <span 
+                        className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest"
+                        style={{ backgroundColor: `${themeColor}15`, color: themeColor }}
+                    >
                       Peso: {c.peso}%
                     </span>
                     {c.comentarioObligatorio && (
@@ -233,7 +257,7 @@ const EvaluacionCriterios: React.FC<Props> = ({
                   <div className="space-y-4">
                     <div className="flex justify-between items-center px-1">
                       <span className="text-xs font-black text-gray-400 uppercase tracking-wider">Calificación</span>
-                      <span className="text-2xl font-heading font-black text-blue-600">{evaluaciones[c.id].valor}</span>
+                      <span className="text-2xl font-heading font-black" style={{ color: themeColor }}>{evaluaciones[c.id].valor}</span>
                     </div>
                     <input 
                       type="range"
@@ -242,7 +266,8 @@ const EvaluacionCriterios: React.FC<Props> = ({
                       step="1"
                       value={evaluaciones[c.id].valor}
                       onChange={(e) => handleUpdate(c.id, 'valor', parseInt(e.target.value))}
-                      className="w-full h-2 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                      className="w-full h-2 bg-gray-100 rounded-lg appearance-none cursor-pointer"
+                      style={{ accentColor: themeColor }}
                     />
                     <div className="flex justify-between text-[10px] font-bold text-gray-300 uppercase tracking-tighter">
                       <span>Deficiente</span>
@@ -260,7 +285,9 @@ const EvaluacionCriterios: React.FC<Props> = ({
                       value={evaluaciones[c.id].comentario}
                       onChange={(e) => handleUpdate(c.id, 'comentario', e.target.value)}
                       className={cn(
-                        "w-full bg-gray-50 border-2 border-transparent rounded-2xl pl-12 pr-4 py-4 text-sm font-medium focus:bg-white focus:border-blue-100 focus:ring-4 focus:ring-blue-50/50 outline-none transition-all resize-none h-24",
+                        "w-full bg-gray-50 border-2 border-transparent rounded-2xl pl-12 pr-4 py-4 text-sm font-medium focus:bg-white focus:ring-4 outline-none transition-all resize-none h-24",
+                        focusBorder,
+                        focusRing,
                         c.comentarioObligatorio && !evaluaciones[c.id].comentario.trim() && "border-amber-100 bg-amber-50/30"
                       )}
                     />
@@ -282,7 +309,8 @@ const EvaluacionCriterios: React.FC<Props> = ({
         <button
           onClick={handleConfirmar}
           disabled={cargando}
-          className="px-10 py-4 bg-blue-600 text-white rounded-2xl font-bold shadow-lg shadow-blue-100 hover:bg-blue-700 hover:shadow-blue-200 transition-all flex items-center gap-2"
+          className="px-10 py-4 text-white rounded-2xl font-bold shadow-lg transition-all flex items-center gap-2"
+          style={{ backgroundColor: themeColor, boxShadow: `0 10px 15px -3px ${themeColor}33` }}
         >
           {cargando ? (
             <>

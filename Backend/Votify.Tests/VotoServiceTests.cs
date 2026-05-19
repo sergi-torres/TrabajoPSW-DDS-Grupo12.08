@@ -96,7 +96,7 @@ namespace Votify.Tests
 
             _categoriaRepoMock.Setup(r => r.ObtenerTodosCamposAsync(eventoId))
                 .ReturnsAsync(new List<CategoriaResponseActualizadoDto> { 
-                    new CategoriaResponseActualizadoDto { Id = 1, Nombre = "Cat 1", IdEvento = eventoId, Estado = "Activa" } 
+                    new CategoriaResponseActualizadoDto { Id = 1, Nombre = "Cat 1", IdEvento = eventoId, Estado = "Activa", VotosMaximos = 1 } 
                 });
             _proyectoRepoMock.Setup(r => r.ObtenerPorCategoriaIdAsync(1))
                 .ReturnsAsync(new List<Proyecto> { new Proyecto { Id = 1, IdCategoria = 1, Nombre = "Proj 1" } });

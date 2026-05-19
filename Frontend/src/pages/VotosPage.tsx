@@ -1,4 +1,4 @@
-﻿import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { EventContext } from "../context/EventContext";
@@ -9,11 +9,6 @@ import {
   ArrowLeft, 
   Target, 
   Award, 
-  TrendingUp, 
-  MessageSquare, 
-  User, 
-  ThumbsUp,
-  Star,
   Trash2,
   ChevronLeft,
   ChevronRight
@@ -69,18 +64,20 @@ const CommentCard = ({ author, comment, timestamp, likes }: { author: string; co
 // ============================================
 
 export default function VotosPage() {
+  const { eventoId: eventoIdParam } = useParams<{ eventoId: string }>();
   const navigate = useNavigate();
-  const { isPublic, userName } = useContext(AuthContext)!;
+  const authCtx = useContext(AuthContext);
   const { userColor, isCollapsed, userRole } = useContext(EventContext)!;
 
   const { addNotification } = useVoting();
 
   const [votaciones, setVotaciones] = useState<any[]>([]);
   const [categoria, setCategoria] = useState<any>(null);
-  const [publicComments, setPublicComments] = useState<any[]>([]);
+  const [comentariosJuradoCount, setComentariosJuradoCount] = useState(0);
+  const [comentariosPublicoCount, setComentariosPublicoCount] = useState(0);
   const [cargando, setCargando] = useState(true);
   const [proyectosDisponibles, setProyectosDisponibles] = useState<any[]>([]);
-  const [proyectoActualId, setProyectoActualId] = useState<string | null>(null);
+  const [proyectoActual, setProyectoActual] = useState<any>(null);
 
   const isPublicRole = userRole === "Público";
   const themeColor = userColor || "#9333ea";
@@ -108,62 +105,40 @@ export default function VotosPage() {
       const proyectos = JSON.parse(storedProyectos);
       setProyectosDisponibles(proyectos); 
     }
-    const currentId = localStorage.getItem("proyectoId");
-    setProyectoActualId(currentId);
-  }, []);
+  }, [proyectoActual]);
 
-  // FETCH DE COMENTARIOS Y VOTACIONES
   const fetchData = async (proyectoId: string) => {
-    setCargando(true);
     try {
-      // 1. Obtener votaciones
-      const votoRes = await fetch(`http://localhost:5245/api/votacion/porProyecto?proyectoId=${proyectoId}`);
-      if (!votoRes.ok) throw new Error("Error al obtener votaciones");
-      const dataVoto = await votoRes.json();
-      setVotaciones(dataVoto);
+      // 1. Obtener resumen de comentarios
+      const catIdRaw = proyectoActual?.idcategoria ?? proyectoActual?.idCategoria ?? localStorage.getItem("categoriaProyecto");
+      if (catIdRaw) {
+        const catId = Number(catIdRaw);
+        const proyId = Number(proyectoId);
 
-      // 2. Obtener comentarios
-      if (dataVoto && dataVoto.length > 0) {
-        const comentariosPromises = dataVoto.map((voto: any) =>
-          fetch(`http://localhost:5245/api/comentarios?idVotacion=${voto.id}`)
-            .then(res => res.ok ? res.json() : [])
-            .catch(() => [])
-        );
-        const resultadosComentarios = await Promise.all(comentariosPromises);
-        const todosLosComentarios = resultadosComentarios.flat();
+        try {
+          const resumen = await comentariosApi.getResumen(proyId, catId);
+          const grupoJurado = resumen.find((g: any) => g.tipo === "Jurado");
+          const grupoPublico = resumen.find((g: any) => g.tipo === "Público");
 
-        const mapped = todosLosComentarios.map((c: any) => ({
-          id: c.id,
-          author: c.nombreUsuario || c.email || "Anónimo",
-          comment: c.comentario,
-          timestamp: new Date(c.fecha).toLocaleString(),
-          likes: c.likes ?? 0
-        }));
-        setPublicComments(mapped);
-      } else {
-        setPublicComments([]);
-      }
+          setComentariosJuradoCount(grupoJurado?.totalComentarios || 0);
+          setComentariosPublicoCount(grupoPublico?.totalComentarios || 0);
+        } catch (err) {
+          console.warn("Error al cargar resumen de comentarios:", err);
+          setComentariosJuradoCount(0);
+          setComentariosPublicoCount(0);
+        }
 
     } catch (err) {
-      console.error("Error cargando datos:", err);
+      console.error("Error cargando datos de feedback:", err);
     } finally {
       setCargando(false);
     }
   };
 
-  useEffect(() => {
-    const idProyecto = localStorage.getItem("proyectoId");
-    if (idProyecto) {
-      fetchData(idProyecto);
-    } else {
-      setCargando(false);
-    }
-  }, []);
-
   // Navegar a proyecto anterior
   const goToPreviousProject = () => {
-    if (!proyectosDisponibles.length) return;
-    const currentIndex = proyectosDisponibles.findIndex(p => p.id == proyectoActualId);
+    if (!proyectosDisponibles.length || !proyectoActual) return;
+    const currentIndex = proyectosDisponibles.findIndex(p => p.id == proyectoActual.id);
     if (currentIndex > 0) {
       const prevProject = proyectosDisponibles[currentIndex - 1];
       localStorage.setItem("proyectoId", prevProject.id);
@@ -180,8 +155,8 @@ export default function VotosPage() {
 
   // Navegar a proyecto siguiente
   const goToNextProject = () => {
-    if (!proyectosDisponibles.length) return;
-    const currentIndex = proyectosDisponibles.findIndex(p => p.id == proyectoActualId);
+    if (!proyectosDisponibles.length || !proyectoActual) return;
+    const currentIndex = proyectosDisponibles.findIndex(p => p.id == proyectoActual.id);
     if (currentIndex < proyectosDisponibles.length - 1) {
       const nextProject = proyectosDisponibles[currentIndex + 1];
       localStorage.setItem("proyectoId", nextProject.id);
@@ -201,23 +176,15 @@ export default function VotosPage() {
     const confirmDelete = window.confirm(
       "¿Estás seguro de que quieres eliminar este proyecto?\n\nEsta acción no se puede deshacer."
     );
-    if (!confirmDelete) return;
+    if (!confirmDelete || !proyectoActual) return;
 
     try {
-      const proyectoId = localStorage.getItem("proyectoId");
-      if (!proyectoId) {
-        alert("No se encontró el ID del proyecto");
-        return;
-      }
+      const success = await deleteProyecto(proyectoActual.id);
 
-      const response = await fetch(`http://localhost:5245/api/proyectos/${proyectoId}`, {
-        method: "DELETE",
-      });
-
-      if (response.ok) {
-        // Actualizar lista de proyectos
-        const nuevosProyectos = proyectosDisponibles.filter(p => p.id != proyectoId);
-        localStorage.setItem("proyectos", JSON.stringify(nuevosProyectos));
+      if (success) {
+        // Actualizar lista local
+        const nuevosProyectos = proyectosDisponibles.filter(p => p.id != proyectoActual.id);
+        setProyectosDisponibles(nuevosProyectos);
         
         addNotification("project_deleted", "Proyecto" + localStorage.getItem("proyectoNombre") + " eliminado correctamente");
 
@@ -225,46 +192,28 @@ export default function VotosPage() {
         localStorage.removeItem("proyectoId");
         localStorage.removeItem("proyectoNombre");
         localStorage.removeItem("proyectoDescripcion");
-        localStorage.removeItem("proyectoABCD");
         localStorage.removeItem("categoriaProyecto");
 
 
         if (nuevosProyectos.length > 0) {
-          // Cargar el primer proyecto disponible
-          const primerProyecto = nuevosProyectos[0];
-          localStorage.setItem("proyectoId", primerProyecto.id);
-          localStorage.setItem("proyectoNombre", primerProyecto.nombre);
-          localStorage.setItem("proyectoDescripcion", primerProyecto.descripcion);
-          setProyectoActualId(primerProyecto.id);
-          setProyectosDisponibles(nuevosProyectos);
-          fetchData(primerProyecto.id);
+          setProyectoActual(nuevosProyectos[0]);
         } else {
           navigate("/eventos");
         }
         
         alert("Proyecto eliminado exitosamente");
-      } else {
-        alert("Error al eliminar el proyecto");
       }
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Error al eliminar proyecto:", error);
       alert("Error al eliminar el proyecto");
     }
   };
 
-  const currentIndex = proyectosDisponibles.findIndex(p => p.id == proyectoActualId);
+  const currentIndex = proyectoActual ? proyectosDisponibles.findIndex(p => p.id == proyectoActual.id) : -1;
   const state = {
     participantName: userName || localStorage.getItem("userName") || "Usuario",
     projectName: localStorage.getItem("eventoNombre") || "Evento",
-    overallScore: 85.75
   };
-
-  const EVALUATION_CRITERIA = [
-    { name: "Innovación", score: 85, maxScore: 100 },
-    { name: "Diseño", score: 92, maxScore: 100 },
-    { name: "Funcionalidad", score: 78, maxScore: 100 },
-    { name: "Presentación", score: 88, maxScore: 100 }
-  ];
 
   if (cargando) {
     return (
@@ -364,14 +313,14 @@ export default function VotosPage() {
 
               <div className="flex flex-col space-y-3 mb-4">
                 <p className="text-xl font-heading font-bold text-gray-900">
-                  <span style={{ color: themeColor }}>Nombre:</span> {localStorage.getItem("proyectoNombre") || "Sin nombre"}
+                  <span style={{ color: themeColor }}>Nombre:</span> {proyectoActual?.nombre || "Sin nombre"}
                 </p>
                 <p className="text-xl font-heading font-bold text-gray-900">
                   <span className="text-blue-600">Categoría:</span> {localStorage.getItem("categoriaNombre") || "Global"}
                 </p>
               </div>
               <p className="text-gray-600 text-lg leading-relaxed">
-                <span>Descripción:</span> {localStorage.getItem("proyectoDescripcion") || "Sin descripción disponible para este proyecto."}
+                <span>Descripción:</span> {proyectoActual?.descripcion || "Sin descripción disponible para este proyecto."}
               </p>
             </article>
 
@@ -387,51 +336,16 @@ export default function VotosPage() {
             </article>
           </section>
 
-          {/* CRITERIOS */}
-          <section className="bg-white rounded-2xl shadow-sm p-8 border border-gray-100">
-            <div className="flex items-center gap-3 mb-8">
-              <div className="p-2.5 rounded-xl" style={{ backgroundColor: `${themeColor}10`, color: themeColor }}>
-                <TrendingUp className="w-6 h-6" />
-              </div>
-              <h2 className="text-xl font-heading font-bold text-gray-900">Evaluación Detallada</h2>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
-              {EVALUATION_CRITERIA.map((item) => (
-                <CriterionBar key={item.name} {...item} color={themeColor} />
-              ))}
-            </div>
-          </section>
-
-          {/* COMENTARIOS */}
-          <section className="bg-white rounded-2xl shadow-sm p-8 border border-gray-100">
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl" style={{ backgroundColor: `${themeColor}10`, color: themeColor }}>
-                  <MessageSquare className="w-6 h-6" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-heading font-bold text-gray-900">Feedback del Público</h2>
-                  <p className="text-sm text-gray-500">Lo que otros participantes y asistentes opinan</p>
-                </div>
-              </div>
-              <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
-                {publicComments.length} Comentarios
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {publicComments.length > 0 ? (
-                publicComments.map((comment) => (
-                  <CommentCard key={comment.id} {...comment} />
-                ))
-              ) : (
-                <div className="col-span-full py-12 text-center border-2 border-dashed border-gray-100 rounded-2xl">
-                  <p className="text-gray-400 font-medium">Aún no hay comentarios públicos para este proyecto.</p>
-                </div>
-              )}
-            </div>
-          </section>
+          {/* FEEDBACK Y SÍNTESIS IA */}
+          <ProyectoFeedbackCard
+            idProyecto={proyectoActual?.id || 0}
+            nombreProyecto={proyectoActual?.nombre || "Sin nombre"}
+            idCategoria={categoria?.id || 0}
+            nombreCategoria={categoria?.nombre || "Global"}
+            estadoCategoria={categoria?.estado ?? categoria?.Estado ?? "Pendiente"}
+            comentariosJuradoCount={comentariosJuradoCount}
+            comentariosPublicoCount={comentariosPublicoCount}
+          />
         </main>
       </div>
     </div>
