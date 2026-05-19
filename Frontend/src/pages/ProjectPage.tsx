@@ -367,6 +367,7 @@ export default function ProjectPage() {
                               </button>
                             )}
                             {/* Botón Modificar */}
+                            {esOrganizador && (
                                 <button
                                 onClick={() => editarProyecto(proyecto)}
                                 className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-all"
@@ -374,6 +375,7 @@ export default function ProjectPage() {
                                 >
                                   <Pencil size={18} />
                                 </button>
+                            )}
                           </div>
                         </div>
 
