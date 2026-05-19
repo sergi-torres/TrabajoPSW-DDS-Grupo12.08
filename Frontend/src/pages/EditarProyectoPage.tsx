@@ -13,6 +13,31 @@ export default function EditarProyectoPage() {
   const [newMemberEmail, setNewMemberEmail] = useState("");
   const [memberIds, setMemberIds] = useState<number[]>([]);
 
+
+  const cargarMiembrosPorIds = async (ids: number[]) => {
+    if (!ids || ids.length === 0) return [];
+    
+    const miembros = [];
+    for (const memberId of ids) {
+      try {
+        const response = await fetch(`http://localhost:5245/api/usuario/${memberId}`);
+        if (response.ok) {
+          const usuario = await response.json();
+          miembros.push({
+            id: usuario.id,
+            email: usuario.email,
+            nombre: usuario.nombreCompleto || usuario.email
+          });
+        } else {
+          console.warn(`No se pudo cargar el usuario ${memberId}`);
+        }
+      } catch (error) {
+        console.error(`Error cargando miembro ${memberId}:`, error);
+      }
+    }
+    return miembros;
+  };
+
   // Función para cargar los datos de los miembros por sus IDs
   const miembros = localStorage.getItem("usuarios") || "[]";
   //console.log(miembros);
@@ -36,7 +61,7 @@ export default function EditarProyectoPage() {
       // Si no está en localStorage, cargar desde API
       if (!proyectoData && id) {
         console.log("Cargando desde API:", id);
-        const response = await fetch(`http://localhost:5245/api/proyectos/${id}`);
+        const res = await fetch(`http://localhost:5245/api/votacion/porProyecto?proyectoId=${id}`);
         if (response.ok) {
           proyectoData = await response.json();
           console.log("Cargado desde API:", proyectoData);
@@ -105,9 +130,9 @@ export default function EditarProyectoPage() {
     console.log("7. additionalMembers actuales:", additionalMembers);
     console.log("8. proyecto.idParticipante:", proyecto?.idParticipante);
     
-    // ✅ Verificar que no sea el líder
+    // ✅ Verificar que no sea el organizador
     if (usuario.id === proyecto?.idParticipante) {
-      toast.error("No puedes agregar al líder del proyecto como miembro");
+      toast.error("No puedes agregar al organizador como miembro");
       return;
     }
     
@@ -172,6 +197,9 @@ export default function EditarProyectoPage() {
   
     // Excluir al líder (idParticipante) de la lista de miembros
     const miembrosFinales = todosLosMiembros.filter(id => id !== proyecto.idParticipante);
+    //console.log("Miembros originales:", miembrosOriginales);
+    //console.log("Todos los miembros:", todosLosMiembros);
+    //console.log("Miembros finales:", miembrosFinales);
 
     const proyectoActualizado = {
       id: proyecto.id,
@@ -182,7 +210,7 @@ export default function EditarProyectoPage() {
       idCategoria: proyecto.idCategoria,
       idEvento: proyectoIdEvento || parseInt(localStorage.getItem("idEvento") || "0"),
       estado: proyecto.estado,
-      idMiembros: miembrosFinales
+      idMiembros: miembrosNuevos
     };
 
     try {
@@ -204,6 +232,7 @@ export default function EditarProyectoPage() {
       
       if (response.ok) {
         toast.success("Proyecto actualizado exitosamente");
+        console.log("Proyecto actualizado:", proyectoActualizado);
         navigate(-1);
       } else {
         const error = await response.json();
@@ -350,7 +379,7 @@ export default function EditarProyectoPage() {
                   <p className="font-bold text-gray-900 truncate">
                     {localStorage.getItem("email") || "Usuario"}
                   </p>
-                  <p className="text-[10px] text-purple-600 uppercase font-black tracking-widest">Líder / Creador</p>
+                  <p className="text-[10px] text-purple-600 uppercase font-black tracking-widest">Organizador</p>
                 </div>
                 <Badge className="bg-purple-100 text-purple-700 font-bold border-none">Líder</Badge>
               </div>

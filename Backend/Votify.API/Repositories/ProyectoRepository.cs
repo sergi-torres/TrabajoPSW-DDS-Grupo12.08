@@ -25,7 +25,7 @@ namespace Votify.API.Repositories
         {
             var response = await _supabase
                 .From<Proyecto>()
-                .Select("id, nombre, descripcion, urlmultimedia, idevento, idparticipante, idcategoria")
+                .Select("id, nombre, descripcion, urlmultimedia, idevento, idparticipante, idcategoria, idMiembros")
                 .Where(p => p.IdCategoria == categoriaId)
                 .Get();
 
@@ -48,7 +48,7 @@ namespace Votify.API.Repositories
         {
             var response = await _supabase
                 .From<Proyecto>()
-                .Select("id, nombre, descripcion, urlmultimedia, idevento, idparticipante, idcategoria")
+                .Select("id, nombre, descripcion, urlmultimedia, idevento, idparticipante, idcategoria, idMiembros")
                 .Where(p => p.Id == id)
                 .Get();
             return response.Models.FirstOrDefault();

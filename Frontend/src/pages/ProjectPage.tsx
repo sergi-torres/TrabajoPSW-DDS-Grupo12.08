@@ -119,7 +119,8 @@ export default function ProjectPage() {
     nombre: proyecto.nombre,
     descripcion: proyecto.descripcion,
     urlMultimedia: proyecto.urlMultimedia,
-    idCategoria: proyecto.idCategoria
+    idCategoria: proyecto.idCategoria,
+    idMiembros: proyecto.idMiembros
   }));
   
   // Redirigir a la página de edición (crea esta página después)
