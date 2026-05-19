@@ -1,5 +1,5 @@
 ﻿import { Link, useLocation, useParams, useNavigate } from "react-router-dom";
-import { Info, FolderOpen, Trophy, Settings, ClipboardList, User, LogOut, ChevronUp, ChevronLeft, ChevronRight, Vote, Timer, Lightbulb, Sparkles, LucideIcon, } from "lucide-react";
+import { Info, FolderOpen, Trophy, Settings, ClipboardList, User, LogOut, ChevronUp, ChevronLeft, ChevronRight, Vote, Timer, Lightbulb, LucideIcon, Sparkles, List} from "lucide-react";
 import { useState, useRef, useEffect, useContext } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { EventContext } from "../../context/EventContext";
@@ -87,7 +87,7 @@ export function EventSidebar({ color: propColor, position = 'left' }: EventSideb
         roleLinks.push({ label: "Registrar Proyecto", path: `/eventos/${eventoId}/participantRegister`, icon: User });
 
         if (localStorage.getItem("proyectoABCD")) {
-            roleLinks.push({ label: "Mis Proyectos", path: `/eventos/${eventoId}/my-project`, icon: User });
+            roleLinks.push({ label: "Mis Proyectos", path: `/eventos/${eventoId}/my-project`, icon: List });
         }
     }
 

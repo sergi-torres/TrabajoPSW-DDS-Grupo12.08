@@ -122,6 +122,11 @@ export function VotingProvider({ children }: { children: ReactNode }) {
       categoryName,
       timestamp: new Date(),
     });
+
+    const notifications = JSON.parse(localStorage.getItem("notifications") || "[]");
+    notifications.push(newNotification);
+    localStorage.setItem("notifications", JSON.stringify(notifications));
+
   }, []);
 
   const markNotificationAsRead = useCallback((id: string) => {
@@ -247,6 +252,7 @@ export function VotingProvider({ children }: { children: ReactNode }) {
         markAllNotificationsAsRead,
         clearAllNotifications,
         updateEventConfig,
+        addNotification,
       }}
     >
       {children}

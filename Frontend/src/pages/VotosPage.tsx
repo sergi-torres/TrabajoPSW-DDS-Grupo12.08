@@ -4,6 +4,7 @@ import { AuthContext } from "../context/AuthContext";
 import { EventContext } from "../context/EventContext";
 import { EventSidebar } from "../components/layout/EventSidebar";
 import { MobileNav } from "../components/eventos/MobileNav";
+import { useVoting } from "../context/VotingContext";
 import { 
   ArrowLeft, 
   Target, 
@@ -13,10 +14,50 @@ import {
   ChevronRight
 } from "lucide-react";
 import { cn } from "../components/ui/utils";
-import { categoriasApi } from "../api/categoriasApi";
-import { comentariosApi } from "../api/comentariosApi";
-import { deleteProyecto, getProyectosByParticipante } from "../api/proyectoApi";
-import { ProyectoFeedbackCard } from "../components/feedback/ProyectoFeedbackCard";
+
+// ============================================
+// SUB-COMPONENTES
+// ============================================
+// CONTEXTO DE VOTACIÓN
+// ============================================
+
+
+
+const CriterionBar = ({ name, score, maxScore, color }: { name: string; score: number; maxScore: number; color: string }) => (
+  <div>
+    <div className="flex justify-between mb-1">
+      <span className="font-medium">{name}</span>
+      <span style={{ color }}>{score} / {maxScore}</span>
+    </div>
+    <div className="w-full bg-gray-200 rounded-full h-2">
+      <div
+        className="h-2 rounded-full transition-all"
+        style={{ width: `${(score / maxScore) * 100}%`, backgroundColor: color }}
+      />
+    </div>
+  </div>
+);
+
+const CommentCard = ({ author, comment, timestamp, likes }: { author: string; comment: string; timestamp: string; likes: number }) => (
+  <div className="border border-gray-200 rounded-lg p-4">
+    <div className="flex items-start gap-3">
+      <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+        <User className="w-5 h-5 text-white" />
+      </div>
+      <div className="flex-1">
+        <div className="flex items-center justify-between mb-1">
+          <h4 className="font-medium">{author}</h4>
+          <span className="text-xs text-gray-500">{timestamp}</span>
+        </div>
+        <p className="text-gray-700 text-sm mb-2">{comment}</p>
+        <div className="flex items-center gap-1 text-gray-500 text-sm">
+          <ThumbsUp className="w-3 h-3" />
+          <span>{likes} personas útil</span>
+        </div>
+      </div>
+    </div>
+  </div>
+);
 
 // ============================================
 // COMPONENTE PRINCIPAL
@@ -28,9 +69,9 @@ export default function VotosPage() {
   const authCtx = useContext(AuthContext);
   const { userColor, isCollapsed, userRole } = useContext(EventContext)!;
 
-  const userId = authCtx?.userId;
-  const userName = authCtx?.userName;
+  const { addNotification } = useVoting();
 
+  const [votaciones, setVotaciones] = useState<any[]>([]);
   const [categoria, setCategoria] = useState<any>(null);
   const [comentariosJuradoCount, setComentariosJuradoCount] = useState(0);
   const [comentariosPublicoCount, setComentariosPublicoCount] = useState(0);
@@ -41,69 +82,28 @@ export default function VotosPage() {
   const isPublicRole = userRole === "Público";
   const themeColor = userColor || "#9333ea";
 
-  const eventoId = eventoIdParam ? Number(eventoIdParam) : null;
+        // 3. Obtener categoría
 
-  // Cargar lista de proyectos
-  useEffect(() => {
-    const cargarProyectos = async () => {
-      try {
-        if (!userId || !eventoId) {
-          // Fallback a localStorage si no hay contexto (aunque debería haberlo por la ruta)
-          const storedProyectos = localStorage.getItem("proyectos");
-          if (storedProyectos) {
-            const proyectos = JSON.parse(storedProyectos);
-            setProyectosDisponibles(proyectos);
-            
-            const currentId = localStorage.getItem("proyectoId");
-            if (currentId) {
-              const found = proyectos.find((p: any) => p.id == currentId);
-              setProyectoActual(found || proyectos[0]);
-            } else {
-              setProyectoActual(proyectos[0]);
-            }
-          } else {
-            // Si no hay nada, dejamos de cargar
-            setCargando(false);
-          }
-          return;
+  const obtenerCategoria = async () => {
+    const idCategoria = localStorage.getItem("categoriaProyecto");
+
+    if (idCategoria) {
+        const catRes = await fetch(`http://localhost:5245/api/categorias/id/${idCategoria}`);
+        if (catRes.ok) {
+          const catData = await catRes.json();
+          setCategoria(catData);
+          localStorage.setItem("categoriaNombre", catData.nombre);
         }
+    }
+   };
 
-        const todos = await getProyectosByParticipante(userId);
-        const delEvento = todos.filter((p: any) => {
-          const pidEvento = p.idevento ?? p.idEvento;
-          return Number(pidEvento) === Number(eventoId);
-        });
 
-        setProyectosDisponibles(delEvento);
-
-        if (delEvento.length > 0) {
-          const currentId = localStorage.getItem("proyectoId");
-          const found = delEvento.find((p: any) => p.id == currentId);
-          setProyectoActual(found || delEvento[0]);
-        } else {
-          setCargando(false);
-        }
-      } catch (err) {
-        console.error("Error cargando proyectos del participante:", err);
-        setCargando(false);
-      }
-    };
-
-    cargarProyectos();
-  }, [userId, eventoId]);
-
-  // FETCH DE COMENTARIOS Y VOTACIONES CUANDO CAMBIA EL PROYECTO ACTUAL
+  // Cargar lista de proyectos desde localStorage
   useEffect(() => {
-    if (proyectoActual) {
-      fetchData(proyectoActual.id.toString());
-      
-      // Sincronizar localStorage para compatibilidad con otros componentes si es necesario
-      localStorage.setItem("proyectoId", proyectoActual.id.toString());
-      localStorage.setItem("proyectoNombre", proyectoActual.nombre);
-      localStorage.setItem("proyectoDescripcion", proyectoActual.descripcion || "");
-      if (proyectoActual.idcategoria || proyectoActual.idCategoria) {
-        localStorage.setItem("categoriaProyecto", (proyectoActual.idcategoria || proyectoActual.idCategoria).toString());
-      }
+    const storedProyectos = localStorage.getItem("proyectos");
+    if (storedProyectos) {
+      const proyectos = JSON.parse(storedProyectos);
+      setProyectosDisponibles(proyectos); 
     }
   }, [proyectoActual]);
 
@@ -128,14 +128,6 @@ export default function VotosPage() {
           setComentariosPublicoCount(0);
         }
 
-        // 2. Obtener categoría
-        try {
-          const catData = await categoriasApi.getById(catId);
-          setCategoria(catData);
-        } catch (err) {
-          console.warn("Error al cargar categoría:", err);
-        }
-      }
     } catch (err) {
       console.error("Error cargando datos de feedback:", err);
     } finally {
@@ -148,7 +140,14 @@ export default function VotosPage() {
     if (!proyectosDisponibles.length || !proyectoActual) return;
     const currentIndex = proyectosDisponibles.findIndex(p => p.id == proyectoActual.id);
     if (currentIndex > 0) {
-      setProyectoActual(proyectosDisponibles[currentIndex - 1]);
+      const prevProject = proyectosDisponibles[currentIndex - 1];
+      localStorage.setItem("proyectoId", prevProject.id);
+      localStorage.setItem("proyectoNombre", prevProject.nombre);
+      localStorage.setItem("proyectoDescripcion", prevProject.descripcion);
+      localStorage.setItem("categoriaProyecto", prevProject.idCategoria);
+      setProyectoActualId(prevProject.id);
+      fetchData(prevProject.id);
+      obtenerCategoria();
     } else {
       alert("No hay proyecto anterior");
     }
@@ -159,7 +158,14 @@ export default function VotosPage() {
     if (!proyectosDisponibles.length || !proyectoActual) return;
     const currentIndex = proyectosDisponibles.findIndex(p => p.id == proyectoActual.id);
     if (currentIndex < proyectosDisponibles.length - 1) {
-      setProyectoActual(proyectosDisponibles[currentIndex + 1]);
+      const nextProject = proyectosDisponibles[currentIndex + 1];
+      localStorage.setItem("proyectoId", nextProject.id);
+      localStorage.setItem("proyectoNombre", nextProject.nombre);
+      localStorage.setItem("proyectoDescripcion", nextProject.descripcion);
+      localStorage.setItem("categoriaProyecto", nextProject.idCategoria);
+      setProyectoActualId(nextProject.id);
+      fetchData(nextProject.id);
+      obtenerCategoria();
     } else {
       alert("No hay proyecto siguiente");
     }
@@ -180,11 +186,14 @@ export default function VotosPage() {
         const nuevosProyectos = proyectosDisponibles.filter(p => p.id != proyectoActual.id);
         setProyectosDisponibles(nuevosProyectos);
         
-        // Limpiar datos del proyecto actual en localStorage
+        addNotification("project_deleted", "Proyecto" + localStorage.getItem("proyectoNombre") + " eliminado correctamente");
+
+        // Limpiar datos del proyecto actual
         localStorage.removeItem("proyectoId");
         localStorage.removeItem("proyectoNombre");
         localStorage.removeItem("proyectoDescripcion");
         localStorage.removeItem("categoriaProyecto");
+
 
         if (nuevosProyectos.length > 0) {
           setProyectoActual(nuevosProyectos[0]);
@@ -307,7 +316,7 @@ export default function VotosPage() {
                   <span style={{ color: themeColor }}>Nombre:</span> {proyectoActual?.nombre || "Sin nombre"}
                 </p>
                 <p className="text-xl font-heading font-bold text-gray-900">
-                  <span className="text-blue-600">Categoría:</span> {categoria?.nombre || "Global"}
+                  <span className="text-blue-600">Categoría:</span> {localStorage.getItem("categoriaNombre") || "Global"}
                 </p>
               </div>
               <p className="text-gray-600 text-lg leading-relaxed">
