@@ -156,27 +156,30 @@ export default function ProjectPage() {
     if (!projectIdToDelete) return;
     setIsDeletingProject(true);
 
-    try {
-      const response = await fetch(`http://localhost:5245/api/proyectos/${projectIdToDelete}`, {
-        method: "DELETE",
-      });
+try {
+  const response = await fetch(`http://localhost:5245/api/proyectos/${projectIdToDelete}`, {
+    method: "DELETE",
+  });
 
-      if (response.ok) {
-        setProyectos(prev => prev.filter(p => p.id !== projectIdToDelete));
-        toast.success("Proyecto eliminado exitosamente");
-        addNotification(`El proyecto "${projectNameToDelete ?? ""}" ha sido eliminado.`, "error");
-        setIsDeleteModalOpen(false);
-        setProjectIdToDelete(null);
-        setProjectNameToDelete(null);
-      } else {
-        toast.error("Error al eliminar el proyecto");
-      }
-    } catch (error) {
-      console.error("Error:", error);
-      toast.error("Error al eliminar el proyecto");
-    } finally {
-      setIsDeletingProject(false);
-    }
+  if (response.ok) {
+    setProyectos(prev => prev.filter(p => p.id !== projectIdToDelete));
+    toast.success("Proyecto eliminado exitosamente");
+    
+    //Pasar state como string y mensaje como categoryName
+    addNotification("project_deleted", `El proyecto "${projectNameToDelete ?? ""}" ha sido eliminado.`);
+    
+    setIsDeleteModalOpen(false);
+    setProjectIdToDelete(null);
+    setProjectNameToDelete(null);
+  } else {
+    toast.error("Error al eliminar el proyecto");
+  }
+} catch (error) {
+  console.error("Error:", error);
+  toast.error("Error al eliminar el proyecto");
+} finally {
+  setIsDeletingProject(false);
+}
   };
 
   const proyectosFiltrados = categoriaActiva
@@ -323,7 +326,16 @@ export default function ProjectPage() {
                 {/* Botón para crear nuevo proyecto (solo organizador) */}
                 {esOrganizador && (
                   <button
-                    onClick={() => navigate(`/eventos/${localStorage.getItem("eventoId")}/participantRegister`)}
+                    onClick={() => {
+                      if (localStorage.getItem("proyectoABCD")) {
+                        localStorage.removeItem("proyectoABCD");
+                      }
+
+                      navigate(`/eventos/${localStorage.getItem("eventoId")}/participantRegister`);
+
+                      console.log(localStorage.getItem("eventoId"));
+
+                    }}
                     className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl transition-all text-sm font-medium"
                   >
                     <Plus size={16} />

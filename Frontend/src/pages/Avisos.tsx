@@ -106,6 +106,15 @@ const notificationConfig: Record<string, any> = {
     borderColor: "border-red-500",
     sound: true,
   },
+  project_registered: {
+      icon: CheckCircle,
+      title: "¡Proyecto Registrado!",
+      description: "Has registrado un nuevo proyecto",
+      color: "text-green-500",
+      bgColor: "bg-green-50",
+      borderColor: "border-green-500",
+      sound: true,
+  },
   event_created: {
       icon: CheckCircle,
       title: "¡Evento Creado!",

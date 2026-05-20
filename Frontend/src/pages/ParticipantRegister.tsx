@@ -51,6 +51,24 @@ export default function RegisterParticipant() {
       }
     };
 
+    const cargarEvento = async () => {
+        try {
+            const eventoId = localStorage.getItem("eventoId");
+            if (eventoId) {
+                const response = await fetch(`http://localhost:5245/api/Eventos/${eventoId}`);
+                if (response.ok) {
+                    const evento = await response.json();
+                    setEvento(evento);
+                    setLocalCategories(evento.categorias || []);
+                    console.log("Evento cargado:", evento);
+                }
+            }
+        } catch (error) {
+            console.error("Error cargando evento:", error);
+        }
+    };
+
+    cargarEvento();
     cargarProyectos();
   }, []);
 
@@ -67,6 +85,8 @@ export default function RegisterParticipant() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [projectCreated, setProjectCreated] = useState(false);
+  const [evento, setEvento] = useState<any>(null);
+  
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -158,7 +178,7 @@ export default function RegisterParticipant() {
             </button>
             <div>
               <h1 className="text-4xl font-heading font-bold mb-2 tracking-tight">Registrar Proyecto</h1>
-              <p className="text-purple-100 text-lg font-medium opacity-90">Crea tu proyecto para: {localStorage.getItem("eventoNombre") || "el evento"}</p>
+              <p className="text-purple-100 text-lg font-medium opacity-90">Crea tu proyecto para: {evento?.nombre || "el evento"}</p>
             </div>
           </div>
         </header>
