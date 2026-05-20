@@ -135,6 +135,7 @@ export default function DashboardPage() {
                                                         const misProyectosDelEvento = misProyectos.filter(p => p.idEvento === evento.id);
 
                                                         if (misProyectosDelEvento.length > 0) {
+                                                            localStorage.setItem("eventoNombre", evento.nombre);
                                                             localStorage.setItem("proyectos", JSON.stringify(misProyectosDelEvento));
                                                             const proyecto = misProyectosDelEvento[0];
                                                             localStorage.setItem("proyectoId", proyecto.id.toString());

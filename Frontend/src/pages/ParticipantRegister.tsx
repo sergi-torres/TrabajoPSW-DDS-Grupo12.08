@@ -18,7 +18,7 @@ export default function RegisterParticipant() {
   const { eventoId: eventIdFromUrl } = useParams();
   const { categories, eventConfig } = useVoting();
   const eventContext = useContext(EventContext);
-  
+  const { addNotification } = useVoting();
 
   const [localCategories, setLocalCategories] = useState<any[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
@@ -117,6 +117,9 @@ export default function RegisterParticipant() {
 
         toast.success("Tu proyecto ha sido registrado con éxito");
         navigate("/eventos");
+
+        addNotification("project_registered", newProject.nombre);
+
       } catch (error: any) {
         console.error("Error al crear el proyecto:", error);
         toast.error("Error al crear proyecto", { description: error.message });
@@ -155,7 +158,7 @@ export default function RegisterParticipant() {
             </button>
             <div>
               <h1 className="text-4xl font-heading font-bold mb-2 tracking-tight">Registrar Proyecto</h1>
-              <p className="text-purple-100 text-lg font-medium opacity-90">Crea tu proyecto para {eventConfig?.eventName || "el evento"}</p>
+              <p className="text-purple-100 text-lg font-medium opacity-90">Crea tu proyecto para: {localStorage.getItem("eventoNombre") || "el evento"}</p>
             </div>
           </div>
         </header>

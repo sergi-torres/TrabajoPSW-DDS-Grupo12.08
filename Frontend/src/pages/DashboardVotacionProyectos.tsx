@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+﻿import React, { useState, useContext } from 'react';
 import ProyectosLista from '../components/votacion/votacionProyectos/ProyectosLista';
 import OpcionesSeleccionado from '../components/votacion/votacionProyectos/OpcionesSeleccionado';
 import EvaluacionCriterios from '../components/votacion/votacionProyectos/EvaluacionCriterios';
@@ -8,6 +8,7 @@ import { enviarDatosVotoBatch } from '../api/votacionApi';
 import { AuthContext } from '../context/AuthContext';
 import { EventContext } from '../context/EventContext';
 import { EventSidebar } from '../components/layout/EventSidebar';
+import { useVoting } from '../context/VotingContext';
 import { cn } from '../components/ui/utils';
 import { ArrowLeft, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
@@ -74,6 +75,7 @@ const DashboardVotacionProyectos: React.FC<Props> = ({ categoria, alVolver, come
     const idUsuario = userIdRaw ? parseInt(userIdRaw) : null;
     const storedEventoId = localStorage.getItem('eventoId');
     const finalEventoId = eventoId || (storedEventoId ? parseInt(storedEventoId) : 0);
+    const { addNotification } = useVoting();
 
     try {
       // Enviar todas las evaluaciones en una sola petición batch
@@ -92,6 +94,7 @@ const DashboardVotacionProyectos: React.FC<Props> = ({ categoria, alVolver, come
 
       await enviarDatosVotoBatch(batchPayload);
       toast.success("Evaluación completa registrada correctamente");
+      addNotification("vote_cast", "Categoría: " + categoria.nombre);
       alVolver();
     } catch (err) {
       console.error(err);
