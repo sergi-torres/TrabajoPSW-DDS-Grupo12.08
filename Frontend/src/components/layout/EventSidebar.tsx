@@ -1,8 +1,9 @@
 ﻿import { Link, useLocation, useParams, useNavigate } from "react-router-dom";
-import { Info, FolderOpen, Trophy, Settings, ClipboardList, User, LogOut, ChevronUp, ChevronLeft, ChevronRight, Vote, Timer, Lightbulb, LucideIcon, Sparkles, List} from "lucide-react";
+import { Info, FolderOpen, Trophy, Settings, ClipboardList, User, FileText, LogOut, ChevronUp, ChevronLeft, ChevronRight, Vote, Timer, Lightbulb, LucideIcon, Sparkles, List} from "lucide-react";
 import { useState, useRef, useEffect, useContext } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { EventContext } from "../../context/EventContext";
+import { LogoutConfirmModal } from "./LogoutConfirmModal";
 import { cn } from "../ui/utils";
 import logo from "../../assets/LogoSinTexto.png";
 
@@ -29,6 +30,8 @@ export function EventSidebar({ color: propColor, position = 'left' }: EventSideb
     const eventContext = useContext(EventContext);
     
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [showLogoutModal, setShowLogoutModal] = useState(false);
+    const [isLoadingLogout, setIsLoadingLogout] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 
     if (!eventContext) return null;
@@ -84,7 +87,7 @@ export function EventSidebar({ color: propColor, position = 'left' }: EventSideb
         roleLinks.push({ label: "Votaciones", path: `/eventos/${eventoId}/votar`, icon: Vote });
     } else if (userRole === "Participante") {
 
-        roleLinks.push({ label: "Registrar Proyecto", path: `/eventos/${eventoId}/participantRegister`, icon: User });
+        roleLinks.push({ label: "Registrar Proyecto", path: `/eventos/${eventoId}/participantRegister`, icon: FileText });
 
         if (localStorage.getItem("proyectoABCD")) {
             roleLinks.push({ label: "Mis Proyectos", path: `/eventos/${eventoId}/my-project`, icon: List });
@@ -204,10 +207,10 @@ export function EventSidebar({ color: propColor, position = 'left' }: EventSideb
                                 Mi Perfil
                             </button>
                             <div className="h-px bg-slate-100 my-1 mx-2" />
-                            <button 
+                                    <button 
                                 onClick={() => {
                                     setIsMenuOpen(false);
-                                    logout();
+                                    setShowLogoutModal(true);
                                 }}
                                 className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-rose-600 hover:bg-rose-50 transition-colors font-semibold"
                             >
@@ -218,6 +221,19 @@ export function EventSidebar({ color: propColor, position = 'left' }: EventSideb
                     )}
                 </div>
             </aside>
+
+            <LogoutConfirmModal
+                isOpen={showLogoutModal}
+                onConfirm={() => {
+                    setIsLoadingLogout(true);
+                    setTimeout(() => {
+                        logout();
+                        navigate('/login');
+                    }, 300);
+                }}
+                onCancel={() => setShowLogoutModal(false)}
+                isLoading={isLoadingLogout}
+            />
 
             {/* Mobile Navigation (under lg) - Always visible if desktop is hidden */}
             <nav className={cn(

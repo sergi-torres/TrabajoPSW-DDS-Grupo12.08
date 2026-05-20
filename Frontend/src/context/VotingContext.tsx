@@ -41,6 +41,7 @@ export interface VotingContextType {
   markAllNotificationsAsRead: () => void;
   clearAllNotifications: () => void;
   updateEventConfig: (config: Partial<EventConfig>) => void;
+  addNotification: (state: string, categoryName?: string) => void;
 }
 
 const VotingContext = createContext<VotingContextType | undefined>(undefined);
@@ -79,7 +80,7 @@ export function VotingProvider({ children }: { children: ReactNode }) {
           const categorias = await categoriasApi.getByEvento(parseInt(eventoId));
           
           // Mapear las categorías al formato que espera el frontend
-          const formattedCategories = categorias.map(cat => ({
+          const formattedCategories: Category[] = categorias.map(cat => ({
             id: cat.id,
             name: cat.nombre,
             status: cat.estado === "Activa" ? "active" : 

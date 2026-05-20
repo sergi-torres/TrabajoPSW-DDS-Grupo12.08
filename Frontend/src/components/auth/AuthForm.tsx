@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Mail, Lock, Eye, EyeOff, LogIn, UserPlus, User, AtSign } from "lucide-react";
 import { clsx } from "clsx";
 import { useAuth } from "../../hooks/useAuth";
+import { toast } from "sonner";
 
 export interface AuthFormProps {
     mode?: "login" | "register";
@@ -149,7 +150,7 @@ export function AuthForm({ mode = "login", isMobile = false, invitationToken = n
             {isMobile && (
                 <p className="text-center text-sm text-muted-foreground mt-6">
                     {mode === "login" ? "¿Aún no tienes cuenta? " : "¿Ya tienes cuenta? "}
-                    <span className="text-[var(--color-org)] font-bold cursor-pointer hover:underline" onClick={() => alert('Pronto añadiremos el registro desde el móvil :)')}>
+                    <span className="text-[var(--color-org)] font-bold cursor-pointer hover:underline" onClick={() => toast('Pronto añadiremos el registro desde el móvil :)')}>
                         {mode === "login" ? "Regístrate" : "Inicia Sesión"}
                     </span>
                 </p>

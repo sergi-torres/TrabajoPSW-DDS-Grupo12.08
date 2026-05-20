@@ -20,6 +20,7 @@ import {
 import { cn } from "../components/ui/utils";
 import { toast } from "sonner";
 import ProyectoFeedbackCard from "../components/feedback/ProyectoFeedbackCard";
+import { ConfirmModal } from "../components/layout/ConfirmModal";
 
 // ============================================
 // SUB-COMPONENTES
@@ -79,6 +80,9 @@ export default function VotosPage() {
   const [cargando, setCargando] = useState(true);
   const [proyectosDisponibles, setProyectosDisponibles] = useState<any[]>([]);
   const [proyectoActual, setProyectoActual] = useState<any>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<any>(null);
+  const [isDeletingProject, setIsDeletingProject] = useState(false);
 
   const isPublicRole = userRole === "Público";
   const themeColor = userColor || "#9333ea";
@@ -167,7 +171,7 @@ export default function VotosPage() {
       localStorage.setItem("categoriaProyecto", prevProject.idCategoria);
       setProyectoActual(prevProject);
     } else {
-      toast.info("No hay proyecto anterior");
+      toast.error("No hay proyecto anterior");
     }
   };
 
@@ -183,25 +187,29 @@ export default function VotosPage() {
       localStorage.setItem("categoriaProyecto", nextProject.idCategoria);
       setProyectoActual(nextProject);
     } else {
-      toast.info("No hay proyecto siguiente");
+      toast.error("No hay proyecto siguiente");
     }
   };
 
   // Eliminar proyecto actual
+  const confirmDeleteProject = () => {
+    if (!proyectoActual) return;
+    setProjectToDelete(proyectoActual);
+    setIsDeleteModalOpen(true);
+  };
+
   const deleteProject = async () => {
-    const confirmDelete = window.confirm(
-      "¿Estás seguro de que quieres eliminar este proyecto?\n\nEsta acción no se puede deshacer."
-    );
-    if (!confirmDelete || !proyectoActual) return;
+    if (!projectToDelete) return;
+    setIsDeletingProject(true);
 
     try {
-      const success = await deleteProyecto(proyectoActual.id);
+      const success = await deleteProyecto(projectToDelete.id);
 
       if (success) {
-        const nuevosProyectos = proyectosDisponibles.filter(p => p.id != proyectoActual.id);
+        const nuevosProyectos = proyectosDisponibles.filter(p => p.id != projectToDelete.id);
         setProyectosDisponibles(nuevosProyectos);
         
-        addNotification("project_deleted", `Proyecto ${proyectoActual.nombre} eliminado correctamente`);
+        addNotification("project_deleted", `Proyecto ${projectToDelete.nombre} eliminado correctamente`);
 
         localStorage.removeItem("proyectoId");
         localStorage.removeItem("proyectoNombre");
@@ -215,11 +223,15 @@ export default function VotosPage() {
           navigate("/eventos");
         }
         
+        setIsDeleteModalOpen(false);
+        setProjectToDelete(null);
         toast.success("Proyecto eliminado exitosamente");
       }
     } catch (error) {
       console.error("Error al eliminar proyecto:", error);
       toast.error("Error al eliminar el proyecto");
+    } finally {
+      setIsDeletingProject(false);
     }
   };
 
@@ -311,7 +323,7 @@ export default function VotosPage() {
                   </button>
 
                   <button
-                    onClick={deleteProject}
+                    onClick={confirmDeleteProject}
                     className="flex items-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl transition-all font-medium text-sm"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -363,6 +375,24 @@ export default function VotosPage() {
           />
         </main>
       </div>
+      <ConfirmModal
+        isOpen={isDeleteModalOpen}
+        title="Eliminar proyecto"
+        message={
+          <>
+            ¿Estás seguro de que deseas eliminar "<strong className="font-semibold">{projectToDelete?.nombre}</strong>"? Esta acción no se puede deshacer.
+          </>
+        }
+        confirmLabel="Eliminar"
+        cancelLabel="Cancelar"
+        onConfirm={deleteProject}
+        onCancel={() => {
+          setIsDeleteModalOpen(false);
+          setProjectToDelete(null);
+        }}
+        isLoading={isDeletingProject}
+        danger
+      />
     </div>
   );
 }

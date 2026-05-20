@@ -7,6 +7,7 @@ import { useVoting } from "../context/VotingContext";
 import { ArrowLeft, Trophy, TrendingUp, TrendingDown, Minus, Target, Medal, Star, Trash2 , Plus, Pencil} from "lucide-react";
 import { cn } from "../components/ui/utils";
 import { toast } from "sonner";
+import { ConfirmModal } from "../components/layout/ConfirmModal";
 
 // ============================================
 // TIPOS
@@ -18,6 +19,8 @@ interface Project {
   descripcion: string;
   urlMultimedia: string;
   idCategoria: number;
+  idMiembros?: any[];
+  idEvento?: number;
 }
 
 interface Puntuacion {
@@ -79,6 +82,10 @@ export default function ProjectPage() {
   const [puntuaciones, setPuntuaciones] = useState<Puntuacion[]>([]);
   const [categoriaActiva, setCategoriaActiva] = useState<number | null>(null);
   const [cargando, setCargando] = useState(true);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [projectIdToDelete, setProjectIdToDelete] = useState<number | null>(null);
+  const [projectNameToDelete, setProjectNameToDelete] = useState<string | null>(null);
+  const [isDeletingProject, setIsDeletingProject] = useState(false);
 
   const isPublicRole = userRole === "Público";
   const themeColor = userColor || "#9333ea";
@@ -139,29 +146,36 @@ export default function ProjectPage() {
   };
 
   // Eliminar proyecto
-  const eliminarProyecto = async (proyectoId: number) => {
-    const confirmDelete = window.confirm(
-      "¿Estás seguro de que quieres eliminar este proyecto?\n\nEsta acción no se puede deshacer."
-    );
-    if (!confirmDelete) return;
+  const confirmDeleteProyecto = (proyecto: Project) => {
+    setProjectIdToDelete(proyecto.id);
+    setProjectNameToDelete(proyecto.nombre);
+    setIsDeleteModalOpen(true);
+  };
+
+  const eliminarProyecto = async () => {
+    if (!projectIdToDelete) return;
+    setIsDeletingProject(true);
 
     try {
-      const response = await fetch(`http://localhost:5245/api/proyectos/${proyectoId}`, {
+      const response = await fetch(`http://localhost:5245/api/proyectos/${projectIdToDelete}`, {
         method: "DELETE",
       });
 
       if (response.ok) {
-        // Actualizar la lista de proyectos
-        setProyectos(prev => prev.filter(p => p.id !== proyectoId));
+        setProyectos(prev => prev.filter(p => p.id !== projectIdToDelete));
         toast.success("Proyecto eliminado exitosamente");
-        addNotification(`El proyecto "${proyectos.find(p => p.id === proyectoId)?.nombre}" ha sido eliminado.`, "error");
-        
+        addNotification(`El proyecto "${projectNameToDelete ?? ""}" ha sido eliminado.`, "error");
+        setIsDeleteModalOpen(false);
+        setProjectIdToDelete(null);
+        setProjectNameToDelete(null);
       } else {
         toast.error("Error al eliminar el proyecto");
       }
     } catch (error) {
       console.error("Error:", error);
       toast.error("Error al eliminar el proyecto");
+    } finally {
+      setIsDeletingProject(false);
     }
   };
 
@@ -359,7 +373,7 @@ export default function ProjectPage() {
                             {/* Botón de eliminar - solo organizador */}
                             {esOrganizador && (
                               <button
-                                onClick={() => eliminarProyecto(proyecto.id)}
+                                onClick={() => confirmDeleteProyecto(proyecto)}
                                 className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-all"
                                 title="Eliminar proyecto"
                               >
@@ -433,6 +447,25 @@ export default function ProjectPage() {
           )}
         </main>
       </div>
+      <ConfirmModal
+        isOpen={isDeleteModalOpen}
+        title="Eliminar proyecto"
+        message={
+          <>
+            ¿Estás seguro de que deseas eliminar "<strong className="font-semibold">{projectNameToDelete}</strong>"? Esta acción no se puede deshacer.
+          </>
+        }
+        confirmLabel="Eliminar"
+        cancelLabel="Cancelar"
+        onConfirm={eliminarProyecto}
+        onCancel={() => {
+          setIsDeleteModalOpen(false);
+          setProjectIdToDelete(null);
+          setProjectNameToDelete(null);
+        }}
+        isLoading={isDeletingProject}
+        danger
+      />
     </div>
   );
 }

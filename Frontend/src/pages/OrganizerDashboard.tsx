@@ -8,6 +8,7 @@ import CategoryRankingPodium, { CategoryRankingData } from "../components/organi
 import { getDashboard, extenderTiempo, cerrarVotacion } from "../api/orgDashboardApi";
 import { AuthContext } from "../context/AuthContext";
 import { EventContext } from "../context/EventContext";
+import { LogoutConfirmModal } from "../components/layout/LogoutConfirmModal";
 import { categoriasApi } from "../api/categoriasApi";
 import { EventSidebar } from "../components/layout/EventSidebar";
 import { cn } from "../components/ui/utils";
@@ -23,6 +24,8 @@ export default function OrganizerDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { eventoId: paramEventoId } = useParams<{ eventoId: string }>();
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [isLoadingLogout, setIsLoadingLogout] = useState(false);
 
   const [categorias, setCategorias] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<any>(null);
@@ -70,9 +73,16 @@ export default function OrganizerDashboard() {
   }, [fetchDashboard]);
 
   const handleLogout = () => {
-    logout();
-    clearEventContext();
-    navigate('/login');
+    setShowLogoutModal(true);
+  };
+
+  const handleConfirmLogout = () => {
+    setIsLoadingLogout(true);
+    setTimeout(() => {
+      logout();
+      clearEventContext();
+      navigate('/login');
+    }, 300);
   };
 
   const handleExtend = async () => {
@@ -299,6 +309,14 @@ export default function OrganizerDashboard() {
           <p className="font-bold text-sm">{toast.message}</p>
         </div>
       )}
+
+      {/* Modal de confirmación de logout */}
+      <LogoutConfirmModal
+        isOpen={showLogoutModal}
+        onConfirm={handleConfirmLogout}
+        onCancel={() => setShowLogoutModal(false)}
+        isLoading={isLoadingLogout}
+      />
     </div>
   );
 }
