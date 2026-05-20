@@ -31,6 +31,7 @@ export interface VotingContextType {
   eventStatus: "not_started" | "in_progress" | "paused" | "closed" | "results";
   notifications: Notification[];
   eventConfig: EventConfig;
+  loading: boolean;
   startCategory: (categoryId: string | number) => void;
   closeCategory: (categoryId: string | number) => void;
   pauseVoting: () => void;
@@ -42,6 +43,7 @@ export interface VotingContextType {
   clearAllNotifications: () => void;
   updateEventConfig: (config: Partial<EventConfig>) => void;
   addNotification: (state: string, categoryName?: string) => void;
+  reloadContext: () => Promise<void>; // ✅ Nuevo método
 }
 
 const VotingContext = createContext<VotingContextType | undefined>(undefined);
@@ -59,53 +61,85 @@ export function VotingProvider({ children }: { children: ReactNode }) {
   });
   const [loading, setLoading] = useState(true);
 
-  // Cargar categorías y configuración del evento al iniciar
-  useEffect(() => {
-    const loadEventData = async () => {
-      try {
-        const eventoId = localStorage.getItem("eventoId");
-        const eventName = localStorage.getItem("eventoNombre");
-        const eventCode = localStorage.getItem("eventoCodigo") || "EVENTO";
+  // Función principal para cargar datos (puede ser llamada desde useEffect o manualmente)
+  const loadEventData = useCallback(async () => {
+    
+    try {
+      setLoading(true);
+      
+      const eventoId = localStorage.getItem("eventoId");
+      const eventName = localStorage.getItem("eventoNombre");
+      const eventCode = localStorage.getItem("eventoCodigo") || "EVENTO";
 
-        // Configurar evento desde localStorage
-        setEventConfig({
-          voteLimit: 3,
-          eventName: eventName || "Evento sin nombre",
-          eventCode: eventCode,
-          allowComments: true,
-        });
+      // Configurar evento desde localStorage
+      setEventConfig({
+        voteLimit: 3,
+        eventName: eventName || "Evento sin nombre",
+        eventCode: eventCode,
+        allowComments: true,
+      });
 
-        // Obtener categorías del evento
-        if (eventoId) {
-          const categorias = await categoriasApi.getByEvento(parseInt(eventoId));
-          
-          // Mapear las categorías al formato que espera el frontend
-          const formattedCategories: Category[] = categorias.map(cat => ({
-            id: cat.id,
-            name: cat.nombre,
-            status: cat.estado === "Activa" ? "active" : 
-                    cat.estado === "Pendiente" ? "pending" : 
-                    cat.estado === "Finalizada" ? "closed" : 
-                    cat.estado === "Pausada" ? "paused" : "pending",
-            startTime: cat.fechaInicio ? new Date(cat.fechaInicio) : undefined,
-            endTime: cat.fechaFin ? new Date(cat.fechaFin) : undefined
-          }));
-          
-          setCategories(formattedCategories);
-        } else {
-          console.warn("No hay eventoId en localStorage");
-          setCategories([]);
-        }
-      } catch (error) {
-        console.error("Error cargando datos del evento:", error);
+      // Obtener categorías del evento
+      if (eventoId) {
+        
+        const categorias = await categoriasApi.getByEvento(parseInt(eventoId));
+        
+        // Mapear las categorías al formato que espera el frontend
+        const formattedCategories: Category[] = categorias.map((cat: any) => ({
+          id: cat.id,
+          name: cat.nombre,
+          status: cat.estado === "Activa" ? "active" : 
+                  cat.estado === "Pendiente" ? "pending" : 
+                  cat.estado === "Finalizada" ? "closed" : 
+                  cat.estado === "Pausada" ? "paused" : "pending",
+          startTime: cat.fechaInicio ? new Date(cat.fechaInicio) : undefined,
+          endTime: cat.fechaFin ? new Date(cat.fechaFin) : undefined
+        }));
+        
+        setCategories(formattedCategories);
+      } else {
         setCategories([]);
-      } finally {
-        setLoading(false);
+      }
+    } catch (error) {
+      setCategories([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Cargar notificaciones desde localStorage
+  const loadNotifications = useCallback(() => {
+    const stored = localStorage.getItem("notifications");
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      const withDates = parsed.map((n: any) => ({
+        ...n,
+        timestamp: new Date(n.timestamp)
+      }));
+      setNotifications(withDates);
+    }
+  }, []);
+
+  // Cargar datos al montar el componente
+  useEffect(() => {
+    loadEventData();
+    loadNotifications();
+  }, [loadEventData, loadNotifications]);
+
+  // Escuchar cambios en localStorage (para cuando se actualiza desde otra pestaña)
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "eventoId" || e.key === "eventoNombre" || e.key === "eventoCodigo") {
+        loadEventData();
+      }
+      if (e.key === "notifications") {
+        loadNotifications();
       }
     };
-
-    loadEventData();
-  }, []);
+    
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, [loadEventData, loadNotifications]);
 
   const addNotification = useCallback((state: string, categoryName?: string) => {
     const newNotification: Notification = {
@@ -124,10 +158,10 @@ export function VotingProvider({ children }: { children: ReactNode }) {
       timestamp: new Date(),
     });
 
-    const notifications = JSON.parse(localStorage.getItem("notifications") || "[]");
-    notifications.push(newNotification);
+    const stored = localStorage.getItem("notifications");
+    const notifications = stored ? JSON.parse(stored) : [];
+    notifications.unshift(newNotification);
     localStorage.setItem("notifications", JSON.stringify(notifications));
-
   }, []);
 
   const markNotificationAsRead = useCallback((id: string) => {
@@ -136,16 +170,31 @@ export function VotingProvider({ children }: { children: ReactNode }) {
         notif.id === id ? { ...notif, read: true } : notif
       )
     );
+    const stored = localStorage.getItem("notifications");
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      const updated = parsed.map((n: any) =>
+        n.id === id ? { ...n, read: true } : n
+      );
+      localStorage.setItem("notifications", JSON.stringify(updated));
+    }
   }, []);
 
   const markAllNotificationsAsRead = useCallback(() => {
     setNotifications((prev) =>
       prev.map((notif) => ({ ...notif, read: true }))
     );
+    const stored = localStorage.getItem("notifications");
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      const updated = parsed.map((n: any) => ({ ...n, read: true }));
+      localStorage.setItem("notifications", JSON.stringify(updated));
+    }
   }, []);
 
   const clearAllNotifications = useCallback(() => {
     setNotifications([]);
+    localStorage.setItem("notifications", JSON.stringify([]));
   }, []);
 
   const updateEventConfig = useCallback((config: Partial<EventConfig>) => {
@@ -224,17 +273,6 @@ export function VotingProvider({ children }: { children: ReactNode }) {
     addNotification("results_available");
   }, [addNotification]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Cargando evento...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <VotingContext.Provider
       value={{
@@ -243,6 +281,7 @@ export function VotingProvider({ children }: { children: ReactNode }) {
         eventStatus,
         notifications,
         eventConfig,
+        loading,
         startCategory,
         closeCategory,
         pauseVoting,
@@ -254,6 +293,7 @@ export function VotingProvider({ children }: { children: ReactNode }) {
         clearAllNotifications,
         updateEventConfig,
         addNotification,
+        reloadContext: loadEventData,
       }}
     >
       {children}

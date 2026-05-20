@@ -15,10 +15,8 @@ import { cn } from "../components/ui/utils";
 
 export default function RegisterParticipant() {
   const navigate = useNavigate();
-  const { eventoId: eventIdFromUrl } = useParams();
-  const { categories, eventConfig } = useVoting();
+  const { categories, eventConfig, addNotification, reloadContext } = useVoting();
   const eventContext = useContext(EventContext);
-  const { addNotification } = useVoting();
 
   const [localCategories, setLocalCategories] = useState<any[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
@@ -60,6 +58,8 @@ export default function RegisterParticipant() {
                     const evento = await response.json();
                     setEvento(evento);
                     setLocalCategories(evento.categorias || []);
+                    localStorage.setItem("eventoId", evento.id.toString());
+                    await reloadContext();
                     console.log("Evento cargado:", evento);
                 }
             }
@@ -117,7 +117,7 @@ export default function RegisterParticipant() {
     if (projectCreated && (localCategories.length === 0 || selectedCategory)) {
       try {
         const userId = localStorage.getItem("userId");
-        const eventoId = eventIdFromUrl || localStorage.getItem("eventoId");      
+        const eventoId = localStorage.getItem("eventoId");      
 
         const newProject = {
           nombre: projectData.name,
