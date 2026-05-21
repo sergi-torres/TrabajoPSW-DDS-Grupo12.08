@@ -1,6 +1,7 @@
 // src/components/organizator_dashboard/CategoryRankingPodium.tsx
 import { useState, useEffect } from "react";
-import { Trophy, Clock } from "lucide-react";
+import { Trophy, Clock, Award, DollarSign, Medal, Sparkles, Gift } from "lucide-react";
+import type { Premio } from "../../types";
 import "./CategoryRankingPodium.css";
 
 /* ── Types ── */
@@ -22,10 +23,20 @@ export interface CategoryRankingData {
 
 interface CategoryRankingPodiumProps {
   categorias: CategoryRankingData[];
+  premios?: Premio[];
 }
 
+/* ── Icon map (same as CategoriasPremioCard) ── */
+const premioIconMap: Record<string, React.ComponentType<{ className?: string; size?: number }>> = {
+  trofeo: Trophy,
+  medalla: Medal,
+  dinero: DollarSign,
+  award: Award,
+  brillo: Sparkles,
+};
+
 /* ── Component ── */
-export default function CategoryRankingPodium({ categorias }: CategoryRankingPodiumProps) {
+export default function CategoryRankingPodium({ categorias, premios = [] }: CategoryRankingPodiumProps) {
   const [activeTabId, setActiveTabId] = useState<number | null>(null);
   const [animateKey, setAnimateKey] = useState(0);
 
@@ -76,7 +87,10 @@ export default function CategoryRankingPodium({ categorias }: CategoryRankingPod
           <VotacionEnCurso />
         )}
         {activeCategory && activeCategory.finalizada && activeCategory.ganadores && (
-          <Podium ganadores={activeCategory.ganadores} />
+          <Podium
+            ganadores={activeCategory.ganadores}
+            premios={premios.filter(p => p.idCategoria === activeCategory.id)}
+          />
         )}
         {activeCategory && activeCategory.finalizada && !activeCategory.ganadores?.length && (
           <VotacionEnCurso message="Sin resultados disponibles" />
@@ -105,65 +119,98 @@ function VotacionEnCurso({ message }: { message?: string }) {
   );
 }
 
+/* ── Prize badge (shown below each podium card) ── */
+function PremioTag({ premio }: { premio: Premio }) {
+  // Normalize icon key: lowercase, try partial match for flexibility
+  const rawIcon = (premio.icono || '').toLowerCase().trim();
+  const matchedKey = Object.keys(premioIconMap).find(k => rawIcon.includes(k)) || '';
+  const Icon = premioIconMap[matchedKey] || Gift;
+  return (
+    <div className="crp-premio">
+      <div className="crp-premio__icon">
+        <Icon size={14} />
+      </div>
+      <div className="crp-premio__info">
+        <span className="crp-premio__name">{premio.nombre}</span>
+        {premio.descripcion && (
+          <span className="crp-premio__desc">{premio.descripcion}</span>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /* ── Podium with 3 winners ── */
-function Podium({ ganadores }: { ganadores: PodiumProject[] }) {
+function Podium({ ganadores, premios = [] }: { ganadores: PodiumProject[]; premios?: Premio[] }) {
   // Ensure we have at most 3
   const top3 = ganadores.slice(0, 3);
   const first = top3[0];
   const second = top3[1];
   const third = top3[2];
 
+  // Get premio for a given position
+  const getPremio = (posicion: number) => premios.find(p => p.posicion === posicion) ?? null;
+
+  const premio1 = getPremio(1);
+  const premio2 = getPremio(2);
+  const premio3 = getPremio(3);
+
   // Podium display order: 2nd — 1st — 3rd
   return (
-    <div className="crp-podium">
-      {/* 2nd place */}
-      {second ? (
-        <div className="crp-podium__slot crp-podium__slot--second crp-podium__slot--animate" style={{ animationDelay: "0.2s" }}>
-          <div className="crp-podium__badge crp-podium__badge--silver">2</div>
-          <div className="crp-podium__card crp-podium__card--silver">
-            <h5 className="crp-podium__name">{second.name}</h5>
-            <p className="crp-podium__team">{second.team}</p>
-            <div className="crp-podium__score-box crp-podium__score-box--silver">
-              <span className="crp-podium__score">{second.score}</span>
-              <span className="crp-podium__score-label">puntos</span>
+    <div className="crp-podium-wrapper">
+      <div className="crp-podium">
+        {/* 2nd place */}
+        {second ? (
+          <div className="crp-podium__slot crp-podium__slot--second crp-podium__slot--animate" style={{ animationDelay: "0.2s" }}>
+            <div className="crp-podium__badge crp-podium__badge--silver">2</div>
+            <div className="crp-podium__card crp-podium__card--silver">
+              <h5 className="crp-podium__name">{second.name}</h5>
+              <p className="crp-podium__team">{second.team}</p>
+              <div className="crp-podium__score-box crp-podium__score-box--silver">
+                <span className="crp-podium__score">{second.score}</span>
+                <span className="crp-podium__score-label">puntos</span>
+              </div>
             </div>
+            {premio2 && <PremioTag premio={premio2} />}
           </div>
-        </div>
-      ) : <div className="crp-podium__slot crp-podium__slot--empty" />}
+        ) : <div className="crp-podium__slot crp-podium__slot--empty" />}
 
-      {/* 1st place (winner) */}
-      {first && (
-        <div className="crp-podium__slot crp-podium__slot--first crp-podium__slot--animate" style={{ animationDelay: "0s" }}>
-          <div className="crp-podium__badge crp-podium__badge--gold">1</div>
-          <div className="crp-podium__card crp-podium__card--gold">
-            <div className="crp-podium__winner-tag">
-              <Trophy size={14} strokeWidth={2.5} />
-              GANADOR
+        {/* 1st place (winner) */}
+        {first && (
+          <div className="crp-podium__slot crp-podium__slot--first crp-podium__slot--animate" style={{ animationDelay: "0s" }}>
+            <div className="crp-podium__badge crp-podium__badge--gold">1</div>
+            <div className="crp-podium__card crp-podium__card--gold">
+              <div className="crp-podium__winner-tag">
+                <Trophy size={14} strokeWidth={2.5} />
+                GANADOR
+              </div>
+              <h5 className="crp-podium__name crp-podium__name--winner">{first.name}</h5>
+              <p className="crp-podium__team">{first.team}</p>
+              <div className="crp-podium__score-box crp-podium__score-box--gold">
+                <span className="crp-podium__score crp-podium__score--gold">{first.score}</span>
+                <span className="crp-podium__score-label">puntos</span>
+              </div>
             </div>
-            <h5 className="crp-podium__name crp-podium__name--winner">{first.name}</h5>
-            <p className="crp-podium__team">{first.team}</p>
-            <div className="crp-podium__score-box crp-podium__score-box--gold">
-              <span className="crp-podium__score crp-podium__score--gold">{first.score}</span>
-              <span className="crp-podium__score-label">puntos</span>
-            </div>
+            {premio1 && <PremioTag premio={premio1} />}
           </div>
-        </div>
-      )}
+        )}
 
-      {/* 3rd place */}
-      {third ? (
-        <div className="crp-podium__slot crp-podium__slot--third crp-podium__slot--animate" style={{ animationDelay: "0.4s" }}>
-          <div className="crp-podium__badge crp-podium__badge--bronze">3</div>
-          <div className="crp-podium__card crp-podium__card--bronze">
-            <h5 className="crp-podium__name">{third.name}</h5>
-            <p className="crp-podium__team">{third.team}</p>
-            <div className="crp-podium__score-box crp-podium__score-box--bronze">
-              <span className="crp-podium__score">{third.score}</span>
-              <span className="crp-podium__score-label">puntos</span>
+        {/* 3rd place */}
+        {third ? (
+          <div className="crp-podium__slot crp-podium__slot--third crp-podium__slot--animate" style={{ animationDelay: "0.4s" }}>
+            <div className="crp-podium__badge crp-podium__badge--bronze">3</div>
+            <div className="crp-podium__card crp-podium__card--bronze">
+              <h5 className="crp-podium__name">{third.name}</h5>
+              <p className="crp-podium__team">{third.team}</p>
+              <div className="crp-podium__score-box crp-podium__score-box--bronze">
+                <span className="crp-podium__score">{third.score}</span>
+                <span className="crp-podium__score-label">puntos</span>
+              </div>
             </div>
+            {premio3 && <PremioTag premio={premio3} />}
           </div>
-        </div>
-      ) : <div className="crp-podium__slot crp-podium__slot--empty" />}
+        ) : <div className="crp-podium__slot crp-podium__slot--empty" />}
+      </div>
     </div>
   );
 }
