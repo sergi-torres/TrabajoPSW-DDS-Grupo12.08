@@ -273,7 +273,11 @@ export default function OrganizerDashboard() {
                     En directo
                   </div>
                 </div>
-                <CategoryRankingPodium categorias={categoryRankingData} premios={premios} />
+                <CategoryRankingPodium
+                  categorias={categoryRankingData}
+                  premios={premios}
+                  isOrganizer={userRole === "Organizador"}
+                />
               </section>
             </div>
 
