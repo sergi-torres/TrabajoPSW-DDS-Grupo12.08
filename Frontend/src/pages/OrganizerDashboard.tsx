@@ -6,12 +6,14 @@ import LiveHeader from "../components/organizator_dashboard/LiveHeader";
 import StatsCard from "../components/organizator_dashboard/StatsCard";
 import CategoryRankingPodium, { CategoryRankingData } from "../components/organizator_dashboard/CategoryRankingPodium";
 import { getDashboard, extenderTiempo, cerrarVotacion } from "../api/orgDashboardApi";
+import { premiosApi } from "../api/premiosApi";
 import { AuthContext } from "../context/AuthContext";
 import { EventContext } from "../context/EventContext";
 import { LogoutConfirmModal } from "../components/layout/LogoutConfirmModal";
 import { categoriasApi } from "../api/categoriasApi";
 import { EventSidebar } from "../components/layout/EventSidebar";
 import { cn } from "../components/ui/utils";
+import type { Premio } from "../types";
 import "../components/organizator_dashboard/Dashboard.css";
 
 export default function OrganizerDashboard() {
@@ -28,6 +30,7 @@ export default function OrganizerDashboard() {
   const [isLoadingLogout, setIsLoadingLogout] = useState(false);
 
   const [categorias, setCategorias] = useState<any[]>([]);
+  const [premios, setPremios] = useState<Premio[]>([]);
   const [activeTab, setActiveTab] = useState<any>(null);
 
   const eventoId = paramEventoId || (contextEventoId ? contextEventoId.toString() : null);
@@ -63,6 +66,9 @@ export default function OrganizerDashboard() {
         setCategorias(res);
         if (res.length > 0) setActiveTab(res[0].id);
       });
+      premiosApi.obtenerPremios(Number(eventoId)).then(res => {
+        setPremios(res);
+      }).catch(err => console.error("Error cargando premios:", err));
     }
   }, [eventoId]);
 
@@ -267,7 +273,11 @@ export default function OrganizerDashboard() {
                     En directo
                   </div>
                 </div>
-                <CategoryRankingPodium categorias={categoryRankingData} />
+                <CategoryRankingPodium
+                  categorias={categoryRankingData}
+                  premios={premios}
+                  isOrganizer={userRole === "Organizador"}
+                />
               </section>
             </div>
 
