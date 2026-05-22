@@ -70,6 +70,7 @@ UsoAgentes.md
 .claude-flow/
 .claude/
 .swarm/
+CLAUDE.md
 
 # AgentDB / RuVector
 ruvector.db
