@@ -47,5 +47,12 @@ namespace Votify.API.Repositories
                 .Update();
             return response.ResponseMessage?.IsSuccessStatusCode ?? false;
         }
+
+        public async Task<List<EventoLite>> GetAllAsync()
+        {
+            var response = await _supabase.From<EventoLite>().Get();
+            return response.Models;
+        }
+
     }
 }

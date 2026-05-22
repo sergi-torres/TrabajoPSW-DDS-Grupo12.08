@@ -8,5 +8,6 @@ namespace Votify.API.Repositories
         Task<EventoLite?> GetByIdAsync(int id);
         Task<EventoLite?> GetByCodigoAsync(int codEvento);
         Task<bool> UpdateBasicAsync(int id, UpdateEventDto dto);
+        Task<List<EventoLite>> GetAllAsync();
     }
 }

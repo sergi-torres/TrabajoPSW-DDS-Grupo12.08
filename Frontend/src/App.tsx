@@ -22,6 +22,7 @@ import Configuraciones from './pages/Configuraciones'
 import ControlVotacionesPage from './pages/ControlVotacionesPage'
 import EditarProyectoPage from './pages/EditarProyectoPage'
 import AsignarPremios from './pages/AsignarPremiosPage'
+import ProfilePage from './pages/ProfilePage'
 
 function App() {
   return (
@@ -57,6 +58,7 @@ function App() {
                 <Route path="/create-project" element={<CreateProject />} />
 
                 <Route path="/avisos" element={<Avisos />} />
+                <Route path="/perfil" element={<ProfilePage />} />
               </Route>
 
               <Route path="/" element={<Navigate to="/login" replace />} />
