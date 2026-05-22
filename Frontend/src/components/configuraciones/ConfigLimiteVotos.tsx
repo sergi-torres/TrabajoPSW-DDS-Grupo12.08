@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Settings, Sliders, CheckCircle2 } from 'lucide-react';
 import { useConfigTiempos } from '../../hooks/VotacionHooks/useConfigTiempos';
+import InfoTooltip from '../ui/InfoTooltip';
 
 interface ConfigLimiteVotosProps {
   eventoId: string;
@@ -82,6 +83,7 @@ const ConfigLimiteVotos: React.FC<ConfigLimiteVotosProps> = ({ eventoId }) => {
         <div>
             <h2 className="text-xl font-heading font-bold text-gray-900 flex items-center gap-2">
                 <Settings className="w-6 h-6 text-orange-600" /> Configurar límite de votos
+                <InfoTooltip text="El límite de votos determina cuántos proyectos puede evaluar cada votante dentro de una categoría." />
             </h2>
             <p className="text-sm text-gray-500 mt-2 leading-relaxed max-w-3xl">
                 Define cuántos votos puede emitir un usuario. Aplícalo de forma global a todas las categorías pendientes o de forma personalizada.
