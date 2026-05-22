@@ -62,11 +62,11 @@ export default function EditarProyectoPage() {
       if (!proyectoData && id) {
         console.log("Cargando desde API:", id);
         const res = await fetch(`http://localhost:5245/api/votacion/porProyecto?proyectoId=${id}`);
-        if (response.ok) {
-          proyectoData = await response.json();
+        if (res.ok) {
+          proyectoData = await res.json();
           console.log("Cargado desde API:", proyectoData);
         } else {
-          console.error("Error en API:", response.status);
+          console.error("Error en API:", res.status);
         }
       }
 

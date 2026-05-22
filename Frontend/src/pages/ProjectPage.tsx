@@ -4,7 +4,7 @@ import { AuthContext } from "../context/AuthContext";
 import { EventContext } from "../context/EventContext";
 import { EventSidebar } from "../components/layout/EventSidebar";
 import { useVoting } from "../context/VotingContext";
-import { ArrowLeft, Trophy, TrendingUp, TrendingDown, Minus, Target, Medal, Star, Trash2 , Plus, Pencil} from "lucide-react";
+import { ArrowLeft, Trophy, TrendingUp, TrendingDown, Minus, Target, Medal, Star, Trash2, Plus, Pencil, Search } from "lucide-react";
 import { cn } from "../components/ui/utils";
 import { toast } from "sonner";
 import { ConfirmModal } from "../components/layout/ConfirmModal";
@@ -86,6 +86,7 @@ export default function ProjectPage() {
   const [projectIdToDelete, setProjectIdToDelete] = useState<number | null>(null);
   const [projectNameToDelete, setProjectNameToDelete] = useState<string | null>(null);
   const [isDeletingProject, setIsDeletingProject] = useState(false);
+  const [busquedaProyectos, setBusquedaProyectos] = useState('');
 
   const isPublicRole = userRole === "Público";
   const themeColor = userColor || "#9333ea";
@@ -182,9 +183,18 @@ try {
 }
   };
 
-  const proyectosFiltrados = categoriaActiva
+  const proyectosFiltradosPorCategoria = categoriaActiva
     ? proyectos.filter(p => p.idCategoria === categoriaActiva)
     : proyectos;
+
+  const proyectosFiltrados = proyectosFiltradosPorCategoria.filter((p) => {
+    const termino = busquedaProyectos.toLowerCase().trim();
+    if (!termino) return true;
+    return (
+      p.nombre.toLowerCase().includes(termino) ||
+      p.descripcion.toLowerCase().includes(termino)
+    );
+  });
 
   // Ordenar proyectos por puntaje total
   const proyectosOrdenados = [...proyectosFiltrados].sort((a, b) => {
@@ -313,18 +323,37 @@ try {
           {/* Ranking de Proyectos por Categoría */}
           {categoriaActiva && (
             <div className="bg-white rounded-2xl shadow-sm p-8 border border-gray-100 animate-in slide-in-from-bottom duration-300">
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between mb-6">
                 <div className="flex items-center gap-3">
                   <div className="p-2.5 rounded-xl bg-yellow-50 text-yellow-500">
                     <Trophy size={20} />
                   </div>
-                  <h2 className="text-xl font-heading font-bold text-gray-900">
-                    Ranking - {categorias.find(c => c.id === categoriaActiva)?.nombre}
-                  </h2>
+                  <div>
+                    <h2 className="text-xl font-heading font-bold text-gray-900">
+                      Ranking - {categorias.find(c => c.id === categoriaActiva)?.nombre}
+                    </h2>
+                    <p className="text-sm text-gray-500">Filtra los proyectos registrados en esta categoría.</p>
+                  </div>
                 </div>
-                
-                {/* Botón para crear nuevo proyecto (solo organizador) */}
-                {esOrganizador && (
+
+                <div className="w-full lg:max-w-md">
+                  <label className="sr-only" htmlFor="busquedaProyectos">Buscar proyectos</label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                    <input
+                      id="busquedaProyectos"
+                      type="text"
+                      value={busquedaProyectos}
+                      onChange={(e) => setBusquedaProyectos(e.target.value)}
+                      placeholder="Buscar proyecto por nombre o descripción..."
+                      className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-2xl shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {esOrganizador && (
+                <div className="mb-6 flex justify-end">
                   <button
                     onClick={() => {
                       if (localStorage.getItem("proyectoABCD")) {
@@ -332,17 +361,15 @@ try {
                       }
 
                       navigate(`/eventos/${localStorage.getItem("eventoId")}/participantRegister`);
-
                       console.log(localStorage.getItem("eventoId"));
-
                     }}
                     className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl transition-all text-sm font-medium"
                   >
                     <Plus size={16} />
                     Crear proyecto
                   </button>
-                )}
-              </div>
+                </div>
+              )}
 
               {proyectosOrdenados.length === 0 ? (
                 <div className="text-center py-12 text-gray-500">
@@ -351,8 +378,8 @@ try {
               ) : (
                 <div className="space-y-4">
                   {proyectosOrdenados.map((proyecto, idx) => {
-                    const puntajeJurado = obtenerPuntaje(proyecto.id, categoriaActiva, "JURADO");
-                    const puntajePublico = obtenerPuntaje(proyecto.id, categoriaActiva, "PUBLICO");
+                    const puntajeJurado = obtenerPuntaje(proyecto.id, categoriaActiva!, "JURADO");
+                    const puntajePublico = obtenerPuntaje(proyecto.id, categoriaActiva!, "PUBLICO");
                     const puntajeTotal = puntajeJurado + puntajePublico;
                     const percentage = Math.min(100, (puntajeTotal / 200) * 100);
                     

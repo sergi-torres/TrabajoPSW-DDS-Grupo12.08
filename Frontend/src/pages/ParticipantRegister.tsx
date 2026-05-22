@@ -30,7 +30,7 @@ export default function RegisterParticipant() {
     newMemberEmail: ""
   });
 
-  const [proyectosUsuario, setProyectosUsuario] = useState<ProyectoUsuario[]>([]);
+  const [proyectosUsuario, setProyectosUsuario] = useState<any[]>([]);
 
   useEffect(() => {
     const cargarProyectos = async () => {
@@ -75,7 +75,7 @@ export default function RegisterParticipant() {
   useEffect(() => {
     const userId = localStorage.getItem("userId");
     if (userId && projectData.memberIds.length === 0) {
-      setProjectData((prev) => ({
+      setProjectData((prev: any) => ({
         ...prev,
         memberIds: [parseInt(userId)]
       }));

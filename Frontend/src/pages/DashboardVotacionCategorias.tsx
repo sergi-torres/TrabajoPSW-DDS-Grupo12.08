@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { ArrowLeft, Target, Award, LogOut } from 'lucide-react';
+import { ArrowLeft, Target, Award, LogOut, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import StatsBar from '../components/votacion/votacionCategorias/StatsBar';
 import CategoriaCard from '../components/votacion/votacionCategorias/CategoriaCard';
@@ -18,6 +18,7 @@ const DashboardVotacionCategorias = () => {
   const { datos, cargando, cargarDashboard } = useVotacionDashboard();
   const [vistaActual, setVistaActual] = useState('categorias');
   const [categoriaElegida, setCategoriaElegida] = useState<any>(null);
+  const [busquedaCategorias, setBusquedaCategorias] = useState('');
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -157,17 +158,35 @@ const DashboardVotacionCategorias = () => {
                   <Award className="w-6 h-6" style={{ color: themeColor }} />
                   <h2 className="text-xl font-heading font-bold text-gray-900">Categorías Disponibles</h2>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
-                  {(datos as any).categorias.map((cat: any) => (
-                    <CategoriaCard
-                      key={cat.id}
-                      categoria={cat}
-                      alVotar={() => {
-                        setCategoriaElegida(cat);
-                        setVistaActual('proyectos');
-                      }}
-                    />
-                  ))}
+                <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Buscar categoría</label>
+                <div className="relative max-w-xl">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                  <input
+                    type="text"
+                    value={busquedaCategorias}
+                    onChange={(e) => setBusquedaCategorias(e.target.value)}
+                    placeholder="Busca por nombre de categoría..."
+                    className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-2xl shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
+                  {((datos as any).categorias || [])
+                    .filter((cat: any) => {
+                      const textoCategoria = (cat.titulo || cat.nombre || cat.Titulo || "").toString().toLowerCase();
+                      return textoCategoria.includes(busquedaCategorias.toLowerCase().trim());
+                    })
+                    .map((cat: any) => (
+                      <CategoriaCard
+                        key={cat.id}
+                        categoria={cat}
+                        alVotar={() => {
+                          setCategoriaElegida(cat);
+                          setVistaActual('proyectos');
+                        }}
+                      />
+                    ))}
                 </div>
               </section>
             </>

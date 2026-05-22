@@ -14,10 +14,10 @@ export const usuarioApi = {
     }
 
     return await res.json();
-  }
+  },
 
   getById: async (Id: string): Promise<Usuario> => {
-    const res = await  fetch(`${API_URL}/${Id}`);
+    const res = await fetch(`${API_URL}/${Id}`);
         if (!res.ok) {
       if (res.status === 404) {
         throw new Error("Usuario no encontrado");

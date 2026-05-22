@@ -231,9 +231,8 @@ export default function AvisosPage() {
         }));
         setNotifications(withDates);
       } else {
-        // Notificaciones de ejemplo
-        const Notifications = localStorage.getItem("notifications");
-        setNotifications(Notifications);
+        // No hay notificaciones almacenadas
+        setNotifications([]);
       }
     };
 
