@@ -97,6 +97,33 @@ const notificationConfig: Record<string, any> = {
     borderColor: "border-gray-500",
     sound: false,
   },
+    project_deleted: {
+    icon: Trash2,
+    title: "Proyecto Eliminado",
+    description: "El proyecto ha sido eliminado",
+    color: "text-red-500",
+    bgColor: "bg-red-50",
+    borderColor: "border-red-500",
+    sound: true,
+  },
+  project_registered: {
+      icon: CheckCircle,
+      title: "¡Proyecto Registrado!",
+      description: "Has registrado un nuevo proyecto",
+      color: "text-green-500",
+      bgColor: "bg-green-50",
+      borderColor: "border-green-500",
+      sound: true,
+  },
+  event_created: {
+      icon: CheckCircle,
+      title: "¡Evento Creado!",
+      description: "Has creado un nuevo evento",
+      color: "text-green-500",
+      bgColor: "bg-green-50",
+      borderColor: "border-green-500",
+      sound: true,
+  },
 };
 
 // ============================================
@@ -205,37 +232,8 @@ export default function AvisosPage() {
         setNotifications(withDates);
       } else {
         // Notificaciones de ejemplo
-        const exampleNotifications: Notification[] = [
-          {
-            id: "1",
-            state: "category_started",
-            categoryName: "Innovación",
-            timestamp: new Date(Date.now() - 1000 * 60 * 30),
-            read: false
-          },
-          {
-            id: "2",
-            state: "voting_started",
-            categoryName: "Innovación",
-            timestamp: new Date(Date.now() - 1000 * 60 * 25),
-            read: false
-          },
-          {
-            id: "3",
-            state: "results_available",
-            timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2),
-            read: true
-          },
-          {
-            id: "4",
-            state: "category_closed",
-            categoryName: "Diseño",
-            timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24),
-            read: true
-          }
-        ];
-        setNotifications(exampleNotifications);
-        localStorage.setItem("notifications", JSON.stringify(exampleNotifications));
+        const Notifications = localStorage.getItem("notifications");
+        setNotifications(Notifications);
       }
     };
 
@@ -280,6 +278,8 @@ export default function AvisosPage() {
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
+  //console.log("Notificaciones cargadas:", notifications);
+
   return (
     <div className="min-h-screen bg-gray-50 font-body relative">
       {/* {!isPublicRole && <EventSidebar />} */} 
@@ -288,7 +288,6 @@ export default function AvisosPage() {
         <header
           className={cn(
             "text-white p-6 lg:p-10 transition-all duration-300",
-            isPublicRole ? "lg:pl-10" : (isCollapsed ? "lg:pl-28" : "lg:pl-80")
           )}
           style={{ backgroundColor: themeColor }}
         >
@@ -321,7 +320,7 @@ export default function AvisosPage() {
 
         <main className={cn(
           "max-w-4xl mx-auto p-6 lg:p-10 -mt-6 transition-all duration-300",
-          isPublicRole ? "" : (isCollapsed ? "lg:pl-28" : "lg:pl-80")
+          
         )}>
           {/* Barra de acciones */}
           <div className="bg-white rounded-2xl shadow-sm p-4 border border-gray-100 mb-6">

@@ -8,6 +8,7 @@ import { useVotacionDashboard } from '../hooks/VotacionHooks/useVotacionDashboar
 import { EventContext } from '../context/EventContext';
 import { AuthContext } from '../context/AuthContext';
 import { EventSidebar } from '../components/layout/EventSidebar';
+import { LogoutConfirmModal } from '../components/layout/LogoutConfirmModal';
 import { cn } from '../components/ui/utils';
 
 const DashboardVotacionCategorias = () => {
@@ -17,6 +18,8 @@ const DashboardVotacionCategorias = () => {
   const { datos, cargando, cargarDashboard } = useVotacionDashboard();
   const [vistaActual, setVistaActual] = useState('categorias');
   const [categoriaElegida, setCategoriaElegida] = useState<any>(null);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Determinar si es público de forma inmediata para el layout
   // PRIORIDAD: Si no estoy autenticado pero tengo sesión de PIN, soy PÚBLICO.
@@ -61,9 +64,16 @@ const DashboardVotacionCategorias = () => {
   }
 
   const handleLogout = () => {
-    logout();
-    clearEventContext();
-    navigate('/login');
+    setShowLogoutModal(true);
+  };
+
+  const handleConfirmLogout = () => {
+    setIsLoading(true);
+    setTimeout(() => {
+      logout();
+      clearEventContext();
+      navigate('/login');
+    }, 300);
   };
 
   return (
@@ -164,6 +174,14 @@ const DashboardVotacionCategorias = () => {
           )}
         </main>
       </div>
+
+      {/* Modal de confirmación de logout */}
+      <LogoutConfirmModal
+        isOpen={showLogoutModal}
+        onConfirm={handleConfirmLogout}
+        onCancel={() => setShowLogoutModal(false)}
+        isLoading={isLoading}
+      />
     </div>
   );
 };

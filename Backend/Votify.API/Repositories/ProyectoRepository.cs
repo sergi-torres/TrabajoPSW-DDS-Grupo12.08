@@ -25,7 +25,7 @@ namespace Votify.API.Repositories
         {
             var response = await _supabase
                 .From<Proyecto>()
-                .Select("id, nombre, descripcion, urlmultimedia, idevento, idparticipante, idcategoria")
+                .Select("id, nombre, descripcion, urlmultimedia, idevento, idparticipante, idcategoria, idMiembros")
                 .Where(p => p.IdCategoria == categoriaId)
                 .Get();
 
@@ -48,7 +48,7 @@ namespace Votify.API.Repositories
         {
             var response = await _supabase
                 .From<Proyecto>()
-                .Select("id, nombre, descripcion, urlmultimedia, idevento, idparticipante, idcategoria")
+                .Select("id, nombre, descripcion, urlmultimedia, idevento, idparticipante, idcategoria, idMiembros")
                 .Where(p => p.Id == id)
                 .Get();
             return response.Models.FirstOrDefault();
@@ -58,7 +58,7 @@ namespace Votify.API.Repositories
         {
             var response = await _supabase
                 .From<Proyecto>()
-                .Select("id, nombre, descripcion, urlmultimedia, idevento, idparticipante, idcategoria")
+                .Select("id, nombre, descripcion, urlmultimedia, idevento, idparticipante, idcategoria, idMiembros")
                 .Where(p => p.IdEvento == eventoId)
                 .Get();
             return response.Models;
@@ -80,6 +80,20 @@ namespace Votify.API.Repositories
             catch (Exception ex)
             {
                 Console.WriteLine($"Error al eliminar proyecto {id}: {ex.Message}");
+                return false;
+            }
+        }
+
+        public async Task<bool> ActualizarAsync(Proyecto proyecto)
+        {
+            try
+            {
+                await _supabase.From<Proyecto>().Where(p => p.Id == proyecto.Id).Update(proyecto);
+                return true; // Si no lanza excepción, asumimos éxito
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al actualizar proyecto {proyecto.Id}: {ex.Message}");
                 return false;
             }
         }

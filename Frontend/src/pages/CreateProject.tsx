@@ -75,11 +75,11 @@ const handleSubmit = async (e: React.FormEvent) => {
     try {
         const res = await createProyecto(newProject);
         console.log("Proyecto creado:", res);
-        toast.success(`¡Proyecto "${projectData.name}" creado exitosamente!`);
+        toast.success("Tu proyecto ha sido registrado con éxito");
         navigate("/participantRegister");
     } catch (error: any) {
         console.error("Error al crear el proyecto:", error);
-        alert("Error al crear proyecto: " + error.message);
+        toast.error("Error al crear proyecto: " + (error?.message || "Ocurrió un error"));
     }
 };
 

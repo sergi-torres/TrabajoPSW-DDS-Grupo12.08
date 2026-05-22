@@ -74,7 +74,7 @@ const Configuraciones: React.FC = () => {
             </div>
 
             <h1 className="text-3xl lg:text-4xl font-heading font-bold tracking-tight mb-2">
-              {eventInfo?.eventName || "Cargando evento..."}
+              Configuraciones
             </h1>
             <p className="text-blue-100 text-lg opacity-90">Configuración de Tiempos de Votación</p>
           </div>

@@ -70,5 +70,35 @@ namespace Votify.API.Controllers
                 return StatusCode(500, new { error = ex.Message });
             }
         }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            try
+            {
+                var response = await _supabase
+                    .From<Usuario>()
+                    .Where(u => u.Id == id)
+                    .Get();
+
+                var usuario = response.Models.FirstOrDefault();
+
+                if (usuario == null)
+                {
+                    return NotFound(new { message = "Usuario no encontrado" });
+                }
+
+                return Ok(new
+                {
+                    id = usuario.Id,
+                    email = usuario.Email,
+                    nombreCompleto = usuario.NombreCompleto
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message });
+            }
+        }
     }
 }

@@ -1,19 +1,31 @@
 ﻿import { Home, Search, Bell, User, LogOut, Settings, HelpCircle } from "lucide-react";
 import { useState } from "react";
+import { LogoutConfirmModal } from "../layout/LogoutConfirmModal";
 
 /**
  * MobileNav — Barra de navegación inferior para móvil.
  */
 export function MobileNav() {
   const [showMenu, setShowMenu] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleNavigation = (path: string) => {
     window.location.href = path;
   };
 
   const handleLogout = () => {
-    localStorage.clear();
-    window.location.href = "/login";
+    setIsLoading(true);
+    // Simulamos un pequeño delay para que se vea la animación
+    setTimeout(() => {
+      localStorage.clear();
+      window.location.href = "/login";
+    }, 300);
+  };
+
+  const handleLogoutClick = () => {
+    setShowMenu(false);
+    setShowLogoutModal(true);
   };
 
   return (
@@ -97,10 +109,7 @@ export function MobileNav() {
                 </button>
                 <div className="border-t border-gray-100 my-1" />
                 <button
-                  onClick={() => {
-                    setShowMenu(false);
-                    handleLogout();
-                  }}
+                  onClick={handleLogoutClick}
                   className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
                 >
                   <LogOut size={16} />
@@ -114,6 +123,14 @@ export function MobileNav() {
 
       {/* Espaciador para que el contenido no quede debajo de la navbar */}
       <div className="lg:hidden h-[68px]" />
+
+      {/* Modal de confirmación de logout */}
+      <LogoutConfirmModal
+        isOpen={showLogoutModal}
+        onConfirm={handleLogout}
+        onCancel={() => setShowLogoutModal(false)}
+        isLoading={isLoading}
+      />
     </>
   );
 }

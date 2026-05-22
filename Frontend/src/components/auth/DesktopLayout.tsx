@@ -5,6 +5,7 @@ import { AuthTabs } from "./AuthTabs";
 import logo from "../../assets/LogoSinTexto.png";
 import { joinEvento } from "../../api/eventosApi";
 import { AuthContext } from "../../context/AuthContext";
+import { toast } from "sonner";
 
 /**
  * DesktopLayout.tsx
@@ -30,7 +31,7 @@ export function DesktopLayout() {
             navigate(`/eventos/${data.id}/votar`);
         } catch (error: any) {
             console.error("Error validando PIN:", error);
-            alert(error.message);
+            toast.error(error?.message || "Error validando PIN");
         }
     };
 

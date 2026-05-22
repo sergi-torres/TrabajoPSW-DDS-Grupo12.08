@@ -26,6 +26,7 @@ export interface Categoria {
   estado: string;
   fechaInicio?: string;
   fechaFin?: string;
+  estado?: string;
 }
 
 export interface ComentarioCualitativo {
@@ -86,3 +87,15 @@ export interface ReenviarInvitacionRequest {
   idEvento: number;
   email: string;
 }
+
+export interface Premio 
+{
+  id: number;
+  idCategoria: number;
+  nombre: string;
+  descripcion?: string;
+  posicion: number;
+  icono?: string;
+}
+
+export type CrearPremioRequest =  Omit<Premio, 'id'>;

@@ -1,6 +1,6 @@
 ﻿import React, { useEffect } from "react";
 import { toast } from "sonner";
-import { Play, Pause, StopCircle, CheckCircle, AlertCircle, Trophy } from "lucide-react";
+import { Play, Pause, StopCircle, CheckCircle, AlertCircle, Trophy, Trash2, Star } from "lucide-react";
 
 // Configuración de notificaciones por tipo de estado
 const notificationConfig: Record<string, any> = {
@@ -52,6 +52,51 @@ const notificationConfig: Record<string, any> = {
     description: "La categoría ha sido cerrada",
     color: "text-gray-500",
     sound: false,
+  },
+    project_created: {
+    icon: CheckCircle,
+    title: "¡Proyecto Creado!",
+    description: "Has creado un nuevo proyecto",
+    color: "text-green-500",
+    bgColor: "bg-green-50",
+    borderColor: "border-green-500",
+    sound: true,
+  },
+  project_registered: {
+    icon: Trophy,
+    title: "¡Proyecto Registrado!",
+    description: "Proyecto registrado: ",
+    color: "text-purple-500",
+    bgColor: "bg-purple-50",
+    borderColor: "border-purple-500",
+    sound: true,
+  },
+  project_deleted: { 
+    icon: Trash2,
+    title: "Proyecto Eliminado",
+    description: "El proyecto ha sido eliminado",
+    color: "text-red-500",
+    bgColor: "bg-red-50",
+    borderColor: "border-red-500",
+    sound: true,
+  },
+  vote_cast: {
+    icon: Star,
+    title: "Voto Registrado",
+    description: "Tu voto ha sido registrado",
+    color: "text-yellow-500",
+    bgColor: "bg-yellow-50",
+    borderColor: "border-yellow-500",
+    sound: true,
+  },
+  event_created: {
+      icon: CheckCircle,
+      title: "¡Evento Creado!",
+      description: "Has creado un nuevo evento",
+      color: "text-green-500",
+      bgColor: "bg-green-50",
+      borderColor: "border-green-500",
+      sound: true,
   },
 };
 

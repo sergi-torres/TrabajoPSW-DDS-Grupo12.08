@@ -15,10 +15,8 @@ import { cn } from "../components/ui/utils";
 
 export default function RegisterParticipant() {
   const navigate = useNavigate();
-  const { eventoId: eventIdFromUrl } = useParams();
-  const { categories, eventConfig } = useVoting();
+  const { categories, eventConfig, addNotification, reloadContext } = useVoting();
   const eventContext = useContext(EventContext);
-  
 
   const [localCategories, setLocalCategories] = useState<any[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
@@ -51,6 +49,26 @@ export default function RegisterParticipant() {
       }
     };
 
+    const cargarEvento = async () => {
+        try {
+            const eventoId = localStorage.getItem("eventoId");
+            if (eventoId) {
+                const response = await fetch(`http://localhost:5245/api/Eventos/${eventoId}`);
+                if (response.ok) {
+                    const evento = await response.json();
+                    setEvento(evento);
+                    setLocalCategories(evento.categorias || []);
+                    localStorage.setItem("eventoId", evento.id.toString());
+                    await reloadContext();
+                    console.log("Evento cargado:", evento);
+                }
+            }
+        } catch (error) {
+            console.error("Error cargando evento:", error);
+        }
+    };
+
+    cargarEvento();
     cargarProyectos();
   }, []);
 
@@ -67,6 +85,8 @@ export default function RegisterParticipant() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [projectCreated, setProjectCreated] = useState(false);
+  const [evento, setEvento] = useState<any>(null);
+  
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -97,7 +117,7 @@ export default function RegisterParticipant() {
     if (projectCreated && (localCategories.length === 0 || selectedCategory)) {
       try {
         const userId = localStorage.getItem("userId");
-        const eventoId = eventIdFromUrl || localStorage.getItem("eventoId");      
+        const eventoId = localStorage.getItem("eventoId");      
 
         const newProject = {
           nombre: projectData.name,
@@ -115,9 +135,11 @@ export default function RegisterParticipant() {
         
         localStorage.setItem("proyectoABCD", JSON.stringify(res));
 
-        const catName = localCategories.find((c: any) => c.id === selectedCategory)?.nombre || "N/A";
-        toast.success(`Proyecto registrado exitosamente!\n\nProyecto: ${projectData.name}\nCategoría: ${catName}`);
+        toast.success("Tu proyecto ha sido registrado con éxito");
         navigate("/eventos");
+
+        addNotification("project_registered", newProject.nombre);
+
       } catch (error: any) {
         console.error("Error al crear el proyecto:", error);
         toast.error("Error al crear proyecto", { description: error.message });
@@ -156,7 +178,7 @@ export default function RegisterParticipant() {
             </button>
             <div>
               <h1 className="text-4xl font-heading font-bold mb-2 tracking-tight">Registrar Proyecto</h1>
-              <p className="text-purple-100 text-lg font-medium opacity-90">Crea tu proyecto para {eventConfig?.eventName || "el evento"}</p>
+              <p className="text-purple-100 text-lg font-medium opacity-90">Crea tu proyecto para: {evento?.nombre || "el evento"}</p>
             </div>
           </div>
         </header>

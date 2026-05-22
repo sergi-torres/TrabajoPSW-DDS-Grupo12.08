@@ -1,4 +1,4 @@
-import { Proyecto } from '../types';
+﻿import { Proyecto } from '../types';
 
 const BASE_URL = "http://localhost:5245/api/proyectos";
 
@@ -151,6 +151,27 @@ export async function deleteProyecto(id: number): Promise<boolean> {
         return true;
     } catch (error) {
         console.error("Error en deleteProyecto:", error);
+        throw error;
+    }
+}
+
+export async function editarProyecto(id: number, proyecto: Partial<Proyecto>): Promise<Proyecto> {
+    try {
+        const res = await fetch(`${BASE_URL}/${id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(proyecto)
+        });
+        if (res.ok) {
+            return await res.json();
+        } else {
+            const errorText = await res.text();
+            throw new Error(errorText || `Error al editar el proyecto: ${res.status}`);
+        }
+    } catch (error) {
+        console.error("Error en editarProyecto:", error);
         throw error;
     }
 }

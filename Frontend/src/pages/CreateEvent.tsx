@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from "react";
+﻿import { useState, useEffect, useContext } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Check, Loader2, Sparkles } from "lucide-react";
 import StepIndicator from "../components/createEvent/StepIndicator";
@@ -11,6 +11,7 @@ import { getEventoDetalle, updateEvento } from "../api/eventosApi";
 import { EventSidebar } from "../components/layout/EventSidebar";
 import { EventContext } from "../context/EventContext";
 import { cn } from "../components/ui/utils";
+import { useVoting } from "../context/VotingContext";
 
 const steps = [
   { number: 1, label: "Detalles" },
@@ -21,6 +22,7 @@ const steps = [
 const CreateEvent = () => {
   const { userId } = useContext(AuthContext)!;
   const { userColor, isCollapsed, userRole } = useContext(EventContext)!;
+  const { addNotification } = useVoting();
   const navigate = useNavigate();
   const { eventoId } = useParams();
 
@@ -250,6 +252,9 @@ const CreateEvent = () => {
       if (!response.ok) throw new Error(data?.error || "Error al crear el evento");
 
       toast.success("Evento creado exitosamente");
+
+      addNotification("event_created", "Evento creado");
+
       navigate("/eventos");
 
     } catch (error: any) {

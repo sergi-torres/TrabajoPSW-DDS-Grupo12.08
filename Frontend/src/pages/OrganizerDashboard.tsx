@@ -6,12 +6,16 @@ import LiveHeader from "../components/organizator_dashboard/LiveHeader";
 import StatsCard from "../components/organizator_dashboard/StatsCard";
 import CategoryRankingPodium, { CategoryRankingData } from "../components/organizator_dashboard/CategoryRankingPodium";
 import { getDashboard, extenderTiempo, cerrarVotacion } from "../api/orgDashboardApi";
+import { premiosApi } from "../api/premiosApi";
 import { abandonarEvento } from "../api/eventosApi";
 import { AuthContext } from "../context/AuthContext";
 import { EventContext } from "../context/EventContext";
+import { ConfirmModal } from "../components/layout/ConfirmModal";
+import { LogoutConfirmModal } from "../components/layout/LogoutConfirmModal";
 import { categoriasApi } from "../api/categoriasApi";
 import { EventSidebar } from "../components/layout/EventSidebar";
 import { cn } from "../components/ui/utils";
+import type { Premio } from "../types";
 import "../components/organizator_dashboard/Dashboard.css";
 
 export default function OrganizerDashboard() {
@@ -25,8 +29,11 @@ export default function OrganizerDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { eventoId: paramEventoId } = useParams<{ eventoId: string }>();
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [isLoadingLogout, setIsLoadingLogout] = useState(false);
 
   const [categorias, setCategorias] = useState<any[]>([]);
+  const [premios, setPremios] = useState<Premio[]>([]);
   const [activeTab, setActiveTab] = useState<any>(null);
 
   const eventoId = paramEventoId || (contextEventoId ? contextEventoId.toString() : null);
@@ -62,6 +69,9 @@ export default function OrganizerDashboard() {
         setCategorias(res);
         if (res.length > 0) setActiveTab(res[0].id);
       });
+      premiosApi.obtenerPremios(Number(eventoId)).then(res => {
+        setPremios(res);
+      }).catch(err => console.error("Error cargando premios:", err));
     }
   }, [eventoId]);
 
@@ -72,9 +82,16 @@ export default function OrganizerDashboard() {
   }, [fetchDashboard]);
 
   const handleLogout = () => {
-    logout();
-    clearEventContext();
-    navigate('/login');
+    setShowLogoutModal(true);
+  };
+
+  const handleConfirmLogout = () => {
+    setIsLoadingLogout(true);
+    setTimeout(() => {
+      logout();
+      clearEventContext();
+      navigate('/login');
+    }, 300);
   };
 
   const handleAbandonar = async () => {
@@ -280,7 +297,11 @@ export default function OrganizerDashboard() {
                     En directo
                   </div>
                 </div>
-                <CategoryRankingPodium categorias={categoryRankingData} />
+                <CategoryRankingPodium
+                  categorias={categoryRankingData}
+                  premios={premios}
+                  isOrganizer={userRole === "Organizador"}
+                />
               </section>
             </div>
 
@@ -323,33 +344,22 @@ export default function OrganizerDashboard() {
         </div>
       )}
 
-      {showConfirmAbandonar && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-[32px] shadow-2xl p-8 max-w-sm w-full mx-4">
-            <div className="w-14 h-14 bg-rose-50 rounded-2xl flex items-center justify-center mx-auto mb-5">
-              <LogOut className="w-7 h-7 text-rose-500" strokeWidth={2} />
-            </div>
-            <h2 className="text-xl font-heading font-bold text-gray-900 text-center mb-2">¿Abandonar el evento?</h2>
-            <p className="text-gray-500 text-sm text-center mb-8">
-              Dejarás de formar parte de este evento. Podrás volver a unirte desde el dashboard si el evento sigue disponible.
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowConfirmAbandonar(false)}
-                className="flex-1 py-3 rounded-2xl border border-gray-200 font-heading font-bold text-gray-700 hover:bg-gray-50 transition-all"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={() => { setShowConfirmAbandonar(false); handleAbandonar(); }}
-                className="flex-1 py-3 rounded-2xl bg-rose-500 hover:bg-rose-600 text-white font-heading font-bold transition-all shadow-lg shadow-rose-100"
-              >
-                Sí, abandonar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        isOpen={showConfirmAbandonar}
+        title="¿Abandonar el evento?"
+        message="Dejarás de formar parte de este evento. Podrás volver a unirte desde el dashboard si el evento sigue disponible."
+        confirmLabel="Sí, abandonar"
+        cancelLabel="Cancelar"
+        onConfirm={() => { setShowConfirmAbandonar(false); handleAbandonar(); }}
+        onCancel={() => setShowConfirmAbandonar(false)}
+        danger={true}
+      />
+      <LogoutConfirmModal
+        isOpen={showLogoutModal}
+        onConfirm={handleConfirmLogout}
+        onCancel={() => setShowLogoutModal(false)}
+        isLoading={isLoadingLogout}
+      />
     </div>
   );
 }
