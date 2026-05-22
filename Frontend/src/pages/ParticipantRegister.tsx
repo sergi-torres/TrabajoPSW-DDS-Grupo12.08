@@ -1,6 +1,6 @@
 ﻿import { ArrowLeft, Check, Target, Calendar, Users, Upload, X, Image as ImageIcon } from "lucide-react";
 import { useNavigate, useParams } from "react-router";
-import { useState, useEffect, useContext } from "react"; 
+import { useState, useEffect, useContext, useCallback } from "react"; 
 import { useVoting } from "../context/VotingContext";
 import { Card, CardHeader, CardTitle, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
@@ -105,15 +105,15 @@ export default function RegisterParticipant() {
     }
   };
 
-  const handleContinue = () => {
+  const handleContinue = useCallback(() => {
     if (!projectData.name || !projectData.description) {
       toast.error("Faltan campos obligatorios", { description: "Por favor completa el nombre y descripción del proyecto "});
       return;
     }
     setProjectCreated(true);
-  };
+  }, [projectData.name, projectData.description]);
 
-  const handleRegister = async () => {
+  const handleRegister = useCallback(async () => {
     if (projectCreated && (localCategories.length === 0 || selectedCategory)) {
       try {
         const userId = localStorage.getItem("userId");
@@ -145,10 +145,25 @@ export default function RegisterParticipant() {
         toast.error("Error al crear proyecto", { description: error.message });
       }
     }
-  };
-;
+  }, [projectCreated, localCategories.length, selectedCategory, projectData.name, projectData.description, projectData.memberIds, navigate, addNotification]);
 
   const isReadyToRegister = projectCreated && (selectedCategory || localCategories.length === 0);
+
+  useEffect(() => {
+    const onGlobalKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
+        event.preventDefault();
+        if (!projectCreated) {
+          handleContinue();
+        } else if (isReadyToRegister) {
+          handleRegister();
+        }
+      }
+    };
+
+    window.addEventListener("keydown", onGlobalKeyDown);
+    return () => window.removeEventListener("keydown", onGlobalKeyDown);
+  }, [projectCreated, isReadyToRegister, handleContinue, handleRegister]);
   const isCollapsed = eventContext?.isCollapsed ?? false;
   const userRole = eventContext?.userRole ?? "Participante";
   

@@ -104,6 +104,9 @@ export default function InvitarJuradoPage() {
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+            return;
+        }
         if (["Enter", ",", " "].includes(e.key)) {
             e.preventDefault();
             addEmail();
@@ -155,7 +158,7 @@ export default function InvitarJuradoPage() {
         }
     }, [eventoId, fetchJurados, fetchEventInfo]);
 
-    const handleAsignar = async (e: React.FormEvent) => {
+    const handleAsignar = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();
         let finalEmails = [...emailsList];
         if (emailInput.trim()) {
@@ -169,7 +172,6 @@ export default function InvitarJuradoPage() {
         setIsSubmitting(true);
         try {
             for (const email of finalEmails) {
-                // Pasamos el mensaje personalizado
                 await asignarJurado(Number(eventoId), email, customMessage);
             }
             showToast("Invitaciones enviadas correctamente", "success");
@@ -181,6 +183,25 @@ export default function InvitarJuradoPage() {
             showToast(err.message, "error");
         } finally {
             setIsSubmitting(false);
+        }
+    }, [emailsList, emailInput, customMessage, eventoId, fetchJurados, showToast]);
+
+    useEffect(() => {
+        const onGlobalKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
+                event.preventDefault();
+                handleAsignar({ preventDefault: () => {} } as React.FormEvent);
+            }
+        };
+
+        window.addEventListener("keydown", onGlobalKeyDown);
+        return () => window.removeEventListener("keydown", onGlobalKeyDown);
+    }, [handleAsignar]);
+
+    const handleFormKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
+        if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+            e.preventDefault();
+            handleAsignar(e as unknown as React.FormEvent);
         }
     };
 
@@ -379,7 +400,7 @@ export default function InvitarJuradoPage() {
                                     <h2 className="text-xl font-heading font-bold text-gray-900">Nueva Invitación</h2>
                                 </div>
 
-                                <form onSubmit={handleAsignar} className="space-y-6">
+                                <form onSubmit={handleAsignar} onKeyDown={handleFormKeyDown} className="space-y-6">
                                     <div>
                                         <label className="block text-sm font-bold text-gray-700 mb-2 ml-1">Destinatarios</label>
                                         <div className="min-h-[48px] flex flex-wrap gap-2 p-2 bg-gray-50 border border-gray-200 rounded-2xl focus-within:ring-2 focus-within:ring-blue-500 focus-within:bg-white transition-all">

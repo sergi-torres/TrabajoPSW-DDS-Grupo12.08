@@ -264,6 +264,23 @@ const CreateEvent = () => {
     }
   };
 
+  const handleCtrlEnter = (e: React.KeyboardEvent<HTMLDivElement> | KeyboardEvent) => {
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      if (currentStep < 3) {
+        handleNext();
+      } else {
+        handlePublish();
+      }
+    }
+  };
+
+  useEffect(() => {
+    const onGlobalKeyDown = (event: KeyboardEvent) => handleCtrlEnter(event);
+    window.addEventListener("keydown", onGlobalKeyDown);
+    return () => window.removeEventListener("keydown", onGlobalKeyDown);
+  }, [currentStep, handleNext, handlePublish]);
+
   const readOnlyBaremos = isEditMode && (eventoEstado === "Activo" || eventoEstado === "EnVotacion");
 
   if (loadingEvento) {
@@ -279,7 +296,7 @@ const CreateEvent = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 font-body relative">
+    <div className="min-h-screen bg-gray-50 font-body relative" onKeyDown={handleCtrlEnter}>
       {isEditMode && !isPublicRole && <EventSidebar />}
 
       <div className="pb-[88px] lg:pb-0">
