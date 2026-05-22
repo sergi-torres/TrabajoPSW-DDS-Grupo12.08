@@ -98,6 +98,15 @@ const notificationConfig: Record<string, any> = {
       borderColor: "border-green-500",
       sound: true,
   },
+  category_changed: {
+      icon: Play,
+      title: "¡Estado de Categoría Actualizado!",
+      description: "El estado de la categoría ha cambiado",
+      color: "text-blue-500",
+      bgColor: "bg-blue-50",
+      borderColor: "border-blue-500",
+      sound: false,
+  },
 };
 
 export function showNotification(payload: any) {

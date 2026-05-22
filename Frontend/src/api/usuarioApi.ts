@@ -28,7 +28,7 @@ export const usuarioApi = {
     const res = await fetch(`${API_URL}/${userId}`);
     if (!res.ok) throw new Error("Error al obtener el perfil del usuario");
     return res.json();
-  }
+  },
 
   getById: async (Id: string): Promise<Usuario> => {
     const res = await  fetch(`${API_URL}/${Id}`);
