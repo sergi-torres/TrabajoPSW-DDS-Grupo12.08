@@ -106,11 +106,11 @@ TrabajoPSW-DDS/
 │   ├── Votify.API/
 │   │   ├── Controllers/        # Endpoints REST
 │   │   ├── Services/           # Lógica de negocio
-│   │   │   ├── Decorators/     # Decorator pattern (validación de votos)
-│   │   │   └── Strategies/     # Strategy pattern (síntesis IA)
+│   │   │   ├── Decorators/     # Decorator pattern
+│   │   │   └── Strategies/     # Strategy pattern 
 │   │   ├── Repositories/       # Acceso a datos (Supabase ORM)
 │   │   ├── Models/
-│   │   │   ├── Domain/         # Entidades (hereda BaseModel)
+│   │   │   ├── Domain/         # Entidades
 │   │   │   │   └── Factories/  # Factory Method pattern
 │   │   │   └── DTOs/           # Objetos de transferencia
 │   │   ├── Filters/            # OrganizerOnlyFilter (autorización)
@@ -128,15 +128,6 @@ TrabajoPSW-DDS/
 
 ---
 
-## Patrones de diseño implementados
-
-| Patrón | Ubicación | Propósito |
-|---|---|---|
-| **Factory Method** | `Models/Domain/Factories/` | Creación de tipos de evento y voto |
-| **Decorator** | `Services/Decorators/` | Validación previa al guardado de votos |
-| **Strategy** | `Services/Strategies/Sintesis/` | Prompts diferenciados por tipo de votante |
-
----
 
 ## Credenciales de prueba
 
