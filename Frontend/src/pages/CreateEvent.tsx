@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Check, Loader2, Sparkles, HelpCircle, Target, Scale, Award } from "lucide-react";
 import StepIndicator from "../components/createEvent/StepIndicator";
@@ -13,6 +13,7 @@ import { InfoModal } from "../components/layout/InfoModal";
 import { EventContext } from "../context/EventContext";
 import { cn } from "../components/ui/utils";
 import { useVoting } from "../context/VotingContext";
+import ConfigHelpPanel from "../components/ui/ConfigHelpPanel";
 
 const steps = [
   { number: 1, label: "Detalles" },
@@ -397,6 +398,8 @@ const CreateEvent = () => {
         </main>
       </div>
 
+      {/* Floating config help panel */}
+      <ConfigHelpPanel />
       <InfoModal
         isOpen={showHelpModal}
         title="Guía de Creación de Eventos"

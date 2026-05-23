@@ -1,9 +1,10 @@
-﻿import { Link, useLocation, useParams, useNavigate } from "react-router-dom";
+import { Link, useLocation, useParams, useNavigate } from "react-router-dom";
 import { Info, FolderOpen, Trophy, Settings, ClipboardList, User, FileText, LogOut, ChevronUp, ChevronLeft, ChevronRight, Vote, Timer, Lightbulb, LucideIcon, Sparkles, List, HelpCircle} from "lucide-react";
 import { useState, useRef, useEffect, useContext } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { EventContext } from "../../context/EventContext";
 import { LogoutConfirmModal } from "./LogoutConfirmModal";
+import FAQModal from "./FAQModal";
 import { cn } from "../ui/utils";
 import logo from "../../assets/LogoSinTexto.png";
 
@@ -32,6 +33,7 @@ export function EventSidebar({ color: propColor, position = 'left' }: EventSideb
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [showLogoutModal, setShowLogoutModal] = useState(false);
     const [isLoadingLogout, setIsLoadingLogout] = useState(false);
+    const [showFAQ, setShowFAQ] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 
     if (!eventContext) return null;
@@ -162,6 +164,19 @@ export function EventSidebar({ color: propColor, position = 'left' }: EventSideb
                     {allLinks.map((link) => (
                         <NavItem key={link.path} link={link} />
                     ))}
+
+                    {/* Ayuda / FAQ link */}
+                    <button
+                        onClick={() => setShowFAQ(true)}
+                        className={cn(
+                            "flex flex-col lg:flex-row items-center gap-1 lg:gap-3 px-3 py-2.5 lg:px-4 lg:py-3 rounded-xl transition-all duration-200 text-slate-500 hover:text-slate-900 hover:bg-slate-50 mt-auto",
+                            isCollapsed && "lg:justify-center lg:px-0 lg:w-12 lg:mx-auto"
+                        )}
+                    >
+                        <HelpCircle size={22} strokeWidth={2} color="currentColor" />
+                        {!isCollapsed && <span className="text-[11px] lg:text-sm font-medium">Ayuda</span>}
+                        {isCollapsed && <span className="text-[11px] lg:hidden font-medium">Ayuda</span>}
+                    </button>
                 </nav>
 
                 {/* User Profile Section (Bottom) */}
@@ -249,7 +264,17 @@ export function EventSidebar({ color: propColor, position = 'left' }: EventSideb
                 {allLinks.map((link) => (
                     <NavItem key={link.path} link={link} />
                 ))}
+                <button
+                    onClick={() => setShowFAQ(true)}
+                    className="flex flex-col items-center gap-1 px-3 py-2.5 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-all duration-200"
+                >
+                    <HelpCircle size={22} strokeWidth={2} />
+                    <span className="text-[11px] font-medium">Ayuda</span>
+                </button>
             </nav>
+
+            {/* FAQ Modal */}
+            <FAQModal isOpen={showFAQ} onClose={() => setShowFAQ(false)} />
         </>
     );
 }
