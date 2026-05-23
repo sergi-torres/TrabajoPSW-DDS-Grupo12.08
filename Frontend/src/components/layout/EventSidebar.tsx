@@ -1,5 +1,5 @@
 ﻿import { Link, useLocation, useParams, useNavigate } from "react-router-dom";
-import { Info, FolderOpen, Trophy, Settings, ClipboardList, User, FileText, LogOut, ChevronUp, ChevronLeft, ChevronRight, Vote, Timer, Lightbulb, LucideIcon, Sparkles, List} from "lucide-react";
+import { Info, FolderOpen, Trophy, Settings, ClipboardList, User, FileText, LogOut, ChevronUp, ChevronLeft, ChevronRight, Vote, Timer, Lightbulb, LucideIcon, Sparkles, List, HelpCircle} from "lucide-react";
 import { useState, useRef, useEffect, useContext } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { EventContext } from "../../context/EventContext";
@@ -205,6 +205,13 @@ export function EventSidebar({ color: propColor, position = 'left' }: EventSideb
                             >
                                 <User size={16} className="text-slate-400" />
                                 Mi Perfil
+                            </button>
+                            <button 
+                                onClick={() => navigate("/ayuda")}
+                                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-slate-50 transition-colors"
+                            >
+                                <HelpCircle size={16} className="text-slate-400" />
+                                Ayuda
                             </button>
                             <div className="h-px bg-slate-100 my-1 mx-2" />
                                     <button 
