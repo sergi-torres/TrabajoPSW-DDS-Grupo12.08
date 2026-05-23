@@ -77,5 +77,47 @@ namespace Votify.API.Controllers
                 return BadRequest(ex.InnerException?.Message ?? ex.Message);
             }
         }
+
+        [HttpGet("disponibles")]
+        public async Task<IActionResult> GetEventosDisponiblesAsync([FromQuery] int userId)
+        {
+            try
+            {
+                var eventos = await _eventoService.GetEventosDisponiblesAsync(userId);
+                return Ok(eventos);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.InnerException?.Message ?? ex.Message);
+            }
+        }
+
+        [HttpPost("{eventoId}/unirse")]
+        public async Task<IActionResult> UnirseAEventoAsync(int eventoId, [FromQuery] int userId)
+        {
+            try
+            {
+                await _eventoService.UnirseAEventoAsync(eventoId, userId);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.InnerException?.Message ?? ex.Message);
+            }
+        }
+
+        [HttpDelete("{eventoId}/abandonar")]
+        public async Task<IActionResult> AbandonarEventoAsync(int eventoId, [FromQuery] int userId)
+        {
+            try
+            {
+                await _eventoService.AbandonarEventoAsync(eventoId, userId);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.InnerException?.Message ?? ex.Message);
+            }
+        }
     }
 }

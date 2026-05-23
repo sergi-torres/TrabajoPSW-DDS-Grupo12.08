@@ -7,8 +7,10 @@ import StatsCard from "../components/organizator_dashboard/StatsCard";
 import CategoryRankingPodium, { CategoryRankingData } from "../components/organizator_dashboard/CategoryRankingPodium";
 import { getDashboard, extenderTiempo, cerrarVotacion } from "../api/orgDashboardApi";
 import { premiosApi } from "../api/premiosApi";
+import { abandonarEvento } from "../api/eventosApi";
 import { AuthContext } from "../context/AuthContext";
 import { EventContext } from "../context/EventContext";
+import { ConfirmModal } from "../components/layout/ConfirmModal";
 import { LogoutConfirmModal } from "../components/layout/LogoutConfirmModal";
 import { categoriasApi } from "../api/categoriasApi";
 import { EventSidebar } from "../components/layout/EventSidebar";
@@ -18,10 +20,11 @@ import "../components/organizator_dashboard/Dashboard.css";
 
 export default function OrganizerDashboard() {
   const navigate = useNavigate();
-  const { logout } = useContext(AuthContext)!;
+  const { logout, userId } = useContext(AuthContext)! as any;
   const { eventoId: contextEventoId, userRole, userColor, isCollapsed, clearEventContext } = useContext(EventContext)!;
   
   const [toast, setToast] = useState<any>(null);
+  const [showConfirmAbandonar, setShowConfirmAbandonar] = useState(false);
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -89,6 +92,16 @@ export default function OrganizerDashboard() {
       clearEventContext();
       navigate('/login');
     }, 300);
+  };
+
+  const handleAbandonar = async () => {
+    try {
+      await abandonarEvento(Number(eventoId), userId);
+      clearEventContext();
+      navigate('/eventos');
+    } catch (err: any) {
+      showToast(err.message || "Error al abandonar el evento", "warning");
+    }
   };
 
   const handleExtend = async () => {
@@ -190,13 +203,24 @@ export default function OrganizerDashboard() {
           <div className="max-w-7xl mx-auto">
             <div className="flex justify-between items-start mb-6">
               {!isPublicRole ? (
-                <button
-                  onClick={() => navigate('/eventos')}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-xl transition-all duration-200 border border-white/10 font-heading font-semibold text-sm group"
-                >
-                  <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" strokeWidth={2.5} />
-                  Volver a eventos
-                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => navigate('/eventos')}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-xl transition-all duration-200 border border-white/10 font-heading font-semibold text-sm group"
+                  >
+                    <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" strokeWidth={2.5} />
+                    Volver a eventos
+                  </button>
+                  {(userRole === "Participante" || userRole === "Jurado") && (
+                    <button
+                      onClick={() => setShowConfirmAbandonar(true)}
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-white text-rose-600 hover:bg-rose-50 rounded-xl transition-all duration-200 font-heading font-bold text-sm shadow-md hover:shadow-lg active:scale-[0.98]"
+                    >
+                      <LogOut className="w-4 h-4" strokeWidth={2.5} />
+                      Abandonar evento
+                    </button>
+                  )}
+                </div>
               ) : (
                 <div />
               )}
@@ -320,7 +344,16 @@ export default function OrganizerDashboard() {
         </div>
       )}
 
-      {/* Modal de confirmación de logout */}
+      <ConfirmModal
+        isOpen={showConfirmAbandonar}
+        title="¿Abandonar el evento?"
+        message="Dejarás de formar parte de este evento. Podrás volver a unirte desde el dashboard si el evento sigue disponible."
+        confirmLabel="Sí, abandonar"
+        cancelLabel="Cancelar"
+        onConfirm={() => { setShowConfirmAbandonar(false); handleAbandonar(); }}
+        onCancel={() => setShowConfirmAbandonar(false)}
+        danger={true}
+      />
       <LogoutConfirmModal
         isOpen={showLogoutModal}
         onConfirm={handleConfirmLogout}

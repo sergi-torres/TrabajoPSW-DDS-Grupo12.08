@@ -182,5 +182,83 @@ namespace Votify.Tests
             _baremoRepoMock.Verify(r => r.DeleteAsync(5), Times.Once);
             _baremoRepoMock.Verify(r => r.InsertAsync(It.Is<Baremo>(b => b.Nombre == "Nuevo Baremo")), Times.Once);
         }
+
+        [Fact]
+        public async Task GetEventosDisponiblesAsync_ShouldExcludeUserEvents()
+        {
+            // Arrange
+            int userId = 1;
+            var todos = new List<EventoLite>
+            {
+                new EventoLite { Id = 1, Nombre = "Evento A", Estado = "Activo", FechaInicio = DateTime.Now, FechaFin = DateTime.Now.AddDays(1) },
+                new EventoLite { Id = 2, Nombre = "Evento B", Estado = "Activo", FechaInicio = DateTime.Now, FechaFin = DateTime.Now.AddDays(1) },
+                new EventoLite { Id = 3, Nombre = "Evento C", Estado = "Activo", FechaInicio = DateTime.Now, FechaFin = DateTime.Now.AddDays(1) }
+            };
+            var misRelaciones = new List<EventoUsuario>
+            {
+                new EventoUsuario { IdEvento = 1, IdUsuario = userId, Rol = "Participante" }
+            };
+
+            _eventoRepoMock.Setup(r => r.GetAllAsync()).ReturnsAsync(todos);
+            _eventoUsuarioRepoMock.Setup(r => r.GetByUsuarioAsync(userId)).ReturnsAsync(misRelaciones);
+
+            // Act
+            var result = await _eventoService.GetEventosDisponiblesAsync(userId);
+
+            // Assert
+            Assert.Equal(2, result.Count);
+            Assert.DoesNotContain(result, e => e.Id == 1);
+            Assert.Contains(result, e => e.Id == 2);
+            Assert.Contains(result, e => e.Id == 3);
+        }
+
+        [Fact]
+        public async Task UnirseAEventoAsync_ShouldCreateRelation_WhenNotAlreadyRegistered()
+        {
+            // Arrange
+            int eventoId = 10, userId = 5;
+            _eventoUsuarioRepoMock.Setup(r => r.GetAsync(eventoId, userId))
+                .ReturnsAsync((EventoUsuario?)null);
+            _eventoUsuarioRepoMock.Setup(r => r.CreateAsync(It.IsAny<EventoUsuario>()))
+                .ReturnsAsync(new EventoUsuario { IdEvento = eventoId, IdUsuario = userId, Rol = "Participante" });
+
+            // Act
+            var result = await _eventoService.UnirseAEventoAsync(eventoId, userId);
+
+            // Assert
+            Assert.True(result);
+            _eventoUsuarioRepoMock.Verify(r => r.CreateAsync(It.Is<EventoUsuario>(
+                eu => eu.IdEvento == eventoId && eu.IdUsuario == userId && eu.Rol == "Participante"
+            )), Times.Once);
+        }
+
+        [Fact]
+        public async Task UnirseAEventoAsync_ShouldThrow_WhenAlreadyRegistered()
+        {
+            // Arrange
+            int eventoId = 10, userId = 5;
+            _eventoUsuarioRepoMock.Setup(r => r.GetAsync(eventoId, userId))
+                .ReturnsAsync(new EventoUsuario { IdEvento = eventoId, IdUsuario = userId, Rol = "Participante" });
+
+            // Act & Assert
+            var ex = await Assert.ThrowsAsync<Exception>(
+                () => _eventoService.UnirseAEventoAsync(eventoId, userId));
+            Assert.Contains("Ya estás inscrito", ex.InnerException?.Message);
+        }
+
+        [Fact]
+        public async Task AbandonarEventoAsync_ShouldCallDelete()
+        {
+            // Arrange
+            int eventoId = 10, userId = 5;
+            _eventoUsuarioRepoMock.Setup(r => r.DeleteAsync(eventoId, userId)).ReturnsAsync(true);
+
+            // Act
+            var result = await _eventoService.AbandonarEventoAsync(eventoId, userId);
+
+            // Assert
+            Assert.True(result);
+            _eventoUsuarioRepoMock.Verify(r => r.DeleteAsync(eventoId, userId), Times.Once);
+        }
     }
 }

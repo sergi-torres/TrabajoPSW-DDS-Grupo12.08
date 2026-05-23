@@ -22,6 +22,8 @@ import Configuraciones from './pages/Configuraciones'
 import ControlVotacionesPage from './pages/ControlVotacionesPage'
 import EditarProyectoPage from './pages/EditarProyectoPage'
 import AsignarPremios from './pages/AsignarPremiosPage'
+import ProfilePage from './pages/ProfilePage'
+import HelpPage from './pages/HelpPage'
 
 function App() {
   return (
@@ -38,9 +40,11 @@ function App() {
               <Route element={<ProtectedRoute />}>
                 <Route path="/create-event" element={<CreateEvent />} />
                 <Route path="/eventos" element={<DashboardPage />} />
+                <Route path="/ayuda" element={<HelpPage />} />
                 
                 {/* Rutas de Evento */}
                 <Route path="/eventos/:eventoId" element={<OrganizerDashboard />} />
+
                 <Route path="/eventos/:eventoId/configuraciones" element={<Configuraciones />} />
                 <Route path="/eventos/:eventoId/control-estados" element={<ControlVotacionesPage />} />
                 <Route path="/eventos/:eventoId/ajustes" element={<CreateEvent />} />
@@ -57,6 +61,7 @@ function App() {
                 <Route path="/create-project" element={<CreateProject />} />
 
                 <Route path="/avisos" element={<Avisos />} />
+                <Route path="/perfil" element={<ProfilePage />} />
               </Route>
 
               <Route path="/" element={<Navigate to="/login" replace />} />

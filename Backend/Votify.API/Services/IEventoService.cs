@@ -15,5 +15,8 @@ namespace Votify.API.Services
         Task<bool> ActualizarLimiteVotosAsync(int eventoId, int? categoriaId, int votosMaximos);
         Task<EventoDetalleDto> GetEventoDetalleAsync(int eventoId);
         Task<EventoDetalleDto> UpdateEventoAsync(int eventoId, UpdateEventDto dto);
+        Task<List<EventoResponseDto>> GetEventosDisponiblesAsync(int userId);
+        Task<bool> UnirseAEventoAsync(int eventoId, int userId);
+        Task<bool> AbandonarEventoAsync(int eventoId, int userId);
     }
 }

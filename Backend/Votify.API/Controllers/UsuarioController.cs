@@ -1,4 +1,4 @@
-﻿// Controllers/UsuarioController.cs
+// Controllers/UsuarioController.cs
 using Microsoft.AspNetCore.Mvc;
 using Votify.API.Models.Domain;
 using Supabase;
@@ -15,6 +15,7 @@ namespace Votify.API.Controllers
         {
             _supabase = supabase;
         }
+
 
         [HttpGet("email/{email}")]
         public async Task<IActionResult> GetByEmail(string email)

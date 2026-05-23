@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, ArrowRight, Check, Loader2, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Loader2, Sparkles, HelpCircle, Target, Scale, Award } from "lucide-react";
 import StepIndicator from "../components/createEvent/StepIndicator";
 import StepDetalles from "../components/createEvent/StepDetalles";
 import StepVotaciones from "../components/createEvent/StepVotaciones";
@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { AuthContext } from "../context/AuthContext";
 import { getEventoDetalle, updateEvento } from "../api/eventosApi";
 import { EventSidebar } from "../components/layout/EventSidebar";
+import { InfoModal } from "../components/layout/InfoModal";
 import { EventContext } from "../context/EventContext";
 import { cn } from "../components/ui/utils";
 import { useVoting } from "../context/VotingContext";
@@ -37,6 +38,7 @@ const CreateEvent = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [loadingEvento, setLoadingEvento] = useState(false);
   const [eventoEstado, setEventoEstado] = useState("");
+  const [showHelpModal, setShowHelpModal] = useState(false);
 
   const [detalles, setDetalles] = useState({
     nombre: "",
@@ -301,6 +303,14 @@ const CreateEvent = () => {
                 <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" strokeWidth={2.5} />
                 {isEditMode ? "Volver al Panel" : "Volver a eventos"}
               </button>
+              
+              <button
+                onClick={() => setShowHelpModal(true)}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-white text-slate-900 hover:bg-slate-50 rounded-xl transition-all font-heading font-bold text-sm shadow-md active:scale-95"
+              >
+                <HelpCircle className="w-4 h-4" />
+                Ayuda
+              </button>
             </div>
 
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
@@ -390,6 +400,58 @@ const CreateEvent = () => {
 
       {/* Floating config help panel */}
       <ConfigHelpPanel />
+      <InfoModal
+        isOpen={showHelpModal}
+        title="Guía de Creación de Eventos"
+        onClose={() => setShowHelpModal(false)}
+      >
+        <div className="space-y-8">
+          <section className="space-y-3">
+            <div className="flex items-center gap-3 text-slate-900">
+              <div className="p-2 bg-blue-50 rounded-lg">
+                <Target size={20} className="text-blue-600" />
+              </div>
+              <h3 className="font-heading font-bold text-lg">1. Detalles del Evento</h3>
+            </div>
+            <p className="text-sm">
+              El <strong>nombre</strong> y la <strong>descripción</strong> son la carta de presentación. Asegúrate de que las fechas sean correctas: el sistema no permitirá que el evento termine antes de empezar. Una buena imagen de portada aumenta la participación en un 40%.
+            </p>
+          </section>
+
+          <section className="space-y-3">
+            <div className="flex items-center gap-3 text-slate-900">
+              <div className="p-2 bg-org/10">
+                <Award size={20} className="text-org" />
+              </div>
+              <h3 className="font-heading font-bold text-lg">2. Baremos y Criterios</h3>
+            </div>
+            <p className="text-sm">
+              Los <strong>baremos</strong> son las reglas del juego. Cada criterio (ej: Innovación, Diseño) debe tener un peso. 
+              <span className="block mt-2 p-3 bg-amber-50 border-l-4 border-amber-400 text-amber-800 rounded-r-lg">
+                <strong>Importante:</strong> La suma de todos los pesos debe ser exactamente <strong>100%</strong>.
+              </span>
+            </p>
+          </section>
+
+          <section className="space-y-3">
+            <div className="flex items-center gap-3 text-slate-900">
+              <div className="p-2 bg-emerald-50 rounded-lg">
+                <Scale size={20} className="text-emerald-600" />
+              </div>
+              <h3 className="font-heading font-bold text-lg">3. Configuración de Votación</h3>
+            </div>
+            <p className="text-sm">
+              Aquí decides quién tiene más poder. El <strong>Peso del Jurado</strong> determina cuánto influye su voto frente al del público. Si habilitas categorías, los proyectos se agruparán para una competencia más justa.
+            </p>
+          </section>
+
+          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+            <p className="text-xs text-slate-500 italic">
+              Heurística aplicada: "Ayuda y documentación". Solo mostramos lo necesario para prevenir errores de configuración y asegurar que el evento sea equilibrado.
+            </p>
+          </div>
+        </div>
+      </InfoModal>
     </div>
   );
 };

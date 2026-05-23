@@ -124,6 +124,15 @@ const notificationConfig: Record<string, any> = {
       borderColor: "border-green-500",
       sound: true,
   },
+  category_changed: {
+      icon: AlertCircle,
+      title: "¡Cambio de Categoría!",
+      description: "Una categoría ha cambiado de estado",
+      color: "text-yellow-500",
+      bgColor: "bg-yellow-50",
+      borderColor: "border-yellow-500",
+      sound: false,
+  }
 };
 
 // ============================================
