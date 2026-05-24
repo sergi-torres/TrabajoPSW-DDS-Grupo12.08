@@ -103,7 +103,7 @@ export default function DashboardPage() {
 
             <main className="max-w-7xl mx-auto px-4 lg:px-8 py-6 lg:py-10">
 
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8 lg:mb-10">
+                <div className="flex flex-col items-center sm:flex-row sm:items-center sm:justify-between gap-6 mb-8 lg:mb-10">
                     <div className="bg-muted rounded-full p-1 inline-flex">
                         <button
                             onClick={() => handleTabChange("mis-eventos")}

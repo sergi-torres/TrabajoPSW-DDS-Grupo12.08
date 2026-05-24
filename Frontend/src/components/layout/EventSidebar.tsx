@@ -112,19 +112,23 @@ export function EventSidebar({ color: propColor, position = 'left' }: EventSideb
       <Link
         to={link.path}
         className={cn(
-          "flex flex-col lg:flex-row items-center gap-1 lg:gap-3 px-3 py-2.5 lg:px-4 lg:py-3 rounded-xl transition-all duration-200",
-          isActive 
+          "flex flex-col lg:flex-row items-center gap-1 lg:gap-3 px-3 py-2.5 lg:px-4 lg:py-3 rounded-xl transition-all duration-200 flex-shrink-0",
+          isActive
             ? cn(activeStyle.bg, activeStyle.text, "font-semibold shadow-sm")
             : "text-slate-500 hover:text-slate-900 hover:bg-slate-50",
           isCollapsed && "lg:justify-center lg:px-0 lg:w-12 lg:mx-auto"
         )}
       >
-        <Icon 
-          size={22} 
-          strokeWidth={isActive ? 2.5 : 2} 
+        <Icon
+          size={22}
+          strokeWidth={isActive ? 2.5 : 2}
           color={isActive ? (activeColor || undefined) : "currentColor"}
         />
-        {!isCollapsed && <span className="text-[11px] lg:text-sm font-medium">{link.label}</span>}
+        {!isCollapsed && (
+          <span className="text-[11px] lg:text-sm font-medium max-w-[52px] lg:max-w-none truncate lg:whitespace-normal" title={link.label}>
+            {link.label}
+          </span>
+        )}
         {isCollapsed && <span className="text-[11px] lg:hidden font-medium">{link.label}</span>}
       </Link>
     </SidebarTooltip>
@@ -273,16 +277,18 @@ export function EventSidebar({ color: propColor, position = 'left' }: EventSideb
                 isLoading={isLoadingLogout}
             />
 
-            {/* Mobile Navigation (under lg) - Always visible if desktop is hidden */}
+            {/* Mobile Navigation (under lg) - scrollable when many items */}
             <nav className={cn(
-                "flex lg:hidden fixed bottom-4 left-4 right-4 h-[68px] bg-white items-center justify-between px-6 z-50 rounded-2xl shadow-xl",
+                "flex lg:hidden fixed bottom-4 left-4 right-4 h-[68px] bg-white items-center",
+                "overflow-x-auto gap-1 px-3 z-50 rounded-2xl shadow-xl",
+                "[&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
             )}>
                 {allLinks.map((link) => (
                     <NavItem key={link.path} link={link} />
                 ))}
                 <button
                     onClick={() => setShowFAQ(true)}
-                    className="flex flex-col items-center gap-1 px-3 py-2.5 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-all duration-200"
+                    className="flex flex-col items-center gap-1 px-3 py-2.5 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-all duration-200 flex-shrink-0"
                 >
                     <HelpCircle size={22} strokeWidth={2} />
                     <span className="text-[11px] font-medium">Ayuda</span>

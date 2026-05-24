@@ -285,7 +285,7 @@ try {
             "text-white p-6 lg:p-10 transition-all duration-300",
             isPublicRole ? "lg:pl-10" : (isCollapsed ? "lg:pl-28" : "lg:pl-80")
           )}
-          style={{ backgroundColor: themeColor }}
+          style={{ backgroundColor: themeColor || 'var(--color-part)' }}
         >
           <div className="max-w-7xl mx-auto">
             <button

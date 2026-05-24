@@ -110,7 +110,7 @@ const ControlVotacionesPage: React.FC = () => {
 
                 {/* Opciones Bar - Bottom Fixed */}
                 <div className={cn(
-                    "fixed bottom-8 left-0 right-0 px-6 lg:px-10 z-[60] transition-all duration-300",
+                    "fixed bottom-[88px] lg:bottom-8 left-0 right-0 px-6 lg:px-10 z-[60] transition-all duration-300",
                     isCollapsed ? 'lg:pl-28' : 'lg:pl-80'
                 )}>
                     <div className="max-w-7xl mx-auto">

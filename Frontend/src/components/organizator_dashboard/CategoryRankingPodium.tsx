@@ -82,19 +82,32 @@ export default function CategoryRankingPodium({ categorias, premios = [], isOrga
 
   return (
     <div className="crp">
-      {/* ── Category Tabs ── */}
-      <div className="crp-tabs" role="tablist" aria-label="Categorías del ranking">
+      {/* ── Category selector — select on mobile, tabs on desktop ── */}
+      <select
+        className="lg:hidden w-full mb-4 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        value={activeTabId ?? ""}
+        onChange={(e) => handleTabChange(Number(e.target.value))}
+        aria-label="Seleccionar categoría"
+      >
         {categorias.map((cat) => (
-          <button
-            key={cat.id}
-            role="tab"
-            aria-selected={cat.id === activeTabId}
-            className={`crp-tab ${cat.id === activeTabId ? "crp-tab--active" : ""}`}
-            onClick={() => handleTabChange(cat.id)}
-          >
-            {cat.nombre}
-          </button>
+          <option key={cat.id} value={cat.id}>{cat.nombre}</option>
         ))}
+      </select>
+
+      <div className="hidden lg:block">
+        <div className="crp-tabs" role="tablist" aria-label="Categorías del ranking">
+          {categorias.map((cat) => (
+            <button
+              key={cat.id}
+              role="tab"
+              aria-selected={cat.id === activeTabId}
+              className={`crp-tab ${cat.id === activeTabId ? "crp-tab--active" : ""}`}
+              onClick={() => handleTabChange(cat.id)}
+            >
+              {cat.nombre}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* ── Content ── */}

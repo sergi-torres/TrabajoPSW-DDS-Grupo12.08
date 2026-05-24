@@ -10,7 +10,7 @@ import { EventContext } from '../context/EventContext';
 import { EventSidebar } from '../components/layout/EventSidebar';
 import { useVoting } from '../context/VotingContext';
 import { cn } from '../components/ui/utils';
-import { ArrowLeft, LogOut } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Props {
@@ -111,12 +111,7 @@ const DashboardVotacionProyectos: React.FC<Props> = ({ categoria, alVolver, come
       setPasoEvaluacion(false);
       return;
     }
-    if (effectivelyPublic) {
-        localStorage.clear();
-        window.location.href = "/login";
-    } else {
-        alVolver();
-    }
+    alVolver();
   };
 
   const proyectos = categoria?.proyectos || [];
@@ -138,17 +133,10 @@ const DashboardVotacionProyectos: React.FC<Props> = ({ categoria, alVolver, come
               onClick={handleExit}
               className="inline-flex items-center gap-2 mb-6 px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-xl transition-all font-heading font-semibold text-sm group"
             >
-              {effectivelyPublic && !pasoEvaluacion ? (
-                <>
-                  <LogOut className="w-4 h-4" strokeWidth={2.5} />
-                  Salir
-                </>
-              ) : (
-                <>
-                  <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" strokeWidth={2.5} />
-                  {pasoEvaluacion ? 'Atrás' : 'Volver'}
-                </>
-              )}
+              <>
+                <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" strokeWidth={2.5} />
+                {pasoEvaluacion ? 'Atrás' : 'Volver'}
+              </>
             </button>
 
             <h2 className="text-3xl lg:text-4xl font-heading font-bold tracking-tight mb-3">
@@ -202,7 +190,7 @@ const DashboardVotacionProyectos: React.FC<Props> = ({ categoria, alVolver, come
                     disabled={cargando}
                     className="px-8 py-4 border-2 border-gray-100 rounded-2xl font-bold text-gray-500 hover:bg-gray-50 transition-all"
                     >
-                    {effectivelyPublic ? 'Cancelar' : 'Atrás'}
+                    Atrás
                     </button>
                     <button
                     onClick={() => setPasoEvaluacion(true)}
