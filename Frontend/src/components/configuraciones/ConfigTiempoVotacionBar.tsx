@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Clock } from "lucide-react";
 import { useConfigTiempos } from '../../hooks/VotacionHooks/useConfigTiempos';
+import { ConfirmModal } from '../layout/ConfirmModal';
+
 
 interface ConfigTiempoVotacionBarProps {
   eventoId: string;
@@ -137,34 +139,23 @@ const ConfigTiempoVotacionBar: React.FC<ConfigTiempoVotacionBarProps> = ({ event
 
   return (
     <>
-      {/* MODAL DE CONFIRMACIÓN DE BORRADO */}
-      {mostrarModalBorrado && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl p-8 max-w-sm w-full mx-4 shadow-2xl">
-            <h2 className="text-xl font-bold mb-2 text-gray-900">¿Borrar horas?</h2>
-            <p className="text-gray-500 mb-6 text-sm leading-relaxed">
-              ¿Estás seguro de querer borrar las horas para la categoría <strong>{tituloCategoriaSel}</strong>?
-              Si lo haces, la automatización se desactivará.
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setMostrarModalBorrado(false)}
-                disabled={estaGuardando}
-                className="flex-1 py-3 rounded-xl bg-gray-100 text-gray-600 font-semibold hover:bg-gray-200 transition-all"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={ejecutarBorrado}
-                disabled={estaGuardando}
-                className="flex-1 py-3 rounded-xl bg-red-500 text-white font-semibold hover:bg-red-600 transition-all flex justify-center"
-              >
-                {estaGuardando ? "Borrando..." : "Sí, borrar"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        isOpen={mostrarModalBorrado}
+        danger
+        title="¿Borrar horas?"
+        message={
+          <>
+            ¿Estás seguro de querer borrar las horas para la categoría <strong>{tituloCategoriaSel}</strong>?
+            Si lo haces, la automatización se desactivará.
+          </>
+        }
+        confirmLabel="Sí, borrar"
+        cancelLabel="Cancelar"
+        onConfirm={ejecutarBorrado}
+        onCancel={() => setMostrarModalBorrado(false)}
+        isLoading={estaGuardando}
+      />
+
 
       <section className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="p-6 lg:p-8 border-b border-gray-100 bg-gray-50/50">
