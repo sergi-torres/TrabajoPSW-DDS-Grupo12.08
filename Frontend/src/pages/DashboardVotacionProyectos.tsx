@@ -68,14 +68,18 @@ const DashboardVotacionProyectos: React.FC<Props> = ({ categoria, alVolver, come
     alVolver(); 
   };
 
+  const { addNotification } = useVoting();
+
   const handleConfirmarJurado = async (evaluaciones: { criterioId: number, valor: number, comentario: string }[], comentarioGlobal: string) => {
     if (!seleccionado) return;
+
 
     const userIdRaw = localStorage.getItem('userId');
     const idUsuario = userIdRaw ? parseInt(userIdRaw) : null;
     const storedEventoId = localStorage.getItem('eventoId');
     const finalEventoId = eventoId || (storedEventoId ? parseInt(storedEventoId) : 0);
-    const { addNotification } = useVoting();
+
+
 
     try {
       // Enviar todas las evaluaciones en una sola petición batch
