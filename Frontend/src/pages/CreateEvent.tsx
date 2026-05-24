@@ -403,10 +403,10 @@ const CreateEvent = () => {
                 {isEditMode ? "Volver al Panel" : "Volver a eventos"}
               </button>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-col gap-2">
                 <button
                   onClick={() => setShowConfigPanel(!showConfigPanel)}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-xl transition-all font-heading font-semibold text-sm border border-white/20 active:scale-95"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all font-heading font-bold text-sm shadow-md active:scale-95"
                 >
                   <Settings className="w-4 h-4" />
                   <span className="hidden sm:inline">Config. avanzada</span>

@@ -1,5 +1,5 @@
 ﻿import { Link, useLocation, useParams, useNavigate } from "react-router-dom";
-import { Info, FolderOpen, Trophy, Settings, ClipboardList, User, FileText, LogOut, ChevronUp, ChevronLeft, ChevronRight, Vote, Timer, Lightbulb, LucideIcon, Sparkles, List, HelpCircle} from "lucide-react";
+import { Info, FolderOpen, Trophy, Settings, ClipboardList, User, FileText, LogOut, ChevronUp, ChevronLeft, ChevronRight, Vote, Timer, Lightbulb, LucideIcon, Sparkles, List, HelpCircle, Home} from "lucide-react";
 import { useState, useRef, useEffect, useContext } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { EventContext } from "../../context/EventContext";
@@ -72,6 +72,7 @@ export function EventSidebar({ color: propColor, position = 'left' }: EventSideb
 
     // Secciones comunes
     const commonLinks: NavLink[] = [
+        { label: "Mis Eventos", path: "/eventos", icon: Home },
         { label: "General", path: `/eventos/${eventoId}`, icon: Info },
         { label: "Proyectos", path: `/eventos/${eventoId}/proyectos`, icon: FolderOpen },
     ];
@@ -289,7 +290,7 @@ export function EventSidebar({ color: propColor, position = 'left' }: EventSideb
 
             {/* Expanded grid panel */}
             {mobileNavOpen && (
-                <div className="fixed bottom-[84px] left-4 right-4 z-[50] lg:hidden bg-white rounded-2xl shadow-xl border border-slate-100 p-3">
+                <div className="fixed bottom-[116px] left-4 right-4 z-[50] lg:hidden bg-white rounded-2xl shadow-xl border border-slate-100 p-3">
                     <div className="grid grid-cols-4 gap-1">
                         {allLinks.map((link) => {
                             const isActive = location.pathname === link.path;
@@ -322,34 +323,41 @@ export function EventSidebar({ color: propColor, position = 'left' }: EventSideb
                 </div>
             )}
 
-            {/* Scrollable bottom bar */}
-            <nav className={cn(
-                "flex lg:hidden fixed bottom-4 left-4 right-4 h-[68px] bg-white items-center",
-                "overflow-x-auto gap-1 px-3 z-50 rounded-2xl shadow-xl",
-                "[&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
-            )}>
-                {allLinks.map((link) => (
-                    <NavItem key={link.path} link={link} />
-                ))}
-                <button
-                    onClick={() => setShowFAQ(true)}
-                    className="flex flex-col items-center gap-1 px-3 py-2.5 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-all duration-200 flex-shrink-0"
-                >
-                    <HelpCircle size={22} strokeWidth={2} />
-                    <span className="text-[11px] font-medium">Ayuda</span>
-                </button>
-                {/* Expand button */}
-                <button
-                    onClick={() => setMobileNavOpen(!mobileNavOpen)}
-                    className={cn(
-                        "flex flex-col items-center gap-1 px-3 py-2.5 rounded-xl transition-all duration-200 flex-shrink-0",
-                        mobileNavOpen ? cn(activeStyle.bg, activeStyle.text) : "text-slate-400 hover:text-slate-900 hover:bg-slate-50"
-                    )}
-                >
-                    <ChevronUp size={22} strokeWidth={2} className={cn("transition-transform duration-200", mobileNavOpen && "rotate-180")} />
-                    <span className="text-[11px] font-medium">Más</span>
-                </button>
-            </nav>
+            {/* Mobile nav wrapper */}
+            <div className="lg:hidden fixed bottom-4 left-4 right-4 z-50">
+                {/* Expand button — floats centered above the bar */}
+                <div className="flex justify-center mb-1">
+                    <button
+                        onClick={() => setMobileNavOpen(!mobileNavOpen)}
+                        className={cn(
+                            "flex items-center gap-1.5 px-5 py-1.5 rounded-full shadow-md border transition-all duration-200",
+                            mobileNavOpen
+                                ? cn(activeStyle.bg, activeStyle.text, "border-transparent")
+                                : "bg-white text-slate-400 border-slate-200 hover:text-slate-700"
+                        )}
+                    >
+                        <ChevronUp size={15} strokeWidth={2.5} className={cn("transition-transform duration-200", mobileNavOpen && "rotate-180")} />
+                    </button>
+                </div>
+
+                {/* Scrollable bar */}
+                <nav className={cn(
+                    "flex h-[68px] bg-white items-center",
+                    "overflow-x-auto gap-1 px-3 rounded-2xl shadow-xl",
+                    "[&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+                )}>
+                    {allLinks.map((link) => (
+                        <NavItem key={link.path} link={link} />
+                    ))}
+                    <button
+                        onClick={() => setShowFAQ(true)}
+                        className="flex flex-col items-center gap-1 px-3 py-2.5 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-all duration-200 flex-shrink-0"
+                    >
+                        <HelpCircle size={22} strokeWidth={2} />
+                        <span className="text-[11px] font-medium">Ayuda</span>
+                    </button>
+                </nav>
+            </div>
 
             {/* FAQ Modal */}
             <FAQModal isOpen={showFAQ} onClose={() => setShowFAQ(false)} />

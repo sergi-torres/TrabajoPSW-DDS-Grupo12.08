@@ -62,7 +62,7 @@ export function MobileNav() {
 
         {/* Perfil */}
         <button
-          onClick={() => setShowProfileSheet(true)}
+          onClick={() => handleNavigation("/perfil")}
           className="flex flex-col items-center gap-1 text-gray-500 hover:text-gray-700 transition-colors"
         >
           <User size={22} strokeWidth={1.75} />
@@ -92,9 +92,9 @@ export function MobileNav() {
                 <div className="w-14 h-14 rounded-full bg-purple-100 flex items-center justify-center text-purple-700 font-bold text-xl">
                   {initials}
                 </div>
-                <div>
-                  <p className="font-semibold text-gray-900 text-base">{userName || "Usuario"}</p>
-                  <p className="text-sm text-gray-500">Cuenta personal</p>
+                <div className="min-w-0">
+                  <p className="font-semibold text-gray-900 text-base whitespace-nowrap overflow-hidden text-ellipsis">{userName.split("@")[0] || "Usuario"}</p>
+                  <p className="text-sm text-gray-500 whitespace-nowrap overflow-hidden text-ellipsis">{userName || "Cuenta personal"}</p>
                 </div>
               </div>
 
