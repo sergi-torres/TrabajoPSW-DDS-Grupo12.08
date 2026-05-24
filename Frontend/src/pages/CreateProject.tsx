@@ -65,11 +65,8 @@ export default function CreateProject() {
       estado: "disponible"
     };
 
-    console.log("Datos del nuevo proyecto:", newProject);
-
     try {
       const res = await createProyecto(newProject);
-      console.log("Proyecto creado:", res);
       toast.success("Tu proyecto ha sido registrado con éxito");
       navigate("/participantRegister");
     } catch (error: any) {

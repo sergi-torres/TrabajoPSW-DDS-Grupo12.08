@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Votify.API.Services;
 using Votify.API.Models.DTOs;
+using Votify.API.Filters;
 
 namespace Votify.API.Controllers
 {
@@ -113,6 +114,21 @@ namespace Votify.API.Controllers
             {
                 await _eventoService.AbandonarEventoAsync(eventoId, userId);
                 return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.InnerException?.Message ?? ex.Message);
+            }
+        }
+
+        [HttpDelete("{idEvento}")]
+        [ServiceFilter(typeof(OrganizerOnlyFilter))]
+        public async Task<IActionResult> EliminarEventoAsync(int idEvento)
+        {
+            try
+            {
+                await _eventoService.EliminarEventoAsync(idEvento);
+                return NoContent();
             }
             catch (Exception ex)
             {

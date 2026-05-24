@@ -1,6 +1,7 @@
 ﻿import { Proyecto } from '../types';
 
-const BASE_URL = "http://localhost:5245/api/proyectos";
+import { API_BASE_URL } from "../config/api";
+const BASE_URL = `${API_BASE_URL}/api/proyectos`;
 
 // Obtener todos los proyectos
 export async function getProyectos(): Promise<Proyecto[]> {
@@ -62,7 +63,6 @@ export async function getProyectosByParticipante(id: number): Promise<Proyecto[]
         }
 
         const data = await res.json();
-        console.log("Proyectos del participante:", data);
         return data;
     } catch (error) {
         console.error("Error en getProyectosByParticipante:", error);
@@ -89,8 +89,6 @@ export async function getProyectosByEvento(eventoId: number): Promise<Proyecto[]
 // Crear nuevo proyecto
 export async function createProyecto(proyecto: Partial<Proyecto>): Promise<Proyecto> {
     try {
-        console.log("Enviando proyecto:", proyecto);
-        
         const res = await fetch(BASE_URL, {
             method: "POST",
             headers: {
@@ -106,7 +104,6 @@ export async function createProyecto(proyecto: Partial<Proyecto>): Promise<Proye
         }
 
         const data = await res.json();
-        console.log("Proyecto creado respuesta:", data);
         return data;
     } catch (error) {
         console.error("Error en createProyecto:", error);

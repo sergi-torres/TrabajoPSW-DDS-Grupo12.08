@@ -1,7 +1,7 @@
 import { Usuario } from "../types";
+import { API_BASE_URL } from "../config/api";
 
-const BASE_API_URL = "http://localhost:5245/api";
-const AUTH_API_URL = `${BASE_API_URL}/Auth`;
+const AUTH_API_URL = `${API_BASE_URL}/api/Auth`;
 
 export interface AuthResponse {
   token: string;
@@ -27,7 +27,7 @@ export async function login(credentials: any): Promise<AuthResponse> {
 }
 
 export async function loginPublic(pin: string): Promise<any> {
-  const response = await fetch(`${BASE_API_URL}/Eventos/join?pin=${pin}`, {
+  const response = await fetch(`${API_BASE_URL}/api/Eventos/join?pin=${pin}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ pin }),

@@ -1,4 +1,5 @@
 ﻿import { useEffect, useState, useContext } from "react";
+import { API_BASE_URL } from "../config/api";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { EventContext } from "../context/EventContext";
@@ -136,7 +137,6 @@ export default function ProjectPage() {
   localStorage.setItem("idEvento", String(proyecto.idEvento));
   localStorage.setItem("categorias", JSON.stringify(categorias));
   localStorage.setItem("usuarios", JSON.stringify(proyecto.idMiembros)); // Asumiendo que idMiembros es un array de IDs de usuarios
-  console.log(proyecto);
   navigate(`/editar-proyecto/${proyecto.id}`);
 };
 
@@ -159,7 +159,7 @@ export default function ProjectPage() {
     setIsDeletingProject(true);
 
 try {
-  const response = await fetch(`http://localhost:5245/api/proyectos/${projectIdToDelete}`, {
+  const response = await fetch(`${API_BASE_URL}/api/proyectos/${projectIdToDelete}`, {
     method: "DELETE",
   });
 
@@ -216,7 +216,7 @@ try {
         }
 
         // 1. Cargar categorías del evento
-        const categoriasRes = await fetch(`http://localhost:5245/api/categorias/evento/${eventoId}`);
+        const categoriasRes = await fetch(`${API_BASE_URL}/api/categorias/evento/${eventoId}`);
         const categoriasData = await categoriasRes.json();
         setCategorias(categoriasData);
         
@@ -225,14 +225,14 @@ try {
         }
 
         // 2. Cargar proyectos del evento
-        const proyectosRes = await fetch(`http://localhost:5245/api/proyectos/evento/${eventoId}`);
+        const proyectosRes = await fetch(`${API_BASE_URL}/api/proyectos/evento/${eventoId}`);
         const proyectosData = await proyectosRes.json();
         setProyectos(proyectosData);
 
         // 3. Cargar puntuaciones
         const todasPuntuaciones: Puntuacion[] = [];
         for (const proyecto of proyectosData) {
-          const res = await fetch(`http://localhost:5245/api/votacion/porProyecto?proyectoId=${proyecto.id}`);
+          const res = await fetch(`${API_BASE_URL}/api/votacion/porProyecto?proyectoId=${proyecto.id}`);
           if (res.ok) {
             const data = await res.json();
             todasPuntuaciones.push(...data);
@@ -347,7 +347,6 @@ try {
                       }
 
                       navigate(`/eventos/${localStorage.getItem("eventoId")}/participantRegister`);
-                      console.log(localStorage.getItem("eventoId"));
                     }}
                     className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl transition-all text-sm font-medium"
                   >

@@ -1,6 +1,7 @@
 ﻿import { Usuario } from '../types';
 
-const API_URL = "http://localhost:5245/api/usuario";
+import { API_BASE_URL } from "../config/api";
+const API_URL = `${API_BASE_URL}/api/usuario`;
 
 export interface UsuarioPerfil {
     id: number;

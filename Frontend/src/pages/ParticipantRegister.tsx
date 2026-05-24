@@ -1,4 +1,5 @@
 ﻿import { ArrowLeft, Check, Target, Calendar, Users, Upload, X, Image as ImageIcon } from "lucide-react";
+import { API_BASE_URL } from "../config/api";
 import { useNavigate, useParams } from "react-router";
 import { useState, useEffect, useContext, useCallback } from "react"; 
 import { useVoting } from "../context/VotingContext";
@@ -37,11 +38,10 @@ export default function RegisterParticipant() {
       try {
         const userId = localStorage.getItem("userId");
         if (userId) {
-          const response = await fetch(`http://localhost:5245/api/proyectos/participante/${userId}`);
+          const response = await fetch(`${API_BASE_URL}/api/proyectos/participante/${userId}`);
           if (response.ok) {
             const proyectos = await response.json();
             setProyectosUsuario(proyectos);
-            console.log("Proyectos del usuario:", proyectos);
           }
         }
       } catch (error) {
@@ -53,14 +53,13 @@ export default function RegisterParticipant() {
         try {
             const eventoId = localStorage.getItem("eventoId");
             if (eventoId) {
-                const response = await fetch(`http://localhost:5245/api/Eventos/${eventoId}`);
+                const response = await fetch(`${API_BASE_URL}/api/Eventos/${eventoId}`);
                 if (response.ok) {
                     const evento = await response.json();
                     setEvento(evento);
                     setLocalCategories(evento.categorias || []);
                     localStorage.setItem("eventoId", evento.id.toString());
                     await reloadContext();
-                    console.log("Evento cargado:", evento);
                 }
             }
         } catch (error) {
@@ -131,8 +130,6 @@ export default function RegisterParticipant() {
         };
 
         const res = await createProyecto(newProject);
-        console.log("Proyecto creado:", res);
-        
         localStorage.setItem("proyectoABCD", JSON.stringify(res));
 
         toast.success("Tu proyecto ha sido registrado con éxito");
@@ -331,7 +328,7 @@ export default function RegisterParticipant() {
                         onClick={async () => {
                           if (projectData.newMemberEmail && projectData.newMemberEmail.includes("@")) {
                               try {
-                                  const response = await fetch(`http://localhost:5245/api/usuario/email/${projectData.newMemberEmail}`);
+                                  const response = await fetch(`${API_BASE_URL}/api/usuario/email/${projectData.newMemberEmail}`);
                                   if (!response.ok) {
                                       toast.error("Usuario no encontrado", { description: "El correo no está registrado en Votify" });
                                       return;

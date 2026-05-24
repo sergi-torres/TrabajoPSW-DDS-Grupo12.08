@@ -1,6 +1,7 @@
 ﻿import { VotacionDashboardData, Voto } from '../types';
 
-const API_URL = 'http://localhost:5245/api/votacion';
+import { API_BASE_URL } from "../config/api";
+const API_URL = `${API_BASE_URL}/api/votacion`;
 
 export const getDashboardData = async (
   eventoId: number, 

@@ -1,6 +1,7 @@
 import { Jurado, AsignarJuradoRequest, ReenviarInvitacionRequest } from '../types';
 
-const API_URL = "http://localhost:5245/api/Jurado";
+import { API_BASE_URL } from "../config/api";
+const API_URL = `${API_BASE_URL}/api/Jurado`;
 
 // Helper para obtener el token del localStorage
 const getAuthHeader = (): Record<string, string> => {

@@ -1,6 +1,7 @@
 import { SintesisDto, SintesisProyecto, TipoSintesis } from "../types/sintesis";
 
-const API_BASE = "http://localhost:5245/api/Sintesis";
+import { API_BASE_URL } from "../config/api";
+const API_BASE = `${API_BASE_URL}/api/Sintesis`;
 
 // Helper para inyectar el JWT del usuario autenticado.
 // Se asegura de obtener el valor más reciente de localStorage.

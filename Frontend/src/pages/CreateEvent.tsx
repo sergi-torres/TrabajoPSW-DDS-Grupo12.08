@@ -1,4 +1,5 @@
 import { useState, useEffect, useContext } from "react";
+import { API_BASE_URL } from "../config/api";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Check, Loader2, Sparkles, HelpCircle, Target, Scale, Award } from "lucide-react";
 import StepIndicator from "../components/createEvent/StepIndicator";
@@ -31,9 +32,9 @@ const CreateEvent = () => {
   // Modo edición si hay un eventoId en la URL
   const isEditMode = Boolean(eventoId);
   const isPublicRole = userRole === "Público";
-  
-  // Offset logic matching OrganizerDashboard/VotosPage
-  const sidebarOffsetClass = isPublicRole ? "" : (isCollapsed ? "lg:pl-28" : "lg:pl-80");
+
+  // Only offset when in edit mode (sidebar is rendered), not on standalone /create-event
+  const sidebarOffsetClass = isEditMode && !isPublicRole ? (isCollapsed ? "lg:pl-28" : "lg:pl-80") : "";
 
   const [currentStep, setCurrentStep] = useState(1);
   const [loadingEvento, setLoadingEvento] = useState(false);
@@ -245,7 +246,7 @@ const CreateEvent = () => {
         }))
       };
 
-      const response = await fetch("http://localhost:5245/api/event", {
+      const response = await fetch(`${API_BASE_URL}/api/event`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -309,7 +310,7 @@ const CreateEvent = () => {
             "text-white p-6 lg:p-10 transition-all duration-300",
             sidebarOffsetClass
           )}
-          style={{ backgroundColor: userColor || undefined }}
+          style={{ backgroundColor: isEditMode ? (userColor || "#2563EB") : "#2563EB" }}
         >
           <div className="max-w-7xl mx-auto">
             <div className="flex justify-between items-start mb-6">

@@ -225,7 +225,7 @@ export default function AvisosPage() {
   const [filter, setFilter] = useState<"all" | "unread" | "read">("all");
 
   const isPublicRole = userRole === "Público";
-  const themeColor = userColor || "#9333ea";
+  const themeColor = "#2563EB";
 
   // Cargar notificaciones desde localStorage (o desde API)
   useEffect(() => {

@@ -1,6 +1,7 @@
 import { ConfiguracionTiempoDto } from '../types';
 
-const API_URL = "http://localhost:5245/api/configuraciones";
+import { API_BASE_URL } from "../config/api";
+const API_URL = `${API_BASE_URL}/api/configuraciones`;
 
 export const ConfigTiemposVotacion = {
   // Obtener todas las categorías de un evento con sus tiempos (si los tienen)

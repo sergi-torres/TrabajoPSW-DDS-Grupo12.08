@@ -50,13 +50,15 @@ export interface OrgDashboardData {
   liveInfo: {
     eventName: string;
     phase: string;
-    eventCode: number;
+    eventCode: string;
+    fechaFin?: string;
   };
   stats: {
-    totalVotes: number;
-    participation: number;
-    activeProjects: number;
-    avgScore: number;
+    proyectosSubidos: number;
+    proyectosTotal: number;
+    participantesConectados: number;
+    votosJuradoPorcentaje: number;
+    votosPublicoCount: number;
   };
   ranking: any[];
   feed: any[];

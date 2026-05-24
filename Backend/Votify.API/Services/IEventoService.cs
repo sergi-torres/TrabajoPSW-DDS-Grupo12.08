@@ -18,5 +18,6 @@ namespace Votify.API.Services
         Task<List<EventoResponseDto>> GetEventosDisponiblesAsync(int userId);
         Task<bool> UnirseAEventoAsync(int eventoId, int userId);
         Task<bool> AbandonarEventoAsync(int eventoId, int userId);
+        Task<bool> EliminarEventoAsync(int eventoId);
     }
 }

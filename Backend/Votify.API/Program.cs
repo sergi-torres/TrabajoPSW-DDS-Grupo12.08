@@ -87,7 +87,12 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "http://localhost:5177")
+        policy.WithOrigins(
+                    "http://localhost:5173",
+                    "http://localhost:5177",
+                    "https://trabajo-psw-dds-grupo12-08.vercel.app",
+                    "https://trabajo-psw-dds-grupo12-08-fvvlghhwy-sergi-s-projects6.vercel.app"
+                )
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();

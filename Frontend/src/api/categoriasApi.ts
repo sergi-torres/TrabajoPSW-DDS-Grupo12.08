@@ -1,6 +1,7 @@
 import { Categoria } from '../types';
 
-const API_URL = "http://localhost:5245/api/categorias";
+import { API_BASE_URL } from "../config/api";
+const API_URL = `${API_BASE_URL}/api/categorias`;
 
 export const categoriasApi = {
   getByEvento: async (eventoId: number): Promise<Categoria[]> => {

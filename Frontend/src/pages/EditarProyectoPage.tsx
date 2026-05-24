@@ -1,4 +1,5 @@
 ﻿import { useState, useEffect } from "react";
+import { API_BASE_URL } from "../config/api";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Save, X, Users } from "lucide-react";
 import { toast } from "sonner";
@@ -20,7 +21,7 @@ export default function EditarProyectoPage() {
     const miembros = [];
     for (const memberId of ids) {
       try {
-        const response = await fetch(`http://localhost:5245/api/usuario/${memberId}`);
+        const response = await fetch(`${API_BASE_URL}/api/usuario/${memberId}`);
         if (response.ok) {
           const usuario = await response.json();
           miembros.push({
@@ -38,9 +39,7 @@ export default function EditarProyectoPage() {
     return miembros;
   };
 
-  // Función para cargar los datos de los miembros por sus IDs
   const miembros = localStorage.getItem("usuarios") || "[]";
-  //console.log(miembros);
 
   useEffect(() => {
   const cargarProyecto = async () => {
@@ -52,7 +51,6 @@ export default function EditarProyectoPage() {
       if (stored) {
         try {
           proyectoData = JSON.parse(stored);
-          console.log("Cargado desde localStorage:", proyectoData);
         } catch (parseError) {
           console.error("Error parseando localStorage:", parseError);
         }
@@ -60,13 +58,9 @@ export default function EditarProyectoPage() {
       
       // Si no está en localStorage, cargar desde API
       if (!proyectoData && id) {
-        console.log("Cargando desde API:", id);
-        const res = await fetch(`http://localhost:5245/api/votacion/porProyecto?proyectoId=${id}`);
+        const res = await fetch(`${API_BASE_URL}/api/votacion/porProyecto?proyectoId=${id}`);
         if (res.ok) {
           proyectoData = await res.json();
-          console.log("Cargado desde API:", proyectoData);
-        } else {
-          console.error("Error en API:", res.status);
         }
       }
 
@@ -106,31 +100,21 @@ export default function EditarProyectoPage() {
 
   // Agregar miembro por email
  const handleAddMember = async () => {
-  console.log("1. Iniciando handleAddMember");
-  console.log("2. newMemberEmail:", newMemberEmail);
-  
   if (!newMemberEmail || !newMemberEmail.includes("@")) {
     toast.error("Correo inválido");
     return;
   }
 
   try {
-    console.log("3. Buscando usuario...");
-    const response = await fetch(`http://localhost:5245/api/usuario/email/${encodeURIComponent(newMemberEmail)}`);
-    console.log("4. Response status:", response.status);
-    
+    const response = await fetch(`${API_BASE_URL}/api/usuario/email/${encodeURIComponent(newMemberEmail)}`);
     if (!response.ok) {
       toast.error("Usuario no encontrado");
       return;
     }
 
     const usuario = await response.json();
-    console.log("5. Usuario encontrado:", usuario);
-    console.log("6. memberIds actuales:", memberIds);
-    console.log("7. additionalMembers actuales:", additionalMembers);
-    console.log("8. proyecto.idParticipante:", proyecto?.idParticipante);
-    
-    // ✅ Verificar que no sea el organizador
+
+    // Verificar que no sea el organizador
     if (usuario.id === proyecto?.idParticipante) {
       toast.error("No puedes agregar al organizador como miembro");
       return;
@@ -149,9 +133,6 @@ export default function EditarProyectoPage() {
       email: usuario.email,
       nombre: usuario.nombreCompleto || usuario.email
     }];
-    
-    console.log("9. nuevosMemberIds:", nuevosMemberIds);
-    console.log("10. nuevosAdditionalMembers:", nuevosAdditionalMembers);
     
     // Actualizar estados
     setMemberIds(nuevosMemberIds);
@@ -197,10 +178,6 @@ export default function EditarProyectoPage() {
   
     // Excluir al líder (idParticipante) de la lista de miembros
     const miembrosFinales = todosLosMiembros.filter(id => id !== proyecto.idParticipante);
-    //console.log("Miembros originales:", miembrosOriginales);
-    //console.log("Todos los miembros:", todosLosMiembros);
-    //console.log("Miembros finales:", miembrosFinales);
-
     const proyectoActualizado = {
       id: proyecto.id,
       nombre: proyecto.nombre,
@@ -215,7 +192,7 @@ export default function EditarProyectoPage() {
 
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`http://localhost:5245/api/proyectos/${proyecto.id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/proyectos/${proyecto.id}`, {
         method: "PUT",
         headers: { 
           "Content-Type": "application/json",
@@ -232,7 +209,6 @@ export default function EditarProyectoPage() {
       
       if (response.ok) {
         toast.success("Proyecto actualizado exitosamente");
-        console.log("Proyecto actualizado:", proyectoActualizado);
         navigate(-1);
       } else {
         const error = await response.json();
