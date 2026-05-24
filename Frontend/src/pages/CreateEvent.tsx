@@ -1,20 +1,21 @@
 import { useState, useEffect, useContext } from "react";
 import { API_BASE_URL } from "../config/api";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, ArrowRight, Check, Loader2, Sparkles, HelpCircle, Target, Scale, Award } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Loader2, Sparkles, HelpCircle, Target, Scale, Award, Trash2, Settings, Wrench } from "lucide-react";
 import StepIndicator from "../components/createEvent/StepIndicator";
 import StepDetalles from "../components/createEvent/StepDetalles";
 import StepVotaciones from "../components/createEvent/StepVotaciones";
 import StepReglas from "../components/createEvent/StepReglas";
 import { toast } from "sonner";
 import { AuthContext } from "../context/AuthContext";
-import { getEventoDetalle, updateEvento } from "../api/eventosApi";
+import { getEventoDetalle, updateEvento, eliminarEvento } from "../api/eventosApi";
 import { EventSidebar } from "../components/layout/EventSidebar";
 import { InfoModal } from "../components/layout/InfoModal";
 import { EventContext } from "../context/EventContext";
 import { cn } from "../components/ui/utils";
 import { useVoting } from "../context/VotingContext";
 import ConfigHelpPanel from "../components/ui/ConfigHelpPanel";
+import { EventConfigPanel } from "../components/organizator_dashboard/EventConfigPanel";
 
 const steps = [
   { number: 1, label: "Detalles" },
@@ -24,7 +25,7 @@ const steps = [
 
 const CreateEvent = () => {
   const { userId } = useContext(AuthContext)!;
-  const { userColor, isCollapsed, userRole } = useContext(EventContext)!;
+  const { userColor, isCollapsed, userRole, clearEventContext } = useContext(EventContext)!;
   const { addNotification } = useVoting();
   const navigate = useNavigate();
   const { eventoId } = useParams();
@@ -40,6 +41,16 @@ const CreateEvent = () => {
   const [loadingEvento, setLoadingEvento] = useState(false);
   const [eventoEstado, setEventoEstado] = useState("");
   const [showHelpModal, setShowHelpModal] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const [showConfigPanel, setShowConfigPanel] = useState(false);
+  const [configAvanzada, setConfigAvanzada] = useState({
+    voteLimit: 3,
+    categoryDuration: 30,
+    anonymousVoting: false,
+    allowComments: false,
+  });
 
   const [detalles, setDetalles] = useState({
     nombre: "",
@@ -68,6 +79,24 @@ const CreateEvent = () => {
     analisisAutomatico: false,
   });
 
+  // Handler para sincronizar comentarios entre StepVotaciones y EventConfigPanel
+  const handleComentariosChange = (value: boolean) => {
+    setVotacion(prev => ({ ...prev, comentariosObligatorios: value }));
+    setConfigAvanzada(prev => ({ ...prev, allowComments: value }));
+  };
+
+  // Handler para editar paso 3 desde el panel
+  const handleEditStep3 = () => {
+    setCurrentStep(3);
+    setShowConfigPanel(false);
+    
+    // Scroll suave al componente de pesos después de cambiar de paso
+    setTimeout(() => {
+      const element = document.getElementById('step3-votaciones');
+      element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+  };
+
   // Cargar datos del evento en modo edición
   useEffect(() => {
     if (!isEditMode) return;
@@ -76,8 +105,6 @@ const CreateEvent = () => {
       try {
         setLoadingEvento(true);
         const data = await getEventoDetalle(Number(eventoId));
-        console.log('[CreateEvent] evento detalle recibido:', data);
-
 
         setEventoEstado(data.estado);
 
@@ -93,32 +120,20 @@ const CreateEvent = () => {
         // Prellenar votación
         const categorias = (data.categorias || []).map((c: any) => c.nombre);
         const pesoJurado = data.categorias?.[0]?.pesos?.find((p: any) => p.rolVotante === "Jurado")?.peso ?? 70;
-        const pesoPublico = data.categorias?.[0]?.pesos?.find((p: any) => p.rolVotante === "Publico")?.peso ?? 30;
-
-        // Nota: el backend puede no devolver el booleano con el mismo nombre que usamos en el frontend.
-        // Por eso, priorizamos varias keys y al final hacemos fallback con el peso de público.
-        const votoPublicoHabilitadoBackend =
-          (data as any).votoPublicoHabilitado ??
-          (data as any).votoPublico ??
-          (data as any).publicoHabilitado ??
-          undefined;
-
-        // Si el organizador guarda el toggle desactivado, el backend debe devolverlo.
-        // Si no lo devuelve (undefined), como último fallback usamos el peso público.
-        const votoPublicoHabilitadoFinal =
-          votoPublicoHabilitadoBackend !== undefined
-            ? Boolean(votoPublicoHabilitadoBackend)
-            : Boolean(pesoPublico > 0);
+        const comentariosObligatorios = data.comentariosObligatorios ?? false;
 
         setVotacion({
-          votoPublicoHabilitado: votoPublicoHabilitadoFinal,
+          votoPublicoHabilitado: true,
           pesoJurado: pesoJurado,
           categorias: categorias.length > 0 && categorias[0] !== "Global" ? categorias : [],
-          comentariosObligatorios: data.comentariosObligatorios ?? false,
+          comentariosObligatorios: comentariosObligatorios,
         });
 
-
-
+        // Sincronizar configAvanzada con los datos cargados
+        setConfigAvanzada(prev => ({
+          ...prev,
+          allowComments: comentariosObligatorios,
+        }));
 
         // Prellenar reglas/baremos
         const baremo = data.baremos?.[0];
@@ -174,6 +189,23 @@ const CreateEvent = () => {
     if (currentStep > 1) setCurrentStep((s) => s - 1);
   };
 
+  const handleEliminarEvento = async () => {
+    if (!eventoId) return;
+    const token = localStorage.getItem("token") || "";
+    setDeleting(true);
+    try {
+      await eliminarEvento(parseInt(eventoId), token);
+      toast.success("Evento eliminado correctamente");
+      clearEventContext();
+      navigate('/eventos');
+    } catch (err: any) {
+      toast.error(err.message || "Error al eliminar el evento");
+    } finally {
+      setDeleting(false);
+      setConfirmDelete(false);
+    }
+  };
+
   const [isPublishing, setIsPublishing] = useState(false);
 
   const handlePublish = async () => {
@@ -184,7 +216,11 @@ const CreateEvent = () => {
       if (!detalles.nombre.trim()) throw new Error("El nombre del evento es obligatorio.");
       if (!detalles.fechaInicio) throw new Error("La fecha de inicio es obligatoria.");
       if (!detalles.fechaFin) throw new Error("La fecha de fin es obligatoria.");
-
+      
+      const categoriasValidas = votacion.categorias?.filter((cat: string) => cat && cat.trim() !== "") || [];
+      if (categoriasValidas.length === 0) {
+        throw new Error("Debes agregar al menos una categoría válida para el evento.");
+      }
 
       const inicio = new Date(detalles.fechaInicio);
       const fin = new Date(detalles.fechaFin);
@@ -213,13 +249,7 @@ const CreateEvent = () => {
           }]
         : [];
 
-      const categoriasFinales = [
-        ...new Set(
-          votacion.categorias.length === 0
-            ? ["Global"]
-            : votacion.categorias
-        )
-      ];
+      const categoriasFinales = [...new Set(categoriasValidas)];
 
       if (isEditMode) {
         const updateBody = {
@@ -240,6 +270,12 @@ const CreateEvent = () => {
           votoPublicoHabilitado: votacion.votoPublicoHabilitado,
           pesoJurado: votacion.pesoJurado,
           comentariosObligatorios: votacion.comentariosObligatorios,
+          configuracionAvanzada: {
+            voteLimit: configAvanzada.voteLimit,
+            categoryDuration: configAvanzada.categoryDuration,
+            anonymousVoting: configAvanzada.anonymousVoting,
+            allowComments: configAvanzada.allowComments,
+          }
         };
 
         await updateEvento(Number(eventoId), updateBody);
@@ -264,7 +300,13 @@ const CreateEvent = () => {
             { rolVotante: "Jurado", peso: votacion.pesoJurado },
             { rolVotante: "Publico", peso: 100 - votacion.pesoJurado }
           ]
-        }))
+        })),
+        configuracionAvanzada: {
+          voteLimit: configAvanzada.voteLimit,
+          categoryDuration: configAvanzada.categoryDuration,
+          anonymousVoting: configAvanzada.anonymousVoting,
+          allowComments: configAvanzada.allowComments,
+        }
       };
 
       const response = await fetch(`${API_BASE_URL}/api/event`, {
@@ -277,9 +319,7 @@ const CreateEvent = () => {
       if (!response.ok) throw new Error(data?.error || "Error al crear el evento");
 
       toast.success("Evento creado exitosamente");
-
       addNotification("event_created", "Evento creado");
-
       navigate("/eventos");
 
     } catch (error: any) {
@@ -290,30 +330,34 @@ const CreateEvent = () => {
   };
 
   const handleCtrlEnter = (e: React.KeyboardEvent<HTMLDivElement> | KeyboardEvent) => {
-    // Evitar que el hotkey dispare en repetición mientras se mantiene presionado
-    // (repeat es true cuando el navegador re-emite el keydown por mantener la tecla)
-    if ('repeat' in e && e.repeat) return;
+    // En vez de "hotkey repetitiva", usamos un guard para que solo dispare una vez
+    // y el usuario tenga que soltar y volver a apretar Ctrl+Enter.
+    if (e.key !== "Enter" || !(e.ctrlKey || e.metaKey)) return;
 
-    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
-      e.preventDefault();
-      if (currentStep < 3) {
-        handleNext();
-      } else {
-        handlePublish();
-      }
+    const anyE = e as KeyboardEvent;
+    // Ignorar si es repetición del SO.
+    if (typeof anyE.repeat === 'boolean' && anyE.repeat) return;
+
+    // Guardar "debounce" por combinación.
+    const now = Date.now();
+    const last = (window as any).__lastCtrlEnterAt as number | undefined;
+    if (last && now - last < 400) return;
+    (window as any).__lastCtrlEnterAt = now;
+
+    e.preventDefault();
+    if (currentStep < 3) {
+      handleNext();
+    } else {
+      handlePublish();
     }
   };
 
-
   useEffect(() => {
     const onGlobalKeyDown = (event: KeyboardEvent) => {
-      // Evitar que el hotkey dispare acciones si el usuario está en un input/textarea
-      // (por ejemplo, en el último paso se puede disparar justo al cambiar foco)
       const target = event.target as HTMLElement | null;
       const tag = target?.tagName?.toLowerCase();
       const isTyping = tag === 'input' || tag === 'textarea' || (target as any)?.isContentEditable;
       if (isTyping) return;
-
       handleCtrlEnter(event);
     };
 
@@ -321,8 +365,8 @@ const CreateEvent = () => {
     return () => window.removeEventListener("keydown", onGlobalKeyDown);
   }, [currentStep, handleNext, handlePublish]);
 
-  const readOnlyBaremos = isEditMode && (eventoEstado === "Activo" || eventoEstado === "EnVotacion");
 
+  const readOnlyBaremos = isEditMode && (eventoEstado === "Activo" || eventoEstado === "EnVotacion");
 
   if (loadingEvento) {
     return (
@@ -419,8 +463,54 @@ const CreateEvent = () => {
           <div className="bg-white rounded-[32px] shadow-sm border border-gray-100 p-6 sm:p-10 mb-8">
             {currentStep === 1 && <StepDetalles data={detalles} onChange={setDetalles} />}
             {currentStep === 2 && <StepReglas data={reglas} onChange={setReglas} readOnlyBaremos={readOnlyBaremos} />}
-            {currentStep === 3 && <StepVotaciones data={votacion} onChange={setVotacion} />}
+            {currentStep === 3 && (
+              <div id="step3-votaciones">
+                <StepVotaciones 
+                  data={votacion} 
+                  onChange={setVotacion}
+                  onComentariosChange={handleComentariosChange}
+                />
+              </div>
+            )}
           </div>
+
+          {isEditMode && (
+            <section className="border border-red-200 rounded-[32px] p-6 bg-red-50 mb-4">
+              <h2 className="text-base font-heading font-bold text-red-700 mb-1">Zona de peligro</h2>
+              <p className="text-sm text-red-500 mb-4">
+                Eliminar el evento borrará todos sus datos de forma permanente. Esta acción no se puede deshacer.
+              </p>
+              {!confirmDelete ? (
+                <button
+                  onClick={() => setConfirmDelete(true)}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-red-300 text-red-600 rounded-xl font-semibold text-sm hover:bg-red-100 transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Eliminar evento
+                </button>
+              ) : (
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <p className="text-sm font-semibold text-red-700">¿Seguro que quieres eliminar este evento?</p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setConfirmDelete(false)}
+                      disabled={deleting}
+                      className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      onClick={handleEliminarEvento}
+                      disabled={deleting}
+                      className="px-4 py-2 bg-red-600 text-white rounded-xl text-sm font-semibold hover:bg-red-700 transition-colors disabled:opacity-60"
+                    >
+                      {deleting ? "Eliminando…" : "Sí, eliminar"}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </section>
+          )}
 
           <div className="flex justify-between items-center pb-20">
             <button
@@ -453,8 +543,47 @@ const CreateEvent = () => {
         </main>
       </div>
 
+      {/* Botón flotante de configuración avanzada */}
+      <button
+        onClick={() => setShowConfigPanel(!showConfigPanel)}
+        className="fixed bottom-6 right-6 z-50 p-4 bg-purple-600 text-white rounded-full shadow-lg hover:bg-purple-700 transition-all transform hover:scale-105"
+      >
+        <Settings className="w-6 h-6" />
+      </button>
+
+      {/* Panel deslizable de configuración avanzada */}
+      <div className={cn(
+        "fixed top-0 right-0 h-full w-96 bg-white shadow-2xl z-40 transition-transform duration-300 ease-in-out overflow-y-auto",
+        showConfigPanel ? "translate-x-0" : "translate-x-full"
+      )}>
+        <div className="sticky top-0 bg-white p-4 border-b border-gray-100 flex justify-between items-center z-10">
+          <h2 className="text-xl font-bold flex items-center gap-2">
+            <Wrench className="w-5 h-5 text-purple-600" />
+            Configuración Avanzada
+          </h2>
+          <button 
+            onClick={() => setShowConfigPanel(false)}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            ✕
+          </button>
+        </div>
+        <div className="p-4">
+          <EventConfigPanel 
+            eventConfig={configAvanzada}
+            onUpdateConfig={setConfigAvanzada}
+            allowComments={votacion.comentariosObligatorios}
+            onAllowCommentsChange={handleComentariosChange}
+            juryWeight={votacion.pesoJurado}
+            publicWeight={100 - votacion.pesoJurado}
+            onEditStep3={handleEditStep3}
+          />
+        </div>
+      </div>
+
       {/* Floating config help panel */}
       <ConfigHelpPanel />
+      
       <InfoModal
         isOpen={showHelpModal}
         title="Guía de Creación de Eventos"
