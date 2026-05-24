@@ -1,5 +1,6 @@
-import { Link, useLocation, useParams, useNavigate } from "react-router-dom";
+﻿import { Link, useLocation, useParams, useNavigate } from "react-router-dom";
 import { Info, FolderOpen, Trophy, Settings, ClipboardList, User, FileText, LogOut, ChevronUp, ChevronLeft, ChevronRight, Vote, Timer, Lightbulb, LucideIcon, Sparkles, List, HelpCircle} from "lucide-react";
+import { Cog } from "lucide-react";
 import { useState, useRef, useEffect, useContext } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { EventContext } from "../../context/EventContext";
@@ -82,7 +83,7 @@ export function EventSidebar({ color: propColor, position = 'left' }: EventSideb
     if (userRole === "Organizador") {
         roleLinks.push({ label: "Jurado", path: `/eventos/${eventoId}/jurado`, icon: ClipboardList });
         roleLinks.push({ label: "Control Estados", path: `/eventos/${eventoId}/control-estados`, icon: Timer });
-        roleLinks.push({ label: "Configuraciones", path: `/eventos/${eventoId}/configuraciones`, icon: Lightbulb });
+        roleLinks.push({ label: "Configuraciones", path: `/eventos/${eventoId}/configuraciones`, icon: Cog });
         roleLinks.push({ label: "Ajustes del evento", path: `/eventos/${eventoId}/ajustes`, icon: Settings });
         roleLinks.push({ label: "premios", path: `/eventos/${eventoId}/premios`, icon: Trophy });
     } else if (userRole === "Jurado") {
