@@ -1,14 +1,14 @@
 import { useState, useEffect, useContext } from "react";
 import { API_BASE_URL } from "../config/api";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, ArrowRight, Check, Loader2, Sparkles, HelpCircle, Target, Scale, Award } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Loader2, Sparkles, HelpCircle, Target, Scale, Award, Trash2 } from "lucide-react";
 import StepIndicator from "../components/createEvent/StepIndicator";
 import StepDetalles from "../components/createEvent/StepDetalles";
 import StepVotaciones from "../components/createEvent/StepVotaciones";
 import StepReglas from "../components/createEvent/StepReglas";
 import { toast } from "sonner";
 import { AuthContext } from "../context/AuthContext";
-import { getEventoDetalle, updateEvento } from "../api/eventosApi";
+import { getEventoDetalle, updateEvento, eliminarEvento } from "../api/eventosApi";
 import { EventSidebar } from "../components/layout/EventSidebar";
 import { InfoModal } from "../components/layout/InfoModal";
 import { EventContext } from "../context/EventContext";
@@ -24,7 +24,7 @@ const steps = [
 
 const CreateEvent = () => {
   const { userId } = useContext(AuthContext)!;
-  const { userColor, isCollapsed, userRole } = useContext(EventContext)!;
+  const { userColor, isCollapsed, userRole, clearEventContext } = useContext(EventContext)!;
   const { addNotification } = useVoting();
   const navigate = useNavigate();
   const { eventoId } = useParams();
@@ -40,6 +40,8 @@ const CreateEvent = () => {
   const [loadingEvento, setLoadingEvento] = useState(false);
   const [eventoEstado, setEventoEstado] = useState("");
   const [showHelpModal, setShowHelpModal] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const [detalles, setDetalles] = useState({
     nombre: "",
@@ -152,6 +154,23 @@ const CreateEvent = () => {
 
   const handlePrev = () => {
     if (currentStep > 1) setCurrentStep((s) => s - 1);
+  };
+
+  const handleEliminarEvento = async () => {
+    if (!eventoId) return;
+    const token = localStorage.getItem("token") || "";
+    setDeleting(true);
+    try {
+      await eliminarEvento(parseInt(eventoId), token);
+      toast.success("Evento eliminado correctamente");
+      clearEventContext();
+      navigate('/eventos');
+    } catch (err: any) {
+      toast.error(err.message || "Error al eliminar el evento");
+    } finally {
+      setDeleting(false);
+      setConfirmDelete(false);
+    }
   };
 
   const [isPublishing, setIsPublishing] = useState(false);
@@ -384,6 +403,44 @@ const CreateEvent = () => {
             {currentStep === 2 && <StepReglas data={reglas} onChange={setReglas} readOnlyBaremos={readOnlyBaremos} />}
             {currentStep === 3 && <StepVotaciones data={votacion} onChange={setVotacion} />}
           </div>
+
+          {isEditMode && (
+            <section className="border border-red-200 rounded-[32px] p-6 bg-red-50 mb-4">
+              <h2 className="text-base font-heading font-bold text-red-700 mb-1">Zona de peligro</h2>
+              <p className="text-sm text-red-500 mb-4">
+                Eliminar el evento borrará todos sus datos de forma permanente. Esta acción no se puede deshacer.
+              </p>
+              {!confirmDelete ? (
+                <button
+                  onClick={() => setConfirmDelete(true)}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-red-300 text-red-600 rounded-xl font-semibold text-sm hover:bg-red-100 transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Eliminar evento
+                </button>
+              ) : (
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <p className="text-sm font-semibold text-red-700">¿Seguro que quieres eliminar este evento?</p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setConfirmDelete(false)}
+                      disabled={deleting}
+                      className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      onClick={handleEliminarEvento}
+                      disabled={deleting}
+                      className="px-4 py-2 bg-red-600 text-white rounded-xl text-sm font-semibold hover:bg-red-700 transition-colors disabled:opacity-60"
+                    >
+                      {deleting ? "Eliminando…" : "Sí, eliminar"}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </section>
+          )}
 
           <div className="flex justify-between items-center pb-20">
             <button
