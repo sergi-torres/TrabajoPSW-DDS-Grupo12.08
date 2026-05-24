@@ -365,15 +365,17 @@ export default function VotosPage() {
           </section>
 
           {/* FEEDBACK Y SÍNTESIS IA */}
-          <ProyectoFeedbackCard
-            idProyecto={proyectoActual?.id || 0}
-            nombreProyecto={proyectoActual?.nombre || "Sin nombre"}
-            idCategoria={categoria?.id || 0}
-            nombreCategoria={categoria?.nombre || "Global"}
-            estadoCategoria={categoria?.estado || categoria?.Estado || "Pendiente"}
-            comentariosJuradoCount={comentariosJuradoCount}
-            comentariosPublicoCount={comentariosPublicoCount}
-          />
+          {proyectoActual?.id && categoria?.id ? (
+            <ProyectoFeedbackCard
+              idProyecto={proyectoActual.id}
+              nombreProyecto={proyectoActual.nombre || "Sin nombre"}
+              idCategoria={categoria.id}
+              nombreCategoria={categoria.nombre || "Global"}
+              estadoCategoria={categoria.estado || categoria.Estado || "Pendiente"}
+              comentariosJuradoCount={comentariosJuradoCount}
+              comentariosPublicoCount={comentariosPublicoCount}
+            />
+          ) : null}
         </main>
       </div>
       <ConfirmModal
