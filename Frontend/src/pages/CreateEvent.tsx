@@ -403,22 +403,13 @@ const CreateEvent = () => {
                 {isEditMode ? "Volver al Panel" : "Volver a eventos"}
               </button>
 
-              <div className="flex flex-col gap-2">
-                <button
-                  onClick={() => setShowConfigPanel(!showConfigPanel)}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all font-heading font-bold text-sm shadow-md active:scale-95"
-                >
-                  <Settings className="w-4 h-4" />
-                  <span className="hidden sm:inline">Config. avanzada</span>
-                </button>
-                <button
-                  onClick={() => setShowHelpModal(true)}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-white text-slate-900 hover:bg-slate-50 rounded-xl transition-all font-heading font-bold text-sm shadow-md active:scale-95"
-                >
-                  <HelpCircle className="w-4 h-4" />
-                  <span className="hidden sm:inline">Ayuda</span>
-                </button>
-              </div>
+              <button
+                onClick={() => setShowHelpModal(true)}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-white text-slate-900 hover:bg-slate-50 rounded-xl transition-all font-heading font-bold text-sm shadow-md active:scale-95"
+              >
+                <HelpCircle className="w-4 h-4" />
+                <span className="hidden sm:inline">Ayuda</span>
+              </button>
             </div>
 
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
@@ -581,6 +572,17 @@ const CreateEvent = () => {
           />
         </div>
       </div>
+
+      {/* Floating Settings button — stacked above ConfigHelpPanel trigger */}
+      <button
+        onClick={() => setShowConfigPanel(!showConfigPanel)}
+        className="fixed bottom-[144px] right-4 lg:bottom-[164px] lg:right-6 z-[89] w-[46px] h-[46px] lg:w-[52px] lg:h-[52px] rounded-[14px] lg:rounded-[16px] flex items-center justify-center text-white transition-all duration-200 hover:scale-[1.08]"
+        style={{ background: 'linear-gradient(135deg, #3B82F6, #2563eb)', boxShadow: '0 6px 24px rgba(37,99,235,0.35)' }}
+        title="Configuración avanzada"
+        aria-label="Configuración avanzada"
+      >
+        <Settings size={22} />
+      </button>
 
       {/* Floating config help panel */}
       <ConfigHelpPanel />

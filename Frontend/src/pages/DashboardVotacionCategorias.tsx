@@ -200,6 +200,11 @@ const DashboardVotacionCategorias = () => {
         onConfirm={handleConfirmLogout}
         onCancel={() => setShowLogoutModal(false)}
         isLoading={isLoading}
+        title={effectivelyPublic ? "Salir de la votación" : "Cerrar sesión"}
+        message={effectivelyPublic
+          ? "¿Estás seguro de que deseas salir? Perderás el acceso a esta sesión de votación."
+          : "¿Estás seguro de que deseas cerrar sesión? Serás redirigido a la página de inicio de sesión."}
+        confirmLabel={effectivelyPublic ? "Salir" : "Cerrar"}
       />
     </div>
   );

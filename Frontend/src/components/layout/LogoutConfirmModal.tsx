@@ -7,6 +7,9 @@ interface LogoutConfirmModalProps {
   onConfirm: () => void;
   onCancel: () => void;
   isLoading?: boolean;
+  title?: string;
+  message?: string;
+  confirmLabel?: string;
 }
 
 /**
@@ -17,6 +20,9 @@ export function LogoutConfirmModal({
   onConfirm,
   onCancel,
   isLoading = false,
+  title = "Cerrar sesión",
+  message = "¿Estás seguro de que deseas cerrar sesión? Serás redirigido a la página de inicio de sesión.",
+  confirmLabel = "Cerrar",
 }: LogoutConfirmModalProps) {
   if (!isOpen || typeof document === "undefined") return null;
 
@@ -37,10 +43,8 @@ export function LogoutConfirmModal({
       >
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-2">
-            <h2 className="text-xl font-semibold text-slate-900">Cerrar sesión</h2>
-            <p className="text-sm text-slate-600">
-              ¿Estás seguro de que deseas cerrar sesión? Serás redirigido a la página de inicio de sesión.
-            </p>
+            <h2 className="text-xl font-semibold text-slate-900">{title}</h2>
+            <p className="text-sm text-slate-600">{message}</p>
           </div>
           <button
             onClick={onCancel}
@@ -75,7 +79,7 @@ export function LogoutConfirmModal({
             ) : (
               <>
                 <LogOut size={18} strokeWidth={2} />
-                <span>Cerrar</span>
+                <span>{confirmLabel}</span>
               </>
             )}
           </button>
