@@ -1,5 +1,7 @@
 ﻿import { useState, useEffect, useMemo, useContext } from "react";
 import { Plus, Search } from "lucide-react";
+import SimpleSearchBar from "../components/layout/SimpleSearchBar";
+
 import { useNavigate } from "react-router-dom";
 import { DesktopHeader } from "../components/eventos/DesktopHeader";
 import { MobileNav } from "../components/eventos/MobileNav";
@@ -71,16 +73,16 @@ export default function DashboardPage() {
                     </button>
                 </div>
 
-                <div className="lg:hidden relative group mb-6">
-                    <Search size={18} strokeWidth={1.75} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-[var(--color-org)] transition-colors" />
-                    <input
-                        type="text"
-                        placeholder="Buscar evento..."
+                <div className="lg:hidden mb-6">
+                    <SimpleSearchBar
                         value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full bg-muted hover:bg-accent focus:bg-card border border-transparent focus:border-[var(--color-org)]/30 rounded-full h-11 pl-11 pr-4 outline-none transition-all text-sm font-body text-foreground placeholder:text-muted-foreground focus:shadow-[0_0_0_4px_rgba(59,130,246,0.05)]"
+                        onChange={setSearchQuery}
+                        placeholder="Buscar evento..."
+                        className="relative max-w-xl"
+                        inputClassName="w-full bg-muted hover:bg-accent focus:bg-card border border-transparent focus:border-[var(--color-org)]/30 rounded-full h-11 pl-11 pr-4 outline-none transition-all text-sm font-body text-foreground placeholder:text-muted-foreground focus:shadow-[0_0_0_4px_rgba(59,130,246,0.05)]"
                     />
                 </div>
+
 
                 {loading && (
                     <div className="text-center py-20 text-muted-foreground">

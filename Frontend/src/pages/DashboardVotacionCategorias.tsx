@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { ArrowLeft, Target, Award, LogOut, Search } from 'lucide-react';
+import { ArrowLeft, Target, Award, LogOut } from 'lucide-react';
+import SimpleSearchBar from '../components/layout/SimpleSearchBar';
+
 import { useNavigate } from 'react-router-dom';
 import StatsBar from '../components/votacion/votacionCategorias/StatsBar';
 import CategoriaCard from '../components/votacion/votacionCategorias/CategoriaCard';
@@ -159,18 +161,16 @@ const DashboardVotacionCategorias = () => {
                   <h2 className="text-xl font-heading font-bold text-gray-900">Categorías Disponibles</h2>
                 </div>
                 <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Buscar categoría</label>
-                <div className="relative max-w-xl">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                  <input
-                    type="text"
+                  <SimpleSearchBar
                     value={busquedaCategorias}
-                    onChange={(e) => setBusquedaCategorias(e.target.value)}
-                    placeholder="Busca por nombre de categoría..."
-                    className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-2xl shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all"
+                    onChange={setBusquedaCategorias}
+                    placeholder="Busca por nombre de categoría"
+                    className="relative max-w-xl"
+                    inputClassName="w-full bg-muted hover:bg-accent focus:bg-card border border-transparent focus:border-[var(--color-org)]/30 rounded-full h-11 pl-11 pr-4 outline-none transition-all text-sm font-body text-foreground placeholder:text-muted-foreground focus:shadow-[0_0_0_4px_rgba(59,130,246,0.05)]"
                   />
                 </div>
-              </div>
+
+
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
                   {((datos as any).categorias || [])
                     .filter((cat: any) => {

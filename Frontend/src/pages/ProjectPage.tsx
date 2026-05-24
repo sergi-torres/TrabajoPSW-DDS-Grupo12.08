@@ -4,10 +4,11 @@ import { AuthContext } from "../context/AuthContext";
 import { EventContext } from "../context/EventContext";
 import { EventSidebar } from "../components/layout/EventSidebar";
 import { useVoting } from "../context/VotingContext";
-import { ArrowLeft, Trophy, TrendingUp, TrendingDown, Minus, Target, Medal, Star, Trash2, Plus, Pencil, Search } from "lucide-react";
+import { ArrowLeft, Trophy, TrendingUp, TrendingDown, Minus, Target, Medal, Star, Trash2, Plus, Pencil } from "lucide-react";
 import { cn } from "../components/ui/utils";
 import { toast } from "sonner";
 import { ConfirmModal } from "../components/layout/ConfirmModal";
+import SimpleSearchBar from "../components/layout/SimpleSearchBar";
 
 // ============================================
 // TIPOS
@@ -323,30 +324,15 @@ try {
           {/* Ranking de Proyectos por Categoría */}
           {categoriaActiva && (
             <div className="bg-white rounded-2xl shadow-sm p-8 border border-gray-100 animate-in slide-in-from-bottom duration-300">
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-xl bg-yellow-50 text-yellow-500">
-                    <Trophy size={20} />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-heading font-bold text-gray-900">
-                      Ranking - {categorias.find(c => c.id === categoriaActiva)?.nombre}
-                    </h2>
-                    <p className="text-sm text-gray-500">Filtra los proyectos registrados en esta categoría.</p>
-                  </div>
-                </div>
-
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center mb-6">
                 <div className="w-full lg:max-w-md">
                   <label className="sr-only" htmlFor="busquedaProyectos">Buscar proyectos</label>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                    <input
-                      id="busquedaProyectos"
-                      type="text"
+                  <div className="w-full flex justify-start">
+                    <SimpleSearchBar
                       value={busquedaProyectos}
-                      onChange={(e) => setBusquedaProyectos(e.target.value)}
-                      placeholder="Buscar proyecto por nombre o descripción..."
-                      className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-2xl shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all"
+                      onChange={setBusquedaProyectos}
+                      placeholder="Buscar por nombre de proyecto"
+                      className="w-full"
                     />
                   </div>
                 </div>
@@ -421,13 +407,13 @@ try {
                             )}
                             {/* Botón Modificar */}
                             {esOrganizador && (
-                                <button
+                              <button
                                 onClick={() => editarProyecto(proyecto)}
                                 className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-all"
                                 title="Modificar proyecto"
-                                >
-                                  <Pencil size={18} />
-                                </button>
+                              >
+                                <Pencil size={18} />
+                              </button>
                             )}
                           </div>
                         </div>
@@ -486,6 +472,7 @@ try {
           )}
         </main>
       </div>
+      
       <ConfirmModal
         isOpen={isDeleteModalOpen}
         title="Eliminar proyecto"
