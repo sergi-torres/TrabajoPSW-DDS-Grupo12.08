@@ -206,8 +206,8 @@ try {
     const termino = busquedaProyectos.toLowerCase().trim();
     if (!termino) return true;
     return (
-      p.nombre.toLowerCase().includes(termino) ||
-      p.descripcion.toLowerCase().includes(termino)
+      (p.nombre || "").toLowerCase().includes(termino) ||
+      (p.descripcion || "").toLowerCase().includes(termino)
     );
   });
 

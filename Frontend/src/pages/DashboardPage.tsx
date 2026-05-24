@@ -86,13 +86,13 @@ export default function DashboardPage() {
     const filteredMis = useMemo(() => {
         if (!searchQuery.trim()) return misEventos;
         const q = searchQuery.toLowerCase();
-        return misEventos.filter(e => e.nombre.toLowerCase().includes(q));
+        return misEventos.filter(e => (e.nombre || "").toLowerCase().includes(q));
     }, [misEventos, searchQuery]);
 
     const filteredDisponibles = useMemo(() => {
         if (!searchQuery.trim()) return eventosDisponibles;
         const q = searchQuery.toLowerCase();
-        return eventosDisponibles.filter(e => e.nombre.toLowerCase().includes(q));
+        return eventosDisponibles.filter(e => (e.nombre || "").toLowerCase().includes(q));
     }, [eventosDisponibles, searchQuery]);
 
     const loading = activeTab === "mis-eventos" ? loadingMis : loadingDisponibles;

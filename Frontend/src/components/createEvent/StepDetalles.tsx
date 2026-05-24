@@ -59,8 +59,12 @@ const StepDetalles = ({ data, onChange }: StepDetallesProps) => {
                         placeholder="Describe brevemente el propósito del evento..."
                         value={data.descripcion}
                         onChange={(e) => onChange({ ...data, descripcion: e.target.value })}
+                        maxLength={500}
                         className="mt-2 min-h-[120px] w-full rounded-md border border-border bg-background px-3 py-2 font-body focus:outline-none focus:ring-2 focus:ring-org focus:border-org resize-none"
                     />
+                    <p className="mt-1 text-xs text-muted-foreground text-right">
+                        {data.descripcion.length}/500
+                    </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -9,7 +9,7 @@ namespace Votify.API.Models.DTOs
         public string Nombre { get; set; } = string.Empty;
 
         [MinLength(0)]
-        [MaxLength(200)]
+        [MaxLength(500)]
         public string Descripcion { get; set; } = string.Empty;
 
         [Required]

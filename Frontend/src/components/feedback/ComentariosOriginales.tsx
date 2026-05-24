@@ -71,10 +71,10 @@ export function ComentariosOriginales({
         setCargando(true);
         try {
             const grupos: GrupoComentarista[] = await comentariosApi.getResumen(idProyecto, idCategoria);
-            const labelGrupo = tipo.toLowerCase() === "jurado" ? "jurado" : "público";
-            
+            const labelGrupo = (tipo || "").toLowerCase() === "jurado" ? "jurado" : "público";
+
             // Búsqueda case-insensitive para el tipo de grupo
-            const grupo = grupos.find(g => g.tipo.toLowerCase() === labelGrupo);
+            const grupo = grupos.find(g => (g.tipo || "").toLowerCase() === labelGrupo);
 
             if (!grupo || !grupo.usuarios || grupo.usuarios.length === 0) {
                 setComentarios([]);
