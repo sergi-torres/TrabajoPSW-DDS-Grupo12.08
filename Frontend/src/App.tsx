@@ -1,4 +1,5 @@
-﻿import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+﻿import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { useEffect } from 'react'
 import { Toaster } from 'sonner'
 import { AuthProvider } from './context/AuthContext'
 import { EventProvider } from './context/EventContext'
@@ -25,6 +26,16 @@ import AsignarPremios from './pages/AsignarPremiosPage'
 import ProfilePage from './pages/ProfilePage'
 import HelpPage from './pages/HelpPage'
 
+function BodyCleanup() {
+  const location = useLocation();
+  useEffect(() => {
+    document.body.style.overflow = '';
+    document.body.style.pointerEvents = '';
+    document.documentElement.style.overflow = '';
+  }, [location.pathname]);
+  return null;
+}
+
 function App() {
   return (
     <>
@@ -33,6 +44,7 @@ function App() {
         <EventProvider>
          <VotingProvider>
           <BrowserRouter>
+            <BodyCleanup />
             <Routes>
               <Route path="/login" element={<LoginPage />} />
               <Route path="/accept-invite" element={<AcceptInvitePage />} />

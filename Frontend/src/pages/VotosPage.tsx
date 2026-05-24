@@ -292,22 +292,21 @@ export default function VotosPage() {
           isPublicRole ? "" : (isCollapsed ? "lg:pl-28" : "lg:pl-80")
         )}>
           {/* PROYECTO Y RESUMEN */}
-          <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <article className="lg:col-span-2 bg-white rounded-2xl shadow-sm p-8 border border-gray-100">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-xl" style={{ backgroundColor: `${themeColor}10`, color: themeColor }}>
+          <section className="grid grid-cols-1 gap-8">
+            <article className="bg-white rounded-2xl shadow-sm p-8 border border-gray-100">
+              <div className="flex flex-wrap items-start justify-between gap-3 mb-6">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="p-2.5 rounded-xl flex-shrink-0" style={{ backgroundColor: `${themeColor}10`, color: themeColor }}>
                     <Target className="w-6 h-6" />
                   </div>
                   <h2 className="text-xl font-heading font-bold text-gray-900">Sobre tu Proyecto</h2>
                 </div>
-                
-                <div className="flex items-center gap-2">
+
+                <div className="flex items-center gap-2 flex-shrink-0">
                   <button
                     onClick={goToPreviousProject}
                     disabled={proyectosDisponibles.length <= 1 || currentIndex <= 0}
-                    className="flex items-center gap-2 p-2 sm:px-4 sm:py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-all font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="Anterior"
+                    className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-all font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <ChevronLeft className="w-4 h-4" />
                     <span className="hidden sm:inline">Anterior</span>
@@ -316,8 +315,7 @@ export default function VotosPage() {
                   <button
                     onClick={goToNextProject}
                     disabled={proyectosDisponibles.length <= 1 || currentIndex >= proyectosDisponibles.length - 1}
-                    className="flex items-center gap-2 p-2 sm:px-4 sm:py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-all font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="Siguiente"
+                    className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-all font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <span className="hidden sm:inline">Siguiente</span>
                     <ChevronRight className="w-4 h-4" />
@@ -325,8 +323,7 @@ export default function VotosPage() {
 
                   <button
                     onClick={confirmDeleteProject}
-                    className="flex items-center gap-2 p-2 sm:px-4 sm:py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl transition-all font-medium text-sm"
-                    title="Borrar proyecto"
+                    className="flex items-center gap-2 px-3 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl transition-all font-medium text-sm"
                   >
                     <Trash2 className="w-4 h-4" />
                     <span className="hidden sm:inline">Borrar</span>
@@ -353,16 +350,6 @@ export default function VotosPage() {
               </p>
             </article>
 
-            <article className="bg-white rounded-2xl shadow-sm p-8 border border-gray-100 text-center flex flex-col justify-center items-center">
-              <div className="w-16 h-16 bg-yellow-50 text-yellow-500 rounded-full flex items-center justify-center mb-4">
-                <Award className="w-10 h-10" />
-              </div>
-              <h2 className="text-xl font-heading font-bold text-gray-900 mb-2">Reconocimiento</h2>
-              <p className="text-gray-500 mb-6">Tu proyecto se encuentra entre los más destacados del evento.</p>
-              <span className="px-4 py-2 text-white font-bold rounded-full text-sm shadow-lg" style={{ backgroundColor: themeColor }}>
-                Top 10% del Evento
-              </span>
-            </article>
           </section>
 
           {/* FEEDBACK Y SÍNTESIS IA */}
