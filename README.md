@@ -31,7 +31,7 @@
 
 ---
 
-## Instalación y configuración
+## Instalación y configuración (desarrollo local)
 
 ### Requisitos previos
 
@@ -41,13 +41,17 @@
 
 ### 1. Variables de entorno
 
-Copia el archivo de ejemplo y rellena los valores:
+Copia los archivos de ejemplo y rellena los valores:
 
 ```powershell
+# Backend (raíz del repo)
 copy .env.example .env
+
+# Frontend
+copy Frontend\.env.example Frontend\.env
 ```
 
-El archivo `.env` debe estar en la **raíz del repositorio**. El backend lo busca dos niveles por encima de su directorio de ejecución.
+#### Variables del backend (`.env` en la raíz)
 
 | Variable | Requerida | Descripción |
 |---|---|---|
@@ -56,6 +60,14 @@ El archivo `.env` debe estar en la **raíz del repositorio**. El backend lo busc
 | `GEMINI_API_KEY` | Para IA | Clave de API de Google Gemini |
 | `GEMINI_MODEL` | No | Modelo a usar (default: `gemini-2.5-flash`) |
 | `RESEND_API_KEY` | Para emails | Clave de API de Resend |
+
+#### Variables del frontend (`Frontend/.env`)
+
+| Variable | Requerida | Descripción |
+|---|---|---|
+| `VITE_API_URL` | Sí | URL base del backend (ej: `http://localhost:5245`) |
+
+> El backend carga `.env` desde la raíz del repo (dos niveles por encima del directorio de ejecución). Si algo no carga, verificar esta ruta primero.
 
 ### 2. Backend (.NET 9)
 
@@ -98,16 +110,45 @@ npm test            # Tests con Vitest
 
 ---
 
+## Despliegue
+
+### Frontend (estático)
+
+El frontend compila a archivos estáticos y puede desplegarse en cualquier CDN o hosting estático (Vercel, Netlify, GitHub Pages, etc.).
+
+```powershell
+cd Frontend
+npm run build
+# Salida en Frontend/dist/
+```
+
+Antes de compilar para producción, crea `Frontend/.env` con la URL del backend desplegado:
+
+```
+VITE_API_URL=https://tu-backend.ejemplo.com
+```
+
+### Backend (.NET 9)
+
+El backend puede desplegarse como contenedor Docker, en Azure App Service, Railway, o cualquier servidor con .NET 9.
+
+Las variables de entorno del backend deben configurarse en el servidor destino (no en el `.env` del repo).
+
+> **CORS**: el backend solo acepta peticiones de `localhost:5173` en desarrollo. Para producción, actualizar la política CORS en `Program.cs` con el dominio del frontend desplegado.
+
+---
+
 ## Estructura del proyecto
 
 ```
 TrabajoPSW-DDS/
+├── .env.example               # Plantilla de variables de entorno del backend
 ├── Backend/
 │   ├── Votify.API/
 │   │   ├── Controllers/        # Endpoints REST
 │   │   ├── Services/           # Lógica de negocio
 │   │   │   ├── Decorators/     # Decorator pattern
-│   │   │   └── Strategies/     # Strategy pattern 
+│   │   │   └── Strategies/     # Strategy pattern
 │   │   ├── Repositories/       # Acceso a datos (Supabase ORM)
 │   │   ├── Models/
 │   │   │   ├── Domain/         # Entidades
@@ -117,25 +158,16 @@ TrabajoPSW-DDS/
 │   │   └── Adapters/           # GeminiClient (HTTP externo)
 │   └── Votify.Tests/           # Tests unitarios
 └── Frontend/
+    ├── .env.example            # Plantilla de variables de entorno del frontend
     └── src/
         ├── api/                # Capa de llamadas HTTP
+        ├── config/             # Configuración global (URL de API)
         ├── components/         # Componentes reutilizables
         ├── context/            # AuthContext, EventContext, VotingContext
         ├── hooks/              # Custom hooks
         ├── pages/              # Vistas de la aplicación
         └── types/              # Tipos TypeScript compartidos
 ```
-
----
-
-
-## Credenciales de prueba
-
-| Campo | Valor |
-|---|---|
-| Usuario | `jorge@gmail.com` |
-| Contraseña | `jorgeee` |
-| Código de evento (Público) | `123455` |
 
 ---
 
