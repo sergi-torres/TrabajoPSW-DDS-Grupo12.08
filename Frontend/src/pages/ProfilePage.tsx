@@ -69,18 +69,11 @@ export default function ProfilePage() {
                                 <h1 className="font-heading font-bold text-2xl text-foreground leading-tight">
                                     {perfil?.nombreCompleto || perfil?.nombreUsuario || "Usuario"}
                                 </h1>
-                                <p className="text-muted-foreground text-sm mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis">@{perfil?.nombreUsuario?.split("@")[0]}</p>
-                                <div className="flex flex-col sm:flex-row gap-3 mt-4 text-sm text-muted-foreground">
+                                <div className="flex flex-col sm:flex-row gap-3 mt-1 text-sm text-muted-foreground">
                                     <span className="flex items-center justify-center sm:justify-start gap-1.5">
                                         <Mail size={14} strokeWidth={1.75} />
                                         {perfil?.email}
                                     </span>
-                                    {fechaRegistro && (
-                                        <span className="flex items-center justify-center sm:justify-start gap-1.5">
-                                            <Calendar size={14} strokeWidth={1.75} />
-                                            Desde {fechaRegistro}
-                                        </span>
-                                    )}
                                 </div>
                             </>
                         )}
