@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { EventContext } from "../context/EventContext";
 import { EventSidebar } from "../components/layout/EventSidebar";
+import { MobileNav } from "../components/eventos/MobileNav";
 import { 
   ArrowLeft, 
   Bell, 
@@ -430,6 +431,7 @@ export default function AvisosPage() {
           )}
         </main>
       </div>
+      <MobileNav />
     </div>
   );
 }

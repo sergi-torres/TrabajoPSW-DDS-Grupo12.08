@@ -35,6 +35,7 @@ export function EventSidebar({ color: propColor, position = 'left' }: EventSideb
     const [showLogoutModal, setShowLogoutModal] = useState(false);
     const [isLoadingLogout, setIsLoadingLogout] = useState(false);
     const [showFAQ, setShowFAQ] = useState(false);
+    const [mobileNavOpen, setMobileNavOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 
     if (!eventContext) return null;
@@ -99,7 +100,7 @@ export function EventSidebar({ color: propColor, position = 'left' }: EventSideb
 
     const allLinks = [...commonLinks, ...roleLinks];
 
- const NavItem = ({ link }: { link: NavLink }) => {
+ const NavItem = ({ link, expanded = false }: { link: NavLink; expanded?: boolean }) => {
   const isActive = location.pathname === link.path;
   const Icon = link.icon;
 
@@ -111,25 +112,34 @@ export function EventSidebar({ color: propColor, position = 'left' }: EventSideb
     >
       <Link
         to={link.path}
+        onClick={() => expanded && setMobileNavOpen(false)}
         className={cn(
-          "flex flex-col lg:flex-row items-center gap-1 lg:gap-3 px-3 py-2.5 lg:px-4 lg:py-3 rounded-xl transition-all duration-200 flex-shrink-0",
+          expanded
+            ? "flex flex-row items-center gap-3 px-4 py-3 rounded-xl w-full transition-all duration-200"
+            : "flex flex-col lg:flex-row items-center gap-1 lg:gap-3 px-3 py-2.5 lg:px-4 lg:py-3 rounded-xl transition-all duration-200 flex-shrink-0",
           isActive
             ? cn(activeStyle.bg, activeStyle.text, "font-semibold shadow-sm")
             : "text-slate-500 hover:text-slate-900 hover:bg-slate-50",
-          isCollapsed && "lg:justify-center lg:px-0 lg:w-12 lg:mx-auto"
+          !expanded && isCollapsed && "lg:justify-center lg:px-0 lg:w-12 lg:mx-auto"
         )}
       >
         <Icon
-          size={22}
+          size={20}
           strokeWidth={isActive ? 2.5 : 2}
           color={isActive ? (activeColor || undefined) : "currentColor"}
         />
-        {!isCollapsed && (
-          <span className="text-[11px] lg:text-sm font-medium max-w-[52px] lg:max-w-none truncate lg:whitespace-normal" title={link.label}>
-            {link.label}
-          </span>
+        {expanded ? (
+          <span className="text-sm font-medium">{link.label}</span>
+        ) : (
+          <>
+            {!isCollapsed && (
+              <span className="text-[11px] lg:text-sm font-medium lg:whitespace-normal" title={link.label}>
+                {link.label}
+              </span>
+            )}
+            {isCollapsed && <span className="text-[11px] lg:hidden font-medium">{link.label}</span>}
+          </>
         )}
-        {isCollapsed && <span className="text-[11px] lg:hidden font-medium">{link.label}</span>}
       </Link>
     </SidebarTooltip>
   );
@@ -277,23 +287,47 @@ export function EventSidebar({ color: propColor, position = 'left' }: EventSideb
                 isLoading={isLoadingLogout}
             />
 
-            {/* Mobile Navigation (under lg) - scrollable when many items */}
-            <nav className={cn(
-                "flex lg:hidden fixed bottom-4 left-4 right-4 h-[68px] bg-white items-center",
-                "overflow-x-auto gap-1 px-3 z-50 rounded-2xl shadow-xl",
-                "[&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+            {/* Mobile Navigation (under lg) - collapsible */}
+            {mobileNavOpen && (
+                <div
+                    className="fixed inset-0 z-[45] lg:hidden"
+                    onClick={() => setMobileNavOpen(false)}
+                />
+            )}
+            <div className={cn(
+                "flex lg:hidden flex-col fixed bottom-4 left-4 right-4 bg-white z-50 rounded-2xl shadow-xl overflow-hidden transition-all duration-300"
             )}>
-                {allLinks.map((link) => (
-                    <NavItem key={link.path} link={link} />
-                ))}
+                {/* Handle / toggle */}
                 <button
-                    onClick={() => setShowFAQ(true)}
-                    className="flex flex-col items-center gap-1 px-3 py-2.5 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-all duration-200 flex-shrink-0"
+                    onClick={() => setMobileNavOpen(!mobileNavOpen)}
+                    className="flex items-center justify-center gap-2 py-3 w-full text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors"
                 >
-                    <HelpCircle size={22} strokeWidth={2} />
-                    <span className="text-[11px] font-medium">Ayuda</span>
+                    <ChevronUp
+                        size={18}
+                        strokeWidth={2.5}
+                        className={cn("transition-transform duration-300", mobileNavOpen && "rotate-180")}
+                    />
+                    <span className="text-xs font-semibold text-slate-500">
+                        {allLinks.find(l => location.pathname === l.path)?.label || "Menú"}
+                    </span>
                 </button>
-            </nav>
+
+                {/* Expanded menu */}
+                {mobileNavOpen && (
+                    <div className="px-3 pb-3 flex flex-col gap-0.5 border-t border-slate-100">
+                        {allLinks.map((link) => (
+                            <NavItem key={link.path} link={link} expanded />
+                        ))}
+                        <button
+                            onClick={() => { setShowFAQ(true); setMobileNavOpen(false); }}
+                            className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-all"
+                        >
+                            <HelpCircle size={20} strokeWidth={2} />
+                            <span className="text-sm font-medium">Ayuda</span>
+                        </button>
+                    </div>
+                )}
+            </div>
 
             {/* FAQ Modal */}
             <FAQModal isOpen={showFAQ} onClose={() => setShowFAQ(false)} />

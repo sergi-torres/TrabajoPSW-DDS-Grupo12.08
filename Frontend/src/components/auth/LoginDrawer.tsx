@@ -10,8 +10,13 @@ export function LoginDrawer() {
 
     const handleSuccess = (path: string) => {
         setOpen(false);
-        // Let vaul finish its close animation before navigating
-        setTimeout(() => navigate(path), 300);
+        setTimeout(() => {
+            // Clear any body styles vaul may have left behind
+            document.body.style.overflow = '';
+            document.body.style.pointerEvents = '';
+            document.body.removeAttribute('data-vaul-drawer-wrapper');
+            navigate(path);
+        }, 300);
     };
 
     return (

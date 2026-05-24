@@ -17,35 +17,15 @@ export default function LiveHeader({ eventName, phase, eventCode, onExtend, onCl
 
   if (minimal) {
     return (
-      <div className="flex flex-col sm:flex-row items-center gap-6 bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20">
-        {/* Event Code Section */}
-        <div className="flex items-center gap-3 border-r border-white/20 pr-6 mr-2 last:border-0 last:mr-0 last:pr-0">
-          <div className="p-2 bg-emerald-500/20 text-emerald-300 rounded-xl">
-            <Hash size={20} strokeWidth={2.5} />
-          </div>
-          <div className="flex flex-col">
-            <span className="text-[10px] uppercase font-bold text-emerald-200 leading-none mb-1 tracking-wider">Código Evento</span>
-            <span className="text-2xl font-heading font-black tracking-widest leading-none text-white">
-              {eventCode || "000000"}
-            </span>
-          </div>
+      <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20">
+        <div className="p-2 bg-emerald-500/20 text-emerald-300 rounded-xl">
+          <Hash size={20} strokeWidth={2.5} />
         </div>
-
-        <div className="flex gap-2">
-          <button
-            onClick={handleExtend}
-            className="p-2.5 bg-white text-blue-600 rounded-xl hover:bg-blue-50 transition-colors shadow-sm active:scale-95"
-            title="Extender Tiempo"
-          >
-            <TimerReset size={20} strokeWidth={2.5} />
-          </button>
-          <button
-            onClick={onClose}
-            className="p-2.5 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors shadow-sm active:scale-95"
-            title="Cerrar Votación"
-          >
-            <AlertTriangle size={20} strokeWidth={2.5} />
-          </button>
+        <div className="flex flex-col">
+          <span className="text-[10px] uppercase font-bold text-emerald-200 leading-none mb-1 tracking-wider">Código Evento</span>
+          <span className="text-2xl font-heading font-black tracking-widest leading-none text-white">
+            {eventCode || "000000"}
+          </span>
         </div>
       </div>
     );

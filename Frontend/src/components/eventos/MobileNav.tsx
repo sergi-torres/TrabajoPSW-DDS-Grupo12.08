@@ -35,7 +35,7 @@ export function MobileNav() {
         {/* Eventos */}
         <button
           onClick={() => handleNavigation("/eventos")}
-          className="flex flex-col items-center gap-1 text-purple-600 transition-colors"
+          className="flex flex-col items-center gap-1 text-blue-600 transition-colors"
         >
           <Home size={22} strokeWidth={2} />
           <span className="text-[11px] font-medium mt-0.5">Eventos</span>

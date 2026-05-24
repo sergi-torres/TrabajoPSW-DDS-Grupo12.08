@@ -4,7 +4,6 @@ import { useEffect, useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { EventContext } from "../context/EventContext";
 import { EventSidebar } from "../components/layout/EventSidebar";
-import { MobileNav } from "../components/eventos/MobileNav";
 import { useVoting } from "../context/VotingContext";
 import { comentariosApi } from "../api/comentariosApi";
 import { deleteProyecto } from "../api/proyectoApi";
@@ -259,7 +258,6 @@ export default function VotosPage() {
   return (
     <div className="min-h-screen bg-gray-50 font-body relative">
       {!isPublicRole && <EventSidebar />}
-      <MobileNav />
 
       <div className="pb-[88px] lg:pb-12">
         <header
@@ -308,27 +306,30 @@ export default function VotosPage() {
                   <button
                     onClick={goToPreviousProject}
                     disabled={proyectosDisponibles.length <= 1 || currentIndex <= 0}
-                    className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-all font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex items-center gap-2 p-2 sm:px-4 sm:py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-all font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Anterior"
                   >
                     <ChevronLeft className="w-4 h-4" />
-                    Anterior
+                    <span className="hidden sm:inline">Anterior</span>
                   </button>
-                  
+
                   <button
                     onClick={goToNextProject}
                     disabled={proyectosDisponibles.length <= 1 || currentIndex >= proyectosDisponibles.length - 1}
-                    className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-all font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex items-center gap-2 p-2 sm:px-4 sm:py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-all font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Siguiente"
                   >
-                    Siguiente
+                    <span className="hidden sm:inline">Siguiente</span>
                     <ChevronRight className="w-4 h-4" />
                   </button>
 
                   <button
                     onClick={confirmDeleteProject}
-                    className="flex items-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl transition-all font-medium text-sm"
+                    className="flex items-center gap-2 p-2 sm:px-4 sm:py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl transition-all font-medium text-sm"
+                    title="Borrar proyecto"
                   >
                     <Trash2 className="w-4 h-4" />
-                    Borrar
+                    <span className="hidden sm:inline">Borrar</span>
                   </button>
                 </div>
               </div>
