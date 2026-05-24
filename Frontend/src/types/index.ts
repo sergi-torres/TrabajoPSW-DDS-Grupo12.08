@@ -26,7 +26,6 @@ export interface Categoria {
   estado: string;
   fechaInicio?: string;
   fechaFin?: string;
-  estado?: string;
 }
 
 export interface ComentarioCualitativo {

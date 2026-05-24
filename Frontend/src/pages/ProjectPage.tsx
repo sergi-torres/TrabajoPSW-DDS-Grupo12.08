@@ -4,10 +4,11 @@ import { AuthContext } from "../context/AuthContext";
 import { EventContext } from "../context/EventContext";
 import { EventSidebar } from "../components/layout/EventSidebar";
 import { useVoting } from "../context/VotingContext";
-import { ArrowLeft, Trophy, TrendingUp, TrendingDown, Minus, Target, Medal, Star, Trash2 , Plus, Pencil} from "lucide-react";
+import { ArrowLeft, Trophy, TrendingUp, TrendingDown, Minus, Target, Medal, Star, Trash2, Plus, Pencil } from "lucide-react";
 import { cn } from "../components/ui/utils";
 import { toast } from "sonner";
 import { ConfirmModal } from "../components/layout/ConfirmModal";
+import SimpleSearchBar from "../components/layout/SimpleSearchBar";
 
 // ============================================
 // TIPOS
@@ -86,6 +87,7 @@ export default function ProjectPage() {
   const [projectIdToDelete, setProjectIdToDelete] = useState<number | null>(null);
   const [projectNameToDelete, setProjectNameToDelete] = useState<string | null>(null);
   const [isDeletingProject, setIsDeletingProject] = useState(false);
+  const [busquedaProyectos, setBusquedaProyectos] = useState('');
 
   const isPublicRole = userRole === "Público";
   const themeColor = userColor || "#9333ea";
@@ -182,9 +184,18 @@ try {
 }
   };
 
-  const proyectosFiltrados = categoriaActiva
+  const proyectosFiltradosPorCategoria = categoriaActiva
     ? proyectos.filter(p => p.idCategoria === categoriaActiva)
     : proyectos;
+
+  const proyectosFiltrados = proyectosFiltradosPorCategoria.filter((p) => {
+    const termino = busquedaProyectos.toLowerCase().trim();
+    if (!termino) return true;
+    return (
+      p.nombre.toLowerCase().includes(termino) ||
+      p.descripcion.toLowerCase().includes(termino)
+    );
+  });
 
   // Ordenar proyectos por puntaje total
   const proyectosOrdenados = [...proyectosFiltrados].sort((a, b) => {
@@ -313,18 +324,22 @@ try {
           {/* Ranking de Proyectos por Categoría */}
           {categoriaActiva && (
             <div className="bg-white rounded-2xl shadow-sm p-8 border border-gray-100 animate-in slide-in-from-bottom duration-300">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-xl bg-yellow-50 text-yellow-500">
-                    <Trophy size={20} />
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center mb-6">
+                <div className="w-full lg:max-w-md">
+                  <label className="sr-only" htmlFor="busquedaProyectos">Buscar proyectos</label>
+                  <div className="w-full flex justify-start">
+                    <SimpleSearchBar
+                      value={busquedaProyectos}
+                      onChange={setBusquedaProyectos}
+                      placeholder="Buscar por nombre de proyecto"
+                      className="w-full"
+                    />
                   </div>
-                  <h2 className="text-xl font-heading font-bold text-gray-900">
-                    Ranking - {categorias.find(c => c.id === categoriaActiva)?.nombre}
-                  </h2>
                 </div>
-                
-                {/* Botón para crear nuevo proyecto (solo organizador) */}
-                {esOrganizador && (
+              </div>
+
+              {esOrganizador && (
+                <div className="mb-6 flex justify-end">
                   <button
                     onClick={() => {
                       if (localStorage.getItem("proyectoABCD")) {
@@ -332,17 +347,15 @@ try {
                       }
 
                       navigate(`/eventos/${localStorage.getItem("eventoId")}/participantRegister`);
-
                       console.log(localStorage.getItem("eventoId"));
-
                     }}
                     className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl transition-all text-sm font-medium"
                   >
                     <Plus size={16} />
                     Crear proyecto
                   </button>
-                )}
-              </div>
+                </div>
+              )}
 
               {proyectosOrdenados.length === 0 ? (
                 <div className="text-center py-12 text-gray-500">
@@ -351,8 +364,8 @@ try {
               ) : (
                 <div className="space-y-4">
                   {proyectosOrdenados.map((proyecto, idx) => {
-                    const puntajeJurado = obtenerPuntaje(proyecto.id, categoriaActiva, "JURADO");
-                    const puntajePublico = obtenerPuntaje(proyecto.id, categoriaActiva, "PUBLICO");
+                    const puntajeJurado = obtenerPuntaje(proyecto.id, categoriaActiva!, "JURADO");
+                    const puntajePublico = obtenerPuntaje(proyecto.id, categoriaActiva!, "PUBLICO");
                     const puntajeTotal = puntajeJurado + puntajePublico;
                     const percentage = Math.min(100, (puntajeTotal / 200) * 100);
                     
@@ -394,13 +407,13 @@ try {
                             )}
                             {/* Botón Modificar */}
                             {esOrganizador && (
-                                <button
+                              <button
                                 onClick={() => editarProyecto(proyecto)}
                                 className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-all"
                                 title="Modificar proyecto"
-                                >
-                                  <Pencil size={18} />
-                                </button>
+                              >
+                                <Pencil size={18} />
+                              </button>
                             )}
                           </div>
                         </div>
@@ -459,6 +472,7 @@ try {
           )}
         </main>
       </div>
+      
       <ConfirmModal
         isOpen={isDeleteModalOpen}
         title="Eliminar proyecto"

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Play, Pause, CheckCircle2, AlertCircle, Timer, Settings } from 'lucide-react';
+import { Play, Pause, CheckCircle2, Timer, Settings } from 'lucide-react';
 import { cn } from '../../ui/utils';
+import { ConfirmModal } from '../../layout/ConfirmModal';
 
 interface OpcionesBarProps {
   categoria: {
@@ -135,33 +136,20 @@ export default function OpcionesBar({ categoria, onCambiarEstado, onActualizarTi
         </div>
       </div>
 
-      {showConfirmFinish && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
-          <div className="bg-white rounded-[40px] p-10 max-w-sm w-full shadow-2xl animate-in zoom-in-95 duration-200">
-            <div className="w-20 h-20 bg-red-50 rounded-3xl flex items-center justify-center mb-6 text-red-500 mx-auto">
-              <AlertCircle size={40} />
-            </div>
-            <h2 className="text-2xl font-black text-center mb-3 text-gray-900">¿Estás seguro?</h2>
-            <p className="text-gray-500 text-center mb-8 text-sm leading-relaxed">
-              Al finalizar la categoría <strong>no podrás volver a abrirla</strong>. Se cerrará el acceso a votos para todos los usuarios.
-            </p>
-            <div className="flex flex-col gap-3">
-              <button 
-                onClick={handleFinalizar}
-                className="w-full py-4 rounded-2xl bg-red-500 text-white font-bold hover:bg-red-600 transition-all shadow-xl shadow-red-100"
-              >
-                Sí, finalizar permanentemente
-              </button>
-              <button 
-                onClick={() => setShowConfirmFinish(false)}
-                className="w-full py-4 rounded-2xl bg-gray-100 text-gray-600 font-bold hover:bg-gray-200 transition-all"
-              >
-                No, mantener activa
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        isOpen={showConfirmFinish}
+        danger
+        title="¿Estás seguro?"
+        message={
+          <>
+            Al finalizar la categoría <strong>no podrás volver a abrirla</strong>. Se cerrará el acceso a votos para todos los usuarios.
+          </>
+        }
+        confirmLabel="Sí, finalizar permanentemente"
+        cancelLabel="No, mantener activa"
+        onConfirm={handleFinalizar}
+        onCancel={() => setShowConfirmFinish(false)}
+      />
     </div>
   );
 }

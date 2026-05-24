@@ -1,4 +1,6 @@
 import type { MouseEvent, ReactNode } from "react";
+import { useEffect } from "react";
+
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 
@@ -30,6 +32,20 @@ export function ConfirmModal({
   const handleModalClick = (e: MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
   };
+
+  useEffect(() => {
+    if (!isOpen || isLoading) return;
+
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onCancel();
+      }
+    };
+
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
+  }, [isOpen, isLoading, onCancel]);
 
   return createPortal(
     <div

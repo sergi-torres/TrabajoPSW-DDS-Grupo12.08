@@ -5,9 +5,11 @@ import { usePremio } from "../hooks/usePremio";
 import CategoriasPremioCard from "../components/premios/CategoriasPremioCard";
 import ContenidoEditable from "../components/premios/ContenidoEditable";
 import { EventSidebar } from "../components/layout/EventSidebar";
+import { ConfirmModal } from "../components/layout/ConfirmModal";
 import { EventContext } from "../context/EventContext";
 import { getDashboard } from "../api/orgDashboardApi";
 import { Categoria, CrearPremioRequest, Premio } from "../types";
+
 
 
 const AsignarPremios: React.FC = () => {
@@ -136,30 +138,22 @@ const AsignarPremios: React.FC = () => {
                 </main>
             </div>
 
-            {prizeToDelete && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-                    <div className="w-full max-w-md rounded-[32px] bg-white p-8 shadow-2xl ring-1 ring-slate-200">
-                        <h2 className="text-xl font-semibold text-slate-900">Eliminar premio</h2>
-                        <p className="mt-3 text-sm text-slate-600">
-                            ¿Estás seguro de que deseas eliminar el premio <strong>{prizeToDelete.nombre}</strong> de la categoría <strong>{categorias.find((c) => c.id === prizeToDelete.idCategoria)?.nombre}</strong>?
-                        </p>
-                        <div className="mt-6 flex gap-3 justify-end">
-                            <button
-                                onClick={() => setPrizeToDelete(null)}
-                                className="rounded-3xl bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-200"
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                onClick={confirmDeletePremio}
-                                className="rounded-3xl bg-red-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-700"
-                            >
-                                Eliminar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <ConfirmModal
+                isOpen={!!prizeToDelete}
+                danger
+                title="Eliminar premio"
+                message={
+                    <>
+                        ¿Estás seguro de que deseas eliminar el premio <strong>{prizeToDelete?.nombre}</strong> de la categoría{" "}
+                        <strong>{categorias.find((c) => c.id === prizeToDelete?.idCategoria)?.nombre}</strong>?
+                    </>
+                }
+                confirmLabel="Eliminar"
+                cancelLabel="Cancelar"
+                onConfirm={confirmDeletePremio}
+                onCancel={() => setPrizeToDelete(null)}
+            />
+
 
             <ContenidoEditable
                 isOpen={isEditorOpen}

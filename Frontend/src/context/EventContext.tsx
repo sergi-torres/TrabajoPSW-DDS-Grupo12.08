@@ -1,4 +1,4 @@
-import React, { createContext, useState, ReactNode } from "react";
+import React, { createContext, useState, ReactNode, useEffect } from "react";
 
 export interface EventContextType {
   eventoId: number | null;
@@ -49,6 +49,18 @@ export const EventProvider = ({ children }: { children: ReactNode }) => {
       return { ...prev, isCollapsed };
     });
   };
+
+  useEffect(() => {
+    const onGlobalKeyDown = (event: KeyboardEvent) => {
+      if (event.key.toLowerCase() === "b" && (event.ctrlKey || event.metaKey)) {
+        event.preventDefault();
+        toggleSidebar();
+      }
+    };
+
+    window.addEventListener("keydown", onGlobalKeyDown);
+    return () => window.removeEventListener("keydown", onGlobalKeyDown);
+  }, []);
 
   return (
     <EventContext.Provider

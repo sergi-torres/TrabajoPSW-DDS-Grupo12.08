@@ -29,16 +29,4 @@ export const usuarioApi = {
     if (!res.ok) throw new Error("Error al obtener el perfil del usuario");
     return res.json();
   },
-
-  getById: async (Id: string): Promise<Usuario> => {
-    const res = await  fetch(`${API_URL}/${Id}`);
-        if (!res.ok) {
-      if (res.status === 404) {
-        throw new Error("Usuario no encontrado");
-      }
-      throw new Error("Error al buscar usuario");
-    }
-
-    return await res.json();
-  }
 };
