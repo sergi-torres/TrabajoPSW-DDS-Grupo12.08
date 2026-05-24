@@ -11,9 +11,10 @@ interface StepVotacionesProps {
         comentariosObligatorios: boolean;
     };
     onChange: (newData: any) => void;
+    onComentariosChange?: (value: boolean) => void;
 }
 
-const StepVotaciones = ({ data, onChange }: StepVotacionesProps) => {
+const StepVotaciones = ({ data, onChange, onComentariosChange }: StepVotacionesProps) => {
 
     const { categorias = [] } = data;
     const pesoPublico = 100 - data.pesoJurado;
@@ -127,7 +128,11 @@ const StepVotaciones = ({ data, onChange }: StepVotacionesProps) => {
                         type="button"
                         role="switch"
                         aria-checked={data.comentariosObligatorios}
-                        onClick={() => onChange({ ...data, comentariosObligatorios: !data.comentariosObligatorios })}
+                        onClick={() => {
+                            const next = !data.comentariosObligatorios;
+                            onChange({ ...data, comentariosObligatorios: next });
+                            onComentariosChange?.(next);
+                        }}
                         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${data.comentariosObligatorios ? 'bg-info' : 'bg-muted'}`}
                     >
                         <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${data.comentariosObligatorios ? 'translate-x-6' : 'translate-x-1'}`} />

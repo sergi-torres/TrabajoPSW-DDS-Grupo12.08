@@ -104,11 +104,10 @@ export function EventSidebar({ color: propColor, position = 'left' }: EventSideb
   const Icon = link.icon;
 
   return (
-    <SidebarTooltip 
-      label={link.label} 
+    <SidebarTooltip
+      label={link.label}
       isCollapsed={isCollapsed}
       side="right"
-      delay={400}
     >
       <Link
         to={link.path}
@@ -174,11 +173,10 @@ export function EventSidebar({ color: propColor, position = 'left' }: EventSideb
                     ))}
 
                     {/* Ayuda / FAQ link */}
-                    <SidebarTooltip 
-                      label="Ayuda" 
+                    <SidebarTooltip
+                      label="Ayuda"
                       isCollapsed={isCollapsed}
                       side="right"
-                      delay={400}
                     >
                     <button
                         onClick={() => setShowFAQ(true)}
@@ -196,11 +194,10 @@ export function EventSidebar({ color: propColor, position = 'left' }: EventSideb
 
                 {/* User Profile Section (Bottom) */}
 <div className="relative mt-auto border-t border-slate-100 pt-4 px-2" ref={menuRef}>
-  <SidebarTooltip 
-    label={userName || "Usuario"} 
+  <SidebarTooltip
+    label={userName || "Usuario"}
     isCollapsed={isCollapsed}
     side="right"
-    delay={400}
   >
     <div 
       className={cn(
