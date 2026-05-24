@@ -1,7 +1,8 @@
 import { Event } from '../types';
 import { EventFactory } from '../models/EventFactory';
 
-const API_URL = "http://localhost:5245/api/Eventos";
+import { API_BASE_URL } from "../config/api";
+const API_URL = `${API_BASE_URL}/api/Eventos`;
 
 export async function joinEvento(pin: string): Promise<any> {
     const cacheRaw = localStorage.getItem("misEventosCache");
@@ -91,5 +92,16 @@ export async function abandonarEvento(eventoId: number, userId: number): Promise
     if (!response.ok) {
         const errorText = await response.text();
         throw new Error(errorText || "Error al abandonar el evento");
+    }
+}
+
+export async function eliminarEvento(eventoId: number, token: string): Promise<void> {
+    const response = await fetch(`${API_URL}/${eventoId}`, {
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${token}` },
+    });
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || "Error al eliminar el evento");
     }
 }

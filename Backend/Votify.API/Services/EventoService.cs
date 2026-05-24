@@ -448,5 +448,17 @@ namespace Votify.API.Services
                 throw new Exception("Error al abandonar el evento", ex);
             }
         }
+
+        public async Task<bool> EliminarEventoAsync(int eventoId)
+        {
+            try
+            {
+                return await _eventoRepository.DeleteAsync(eventoId);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error al eliminar el evento", ex);
+            }
+        }
     }
 }

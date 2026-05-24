@@ -1,6 +1,6 @@
-import { CrearPremioRequest, Premio } from "@/types";
-
-const API_URL = "http://localhost:5245/api/premios";
+import { CrearPremioRequest, Premio } from "../types";
+import { API_BASE_URL } from "../config/api";
+const API_URL = `${API_BASE_URL}/api/premios`;
 
 export const premiosApi = {
 

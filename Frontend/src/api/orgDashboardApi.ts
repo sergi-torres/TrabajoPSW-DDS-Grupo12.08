@@ -1,6 +1,7 @@
 import { OrgDashboardData } from '../types';
 
-const API_URL = "http://localhost:5245/api/OrgDashboard";
+import { API_BASE_URL } from "../config/api";
+const API_URL = `${API_BASE_URL}/api/OrgDashboard`;
 
 export async function getDashboard(eventoId: number): Promise<OrgDashboardData> {
     const response = await fetch(`${API_URL}/${eventoId}`);

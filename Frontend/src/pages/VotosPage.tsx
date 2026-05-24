@@ -1,4 +1,5 @@
 ﻿import { useNavigate, useParams } from "react-router-dom";
+import { API_BASE_URL } from "../config/api";
 import { useEffect, useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { EventContext } from "../context/EventContext";
@@ -93,7 +94,7 @@ export default function VotosPage() {
     const idCategoria = localStorage.getItem("categoriaProyecto");
     if (idCategoria) {
       try {
-        const catRes = await fetch(`http://localhost:5245/api/categorias/id/${idCategoria}`);
+        const catRes = await fetch(`${API_BASE_URL}/api/categorias/id/${idCategoria}`);
         if (catRes.ok) {
           const catData = await catRes.json();
           setCategoria(catData);

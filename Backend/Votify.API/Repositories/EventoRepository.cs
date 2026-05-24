@@ -48,6 +48,15 @@ namespace Votify.API.Repositories
             return response.ResponseMessage?.IsSuccessStatusCode ?? false;
         }
 
+        public async Task<bool> DeleteAsync(int id)
+        {
+            await _supabase
+                .From<EventoLite>()
+                .Filter("id", Supabase.Postgrest.Constants.Operator.Equals, id.ToString())
+                .Delete();
+            return true;
+        }
+
         public async Task<List<EventoLite>> GetAllAsync()
         {
             var response = await _supabase.From<EventoLite>().Get();

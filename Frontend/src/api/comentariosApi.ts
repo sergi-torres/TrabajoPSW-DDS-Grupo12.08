@@ -1,6 +1,7 @@
 import { ComentarioCualitativo } from '../types';
 
-const API_URL = "http://localhost:5245/api/comentarios";
+import { API_BASE_URL } from "../config/api";
+const API_URL = `${API_BASE_URL}/api/comentarios`;
 
 export const comentariosApi = {
 

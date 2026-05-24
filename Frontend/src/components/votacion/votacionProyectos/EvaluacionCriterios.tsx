@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../../../config/api';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Star, 
@@ -55,7 +56,7 @@ const EvaluacionCriterios: React.FC<Props> = ({
     const fetchCriterios = async () => {
       try {
         setFetching(true);
-        const response = await fetch(`http://localhost:5245/api/Eventos/${eventoId}`);
+        const response = await fetch(`${API_BASE_URL}/api/Eventos/${eventoId}`);
         if (!response.ok) throw new Error('Error al cargar criterios');
         
         const data = await response.json();

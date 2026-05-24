@@ -1,4 +1,5 @@
-﻿import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext } from "react";
+import { API_BASE_URL } from "../config/api";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Check, Loader2, Sparkles, HelpCircle, Target, Scale, Award, Settings, Wrench } from "lucide-react";
 import StepIndicator from "../components/createEvent/StepIndicator";
@@ -32,9 +33,9 @@ const CreateEvent = () => {
   // Modo edición si hay un eventoId en la URL
   const isEditMode = Boolean(eventoId);
   const isPublicRole = userRole === "Público";
-  
-  // Offset logic matching OrganizerDashboard/VotosPage
-  const sidebarOffsetClass = isPublicRole ? "" : (isCollapsed ? "lg:pl-28" : "lg:pl-80");
+
+  // Only offset when in edit mode (sidebar is rendered), not on standalone /create-event
+  const sidebarOffsetClass = isEditMode && !isPublicRole ? (isCollapsed ? "lg:pl-28" : "lg:pl-80") : "";
 
   const [currentStep, setCurrentStep] = useState(1);
   const [loadingEvento, setLoadingEvento] = useState(false);
@@ -290,7 +291,7 @@ const CreateEvent = () => {
         }
       };
 
-      const response = await fetch("http://localhost:5245/api/event", {
+      const response = await fetch(`${API_BASE_URL}/api/event`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -310,6 +311,23 @@ const CreateEvent = () => {
     }
   };
 
+  const handleCtrlEnter = (e: React.KeyboardEvent<HTMLDivElement> | KeyboardEvent) => {
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      if (currentStep < 3) {
+        handleNext();
+      } else {
+        handlePublish();
+      }
+    }
+  };
+
+  useEffect(() => {
+    const onGlobalKeyDown = (event: KeyboardEvent) => handleCtrlEnter(event);
+    window.addEventListener("keydown", onGlobalKeyDown);
+    return () => window.removeEventListener("keydown", onGlobalKeyDown);
+  }, [currentStep, handleNext, handlePublish]);
+
   const readOnlyBaremos = isEditMode && (eventoEstado === "Activo" || eventoEstado === "EnVotacion");
 
   if (loadingEvento) {
@@ -325,7 +343,7 @@ const CreateEvent = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 font-body relative">
+    <div className="min-h-screen bg-gray-50 font-body relative" onKeyDown={handleCtrlEnter}>
       {isEditMode && !isPublicRole && <EventSidebar />}
 
       <div className="pb-[88px] lg:pb-0">
@@ -335,7 +353,7 @@ const CreateEvent = () => {
             "text-white p-6 lg:p-10 transition-all duration-300",
             sidebarOffsetClass
           )}
-          style={{ backgroundColor: userColor || undefined }}
+          style={{ backgroundColor: isEditMode ? (userColor || "#2563EB") : "#2563EB" }}
         >
           <div className="max-w-7xl mx-auto">
             <div className="flex justify-between items-start mb-6">

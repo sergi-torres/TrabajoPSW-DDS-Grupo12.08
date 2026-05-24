@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { ArrowLeft, Target, Award, LogOut } from 'lucide-react';
+import SimpleSearchBar from '../components/layout/SimpleSearchBar';
+
 import { useNavigate } from 'react-router-dom';
 import StatsBar from '../components/votacion/votacionCategorias/StatsBar';
 import CategoriaCard from '../components/votacion/votacionCategorias/CategoriaCard';
@@ -18,6 +20,7 @@ const DashboardVotacionCategorias = () => {
   const { datos, cargando, cargarDashboard } = useVotacionDashboard();
   const [vistaActual, setVistaActual] = useState('categorias');
   const [categoriaElegida, setCategoriaElegida] = useState<any>(null);
+  const [busquedaCategorias, setBusquedaCategorias] = useState('');
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -157,17 +160,33 @@ const DashboardVotacionCategorias = () => {
                   <Award className="w-6 h-6" style={{ color: themeColor }} />
                   <h2 className="text-xl font-heading font-bold text-gray-900">Categorías Disponibles</h2>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
-                  {(datos as any).categorias.map((cat: any) => (
-                    <CategoriaCard
-                      key={cat.id}
-                      categoria={cat}
-                      alVotar={() => {
-                        setCategoriaElegida(cat);
-                        setVistaActual('proyectos');
-                      }}
-                    />
-                  ))}
+                <div className="mb-6">
+                  <SimpleSearchBar
+                    value={busquedaCategorias}
+                    onChange={setBusquedaCategorias}
+                    placeholder="Busca por nombre de categoría"
+                    className="relative max-w-xl"
+                    inputClassName="w-full bg-muted hover:bg-accent focus:bg-card border border-transparent focus:border-[var(--color-org)]/30 rounded-full h-11 pl-11 pr-4 outline-none transition-all text-sm font-body text-foreground placeholder:text-muted-foreground focus:shadow-[0_0_0_4px_rgba(59,130,246,0.05)]"
+                  />
+                </div>
+
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
+                  {((datos as any).categorias || [])
+                    .filter((cat: any) => {
+                      const textoCategoria = (cat.titulo || cat.nombre || cat.Titulo || "").toString().toLowerCase();
+                      return textoCategoria.includes(busquedaCategorias.toLowerCase().trim());
+                    })
+                    .map((cat: any) => (
+                      <CategoriaCard
+                        key={cat.id}
+                        categoria={cat}
+                        alVotar={() => {
+                          setCategoriaElegida(cat);
+                          setVistaActual('proyectos');
+                        }}
+                      />
+                    ))}
                 </div>
               </section>
             </>

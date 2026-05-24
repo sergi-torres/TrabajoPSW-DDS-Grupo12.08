@@ -3,11 +3,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { EventSidebar } from "../components/layout/EventSidebar";
 import { EventContext } from "../context/EventContext";
 import { useAuth } from "../hooks/useAuth";
-import { ArrowLeft, LogOut } from "lucide-react";
+import { ArrowLeft, LogOut, Trash2 } from "lucide-react";
 import { getDashboard } from "../api/orgDashboardApi";
+import { eliminarEvento } from "../api/eventosApi";
 import ConfigTiempoVotacionBar from '../components/configuraciones/ConfigTiempoVotacionBar';
 import ConfigLimiteVotos from '../components/configuraciones/ConfigLimiteVotos';
 import ConfigHelpPanel from '../components/ui/ConfigHelpPanel';
+import { toast } from "sonner";
 
 const Configuraciones: React.FC = () => {
   const { eventoId } = useParams<{ eventoId: string }>();
@@ -15,8 +17,11 @@ const Configuraciones: React.FC = () => {
   const { logout } = useAuth();
   const { userRole, userColor, isCollapsed, clearEventContext } = useContext(EventContext) as any;
   const [eventInfo, setEventInfo] = useState<any>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const isPublicRole = userRole === "Público";
+  const isOrganizer = userRole === "Organizador";
 
   const fetchEventInfo = useCallback(async () => {
     if (!eventoId || eventoId === "undefined") return;
@@ -38,6 +43,23 @@ const Configuraciones: React.FC = () => {
     logout();
     clearEventContext();
     navigate('/login');
+  };
+
+  const handleEliminarEvento = async () => {
+    if (!eventoId) return;
+    const token = localStorage.getItem("token") || "";
+    setDeleting(true);
+    try {
+      await eliminarEvento(parseInt(eventoId), token);
+      toast.success("Evento eliminado correctamente");
+      clearEventContext();
+      navigate('/eventos');
+    } catch (err: any) {
+      toast.error(err.message || "Error al eliminar el evento");
+    } finally {
+      setDeleting(false);
+      setConfirmDelete(false);
+    }
   };
 
   return (
@@ -87,6 +109,45 @@ const Configuraciones: React.FC = () => {
               <ConfigTiempoVotacionBar eventoId={eventoId} />
               <ConfigLimiteVotos eventoId={eventoId} />
             </>
+          )}
+
+          {isOrganizer && (
+            <section className="border border-red-200 rounded-2xl p-6 bg-red-50">
+              <h2 className="text-lg font-heading font-bold text-red-700 mb-1">Zona de peligro</h2>
+              <p className="text-sm text-red-500 mb-4">
+                Eliminar el evento borrará todos sus datos de forma permanente. Esta acción no se puede deshacer.
+              </p>
+
+              {!confirmDelete ? (
+                <button
+                  onClick={() => setConfirmDelete(true)}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-red-300 text-red-600 rounded-xl font-semibold text-sm hover:bg-red-100 transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Eliminar evento
+                </button>
+              ) : (
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <p className="text-sm font-semibold text-red-700">¿Seguro que quieres eliminar este evento?</p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setConfirmDelete(false)}
+                      disabled={deleting}
+                      className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      onClick={handleEliminarEvento}
+                      disabled={deleting}
+                      className="px-4 py-2 bg-red-600 text-white rounded-xl text-sm font-semibold hover:bg-red-700 transition-colors disabled:opacity-60"
+                    >
+                      {deleting ? "Eliminando…" : "Sí, eliminar"}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </section>
           )}
         </main>
       </div>

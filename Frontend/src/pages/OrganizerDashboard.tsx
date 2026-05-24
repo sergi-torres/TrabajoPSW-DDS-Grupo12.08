@@ -161,6 +161,7 @@ export default function OrganizerDashboard() {
 
   const { liveInfo, stats, ranking } = dashboardData;
 
+
   // Build CategoryRankingData from categorias + ranking
   const categoryRankingData: CategoryRankingData[] = categorias.map((cat: any) => {
     // Use the Estado field from backend categories API (Pendiente / Activa / Finalizada)
@@ -255,7 +256,7 @@ export default function OrganizerDashboard() {
                   <LiveHeader
                     eventName={liveInfo.eventName}
                     phase={liveInfo.phase}
-                    eventCode={liveInfo.eventCode.toString()}
+                    eventCode={liveInfo.eventCode}
                     onExtend={handleExtend}
                     onClose={handleClose}
                     minimal={true}
@@ -280,10 +281,10 @@ export default function OrganizerDashboard() {
         )}>
           {/* STATS SECTION */}
           <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <StatsCard label="Votos Totales" value={stats?.totalVotes ?? 0} total={null} icon="CheckSquare" color="org" />
-            <StatsCard label="Participación" value={`${stats?.participation ?? 0}%`} total={null} icon="Users" color="jur" />
-            <StatsCard label="Proyectos" value={stats?.activeProjects ?? 0} total={null} icon="FileText" color="part" />
-            <StatsCard label="Media" value={stats?.avgScore ?? 0} total={null} icon="Heart" color="pub" />
+            <StatsCard label="Votos Totales" value={stats?.votosPublicoCount ?? 0} total={null} icon="CheckSquare" color="org" />
+            <StatsCard label="Participación" value={`${stats?.votosJuradoPorcentaje ?? 0}%`} total={null} icon="Users" color="jur" />
+            <StatsCard label="Proyectos" value={stats?.proyectosTotal ?? 0} total={null} icon="FileText" color="part" />
+            <StatsCard label="Participantes inscritos" value={stats?.participantesConectados ?? 0} total={null} icon="Heart" color="pub" />
           </section>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -318,15 +319,29 @@ export default function OrganizerDashboard() {
                 </div>
 
                 <div className="flex flex-col gap-3">
-                  {categorias.map(cat => (
-                    <div
-                      key={cat.id}
-                      className="w-full flex items-center gap-3 p-4 rounded-2xl bg-gray-50 border border-gray-100"
-                    >
-                      <div className="w-1.5 h-1.5 rounded-full bg-blue-600" />
-                      <span className="text-sm font-bold text-gray-700">{cat.nombre}</span>
-                    </div>
-                  ))}
+                  {categorias.map(cat => {
+                    const estadoStyles: Record<string, { dot: string; badge: string; label: string }> = {
+                      Activa:     { dot: "bg-green-500",  badge: "bg-green-50 text-green-700",  label: "Activa" },
+                      Pausada:    { dot: "bg-orange-400", badge: "bg-orange-50 text-orange-700", label: "Pausada" },
+                      Finalizada: { dot: "bg-gray-400",   badge: "bg-gray-100 text-gray-500",   label: "Finalizada" },
+                      Pendiente:  { dot: "bg-blue-400",   badge: "bg-blue-50 text-blue-600",    label: "Pendiente" },
+                    };
+                    const s = estadoStyles[cat.estado] ?? estadoStyles.Pendiente;
+                    return (
+                      <div
+                        key={cat.id}
+                        className="w-full flex flex-col gap-2 p-4 rounded-2xl bg-gray-50 border border-gray-100"
+                      >
+                        <div className="flex items-center gap-2">
+                          <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${s.dot}`} />
+                          <span className="text-sm font-bold text-gray-700">{cat.nombre}</span>
+                        </div>
+                        <span className={`self-start text-[11px] font-bold px-2 py-0.5 rounded-full ${s.badge}`}>
+                          {s.label}
+                        </span>
+                      </div>
+                    );
+                  })}
                   {categorias.length === 0 && (
                     <p className="text-sm text-gray-400 italic text-center py-4">No hay categorías definidas</p>
                   )}

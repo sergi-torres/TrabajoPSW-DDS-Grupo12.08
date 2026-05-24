@@ -1,13 +1,15 @@
 ﻿import { useEffect, useState, useContext } from "react";
+import { API_BASE_URL } from "../config/api";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { EventContext } from "../context/EventContext";
 import { EventSidebar } from "../components/layout/EventSidebar";
 import { useVoting } from "../context/VotingContext";
-import { ArrowLeft, Trophy, TrendingUp, TrendingDown, Minus, Target, Medal, Star, Trash2 , Plus, Pencil} from "lucide-react";
+import { ArrowLeft, Trophy, TrendingUp, TrendingDown, Minus, Target, Medal, Star, Trash2, Plus, Pencil } from "lucide-react";
 import { cn } from "../components/ui/utils";
 import { toast } from "sonner";
 import { ConfirmModal } from "../components/layout/ConfirmModal";
+import SimpleSearchBar from "../components/layout/SimpleSearchBar";
 
 // ============================================
 // TIPOS
@@ -45,12 +47,16 @@ function TabButton({
   active, 
   onClick, 
   children, 
-  icon 
+  icon,
+  accentColor,
+  accentHover,
 }: { 
   active: boolean; 
   onClick: () => void; 
   children: React.ReactNode;
   icon: React.ReactNode;
+  accentColor: string;
+  accentHover: string;
 }) {
   return (
     <button
@@ -58,15 +64,25 @@ function TabButton({
       className={cn(
         "flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all",
         active
-          ? "bg-purple-600 text-white shadow-lg"
+          ? "text-white shadow-lg"
           : "bg-gray-100 text-gray-700 hover:bg-gray-200"
       )}
+      style={active ? { backgroundColor: accentColor } : undefined}
+      onMouseEnter={(e) => {
+        if (!active) return;
+        (e.currentTarget as HTMLButtonElement).style.backgroundColor = accentHover;
+      }}
+      onMouseLeave={(e) => {
+        if (!active) return;
+        (e.currentTarget as HTMLButtonElement).style.backgroundColor = accentColor;
+      }}
     >
       {icon}
       {children}
     </button>
   );
 }
+
 
 // ============================================
 // COMPONENTE PRINCIPAL
@@ -86,6 +102,7 @@ export default function ProjectPage() {
   const [projectIdToDelete, setProjectIdToDelete] = useState<number | null>(null);
   const [projectNameToDelete, setProjectNameToDelete] = useState<string | null>(null);
   const [isDeletingProject, setIsDeletingProject] = useState(false);
+  const [busquedaProyectos, setBusquedaProyectos] = useState('');
 
   const isPublicRole = userRole === "Público";
   const themeColor = userColor || "#9333ea";
@@ -134,7 +151,6 @@ export default function ProjectPage() {
   localStorage.setItem("idEvento", String(proyecto.idEvento));
   localStorage.setItem("categorias", JSON.stringify(categorias));
   localStorage.setItem("usuarios", JSON.stringify(proyecto.idMiembros)); // Asumiendo que idMiembros es un array de IDs de usuarios
-  console.log(proyecto);
   navigate(`/editar-proyecto/${proyecto.id}`);
 };
 
@@ -157,7 +173,7 @@ export default function ProjectPage() {
     setIsDeletingProject(true);
 
 try {
-  const response = await fetch(`http://localhost:5245/api/proyectos/${projectIdToDelete}`, {
+  const response = await fetch(`${API_BASE_URL}/api/proyectos/${projectIdToDelete}`, {
     method: "DELETE",
   });
 
@@ -182,9 +198,18 @@ try {
 }
   };
 
-  const proyectosFiltrados = categoriaActiva
+  const proyectosFiltradosPorCategoria = categoriaActiva
     ? proyectos.filter(p => p.idCategoria === categoriaActiva)
     : proyectos;
+
+  const proyectosFiltrados = proyectosFiltradosPorCategoria.filter((p) => {
+    const termino = busquedaProyectos.toLowerCase().trim();
+    if (!termino) return true;
+    return (
+      p.nombre.toLowerCase().includes(termino) ||
+      p.descripcion.toLowerCase().includes(termino)
+    );
+  });
 
   // Ordenar proyectos por puntaje total
   const proyectosOrdenados = [...proyectosFiltrados].sort((a, b) => {
@@ -205,7 +230,7 @@ try {
         }
 
         // 1. Cargar categorías del evento
-        const categoriasRes = await fetch(`http://localhost:5245/api/categorias/evento/${eventoId}`);
+        const categoriasRes = await fetch(`${API_BASE_URL}/api/categorias/evento/${eventoId}`);
         const categoriasData = await categoriasRes.json();
         setCategorias(categoriasData);
         
@@ -214,14 +239,14 @@ try {
         }
 
         // 2. Cargar proyectos del evento
-        const proyectosRes = await fetch(`http://localhost:5245/api/proyectos/evento/${eventoId}`);
+        const proyectosRes = await fetch(`${API_BASE_URL}/api/proyectos/evento/${eventoId}`);
         const proyectosData = await proyectosRes.json();
         setProyectos(proyectosData);
 
         // 3. Cargar puntuaciones
         const todasPuntuaciones: Puntuacion[] = [];
         for (const proyecto of proyectosData) {
-          const res = await fetch(`http://localhost:5245/api/votacion/porProyecto?proyectoId=${proyecto.id}`);
+          const res = await fetch(`${API_BASE_URL}/api/votacion/porProyecto?proyectoId=${proyecto.id}`);
           if (res.ok) {
             const data = await res.json();
             todasPuntuaciones.push(...data);
@@ -290,10 +315,15 @@ try {
           {/* Tabs de Categorías */}
           <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-2.5 rounded-xl bg-purple-50 text-purple-600">
+              <div
+                className="p-2.5 rounded-xl"
+                style={{ color: userRole === "Organizador" ? "var(--color-org)" : userRole === "Jurado" ? "var(--color-jur)" : "var(--color-part)" }}
+              >
                 <Target size={20} />
               </div>
+
               <h2 className="text-xl font-heading font-bold text-gray-900">Categorías del Evento</h2>
+
             </div>
             
             <div className="flex flex-wrap gap-3">
@@ -303,46 +333,82 @@ try {
                   active={categoriaActiva === cat.id}
                   onClick={() => setCategoriaActiva(cat.id)}
                   icon={<Target size={16} />}
+                  accentColor={
+                    userRole === "Organizador"
+                      ? "var(--color-org)"
+                      : userRole === "Jurado"
+                        ? "var(--color-jur)"
+                        : "var(--color-part)"
+                  }
+                  accentHover={
+                    userRole === "Organizador"
+                      ? "rgba(59, 130, 246, 0.92)"
+                      : userRole === "Jurado"
+                        ? "rgba(249, 115, 22, 0.92)"
+                        : "rgba(139, 92, 246, 0.92)"
+                  }
                 >
                   {cat.nombre}
                 </TabButton>
               ))}
             </div>
+
           </div>
 
           {/* Ranking de Proyectos por Categoría */}
           {categoriaActiva && (
             <div className="bg-white rounded-2xl shadow-sm p-8 border border-gray-100 animate-in slide-in-from-bottom duration-300">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-xl bg-yellow-50 text-yellow-500">
-                    <Trophy size={20} />
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center mb-6">
+                <div className="w-full lg:max-w-md">
+                  <label className="sr-only" htmlFor="busquedaProyectos">Buscar proyectos</label>
+                  <div className="w-full flex justify-start">
+                    <SimpleSearchBar
+                      value={busquedaProyectos}
+                      onChange={setBusquedaProyectos}
+                      placeholder="Buscar por nombre de proyecto"
+                      className="w-full"
+                    />
                   </div>
-                  <h2 className="text-xl font-heading font-bold text-gray-900">
-                    Ranking - {categorias.find(c => c.id === categoriaActiva)?.nombre}
-                  </h2>
                 </div>
-                
-                {/* Botón para crear nuevo proyecto (solo organizador) */}
-                {esOrganizador && (
+              </div>
+
+              {esOrganizador && (
+                <div className="mb-6 flex justify-end">
                   <button
                     onClick={() => {
                       if (localStorage.getItem("proyectoABCD")) {
                         localStorage.removeItem("proyectoABCD");
                       }
 
+                      localStorage.setItem("registrationColorMode", (userRole === "Organizador" ? "org" : "part"));
                       navigate(`/eventos/${localStorage.getItem("eventoId")}/participantRegister`);
-
-                      console.log(localStorage.getItem("eventoId"));
-
                     }}
-                    className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl transition-all text-sm font-medium"
+                    className="flex items-center gap-2 px-4 py-2 text-white rounded-xl transition-all text-sm font-medium"
+                    style={{ backgroundColor: userRole === "Organizador" ? "var(--color-org)" : userRole === "Jurado" ? "var(--color-jur)" : "var(--color-part)" }}
+                    onMouseEnter={(e) => {
+                      const btn = e.currentTarget;
+                      btn.style.backgroundColor =
+                        userRole === "Organizador"
+                          ? "rgba(59, 130, 246, 0.92)"
+                          : userRole === "Jurado"
+                            ? "rgba(249, 115, 22, 0.92)"
+                            : "rgba(139, 92, 246, 0.92)";
+                    }}
+                    onMouseLeave={(e) => {
+                      const btn = e.currentTarget;
+                      btn.style.backgroundColor =
+                        userRole === "Organizador"
+                          ? "var(--color-org)"
+                          : userRole === "Jurado"
+                            ? "var(--color-jur)"
+                            : "var(--color-part)";
+                    }}
                   >
                     <Plus size={16} />
                     Crear proyecto
                   </button>
-                )}
-              </div>
+                </div>
+              )}
 
               {proyectosOrdenados.length === 0 ? (
                 <div className="text-center py-12 text-gray-500">
@@ -351,8 +417,8 @@ try {
               ) : (
                 <div className="space-y-4">
                   {proyectosOrdenados.map((proyecto, idx) => {
-                    const puntajeJurado = obtenerPuntaje(proyecto.id, categoriaActiva, "JURADO");
-                    const puntajePublico = obtenerPuntaje(proyecto.id, categoriaActiva, "PUBLICO");
+                    const puntajeJurado = obtenerPuntaje(proyecto.id, categoriaActiva!, "JURADO");
+                    const puntajePublico = obtenerPuntaje(proyecto.id, categoriaActiva!, "PUBLICO");
                     const puntajeTotal = puntajeJurado + puntajePublico;
                     const percentage = Math.min(100, (puntajeTotal / 200) * 100);
                     
@@ -379,9 +445,15 @@ try {
                           </div>
                           <div className="flex items-center gap-3">
                             <div className="text-right">
-                              <div className="text-2xl font-bold text-purple-600">{puntajeTotal}%</div>
+                              <div
+                                className="text-2xl font-bold"
+                                style={{ color: userRole === "Organizador" ? "var(--color-org)" : userRole === "Jurado" ? "var(--color-jur)" : "var(--color-part)" }}
+                              >
+                                {puntajeTotal}%
+                              </div>
                               <div className="text-xs text-gray-400">Puntaje Total</div>
                             </div>
+
                             {/* Botón de eliminar - solo organizador */}
                             {esOrganizador && (
                               <button
@@ -394,13 +466,13 @@ try {
                             )}
                             {/* Botón Modificar */}
                             {esOrganizador && (
-                                <button
+                              <button
                                 onClick={() => editarProyecto(proyecto)}
                                 className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-all"
                                 title="Modificar proyecto"
-                                >
-                                  <Pencil size={18} />
-                                </button>
+                              >
+                                <Pencil size={18} />
+                              </button>
                             )}
                           </div>
                         </div>
@@ -459,6 +531,7 @@ try {
           )}
         </main>
       </div>
+      
       <ConfirmModal
         isOpen={isDeleteModalOpen}
         title="Eliminar proyecto"

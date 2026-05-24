@@ -1,6 +1,7 @@
 ﻿import { ArrowLeft, Check, Target, Calendar, Users, Upload, X, Image as ImageIcon } from "lucide-react";
+import { API_BASE_URL } from "../config/api";
 import { useNavigate, useParams } from "react-router";
-import { useState, useEffect, useContext } from "react"; 
+import { useState, useEffect, useContext, useCallback } from "react"; 
 import { useVoting } from "../context/VotingContext";
 import { Card, CardHeader, CardTitle, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
@@ -30,18 +31,17 @@ export default function RegisterParticipant() {
     newMemberEmail: ""
   });
 
-  const [proyectosUsuario, setProyectosUsuario] = useState<ProyectoUsuario[]>([]);
+  const [proyectosUsuario, setProyectosUsuario] = useState<any[]>([]);
 
   useEffect(() => {
     const cargarProyectos = async () => {
       try {
         const userId = localStorage.getItem("userId");
         if (userId) {
-          const response = await fetch(`http://localhost:5245/api/proyectos/participante/${userId}`);
+          const response = await fetch(`${API_BASE_URL}/api/proyectos/participante/${userId}`);
           if (response.ok) {
             const proyectos = await response.json();
             setProyectosUsuario(proyectos);
-            console.log("Proyectos del usuario:", proyectos);
           }
         }
       } catch (error) {
@@ -53,14 +53,13 @@ export default function RegisterParticipant() {
         try {
             const eventoId = localStorage.getItem("eventoId");
             if (eventoId) {
-                const response = await fetch(`http://localhost:5245/api/Eventos/${eventoId}`);
+                const response = await fetch(`${API_BASE_URL}/api/Eventos/${eventoId}`);
                 if (response.ok) {
                     const evento = await response.json();
                     setEvento(evento);
                     setLocalCategories(evento.categorias || []);
                     localStorage.setItem("eventoId", evento.id.toString());
                     await reloadContext();
-                    console.log("Evento cargado:", evento);
                 }
             }
         } catch (error) {
@@ -75,7 +74,7 @@ export default function RegisterParticipant() {
   useEffect(() => {
     const userId = localStorage.getItem("userId");
     if (userId && projectData.memberIds.length === 0) {
-      setProjectData((prev) => ({
+      setProjectData((prev: any) => ({
         ...prev,
         memberIds: [parseInt(userId)]
       }));
@@ -105,15 +104,15 @@ export default function RegisterParticipant() {
     }
   };
 
-  const handleContinue = () => {
+  const handleContinue = useCallback(() => {
     if (!projectData.name || !projectData.description) {
       toast.error("Faltan campos obligatorios", { description: "Por favor completa el nombre y descripción del proyecto "});
       return;
     }
     setProjectCreated(true);
-  };
+  }, [projectData.name, projectData.description]);
 
-  const handleRegister = async () => {
+  const handleRegister = useCallback(async () => {
     if (projectCreated && (localCategories.length === 0 || selectedCategory)) {
       try {
         const userId = localStorage.getItem("userId");
@@ -131,8 +130,6 @@ export default function RegisterParticipant() {
         };
 
         const res = await createProyecto(newProject);
-        console.log("Proyecto creado:", res);
-        
         localStorage.setItem("proyectoABCD", JSON.stringify(res));
 
         toast.success("Tu proyecto ha sido registrado con éxito");
@@ -145,10 +142,25 @@ export default function RegisterParticipant() {
         toast.error("Error al crear proyecto", { description: error.message });
       }
     }
-  };
-;
+  }, [projectCreated, localCategories.length, selectedCategory, projectData.name, projectData.description, projectData.memberIds, navigate, addNotification]);
 
   const isReadyToRegister = projectCreated && (selectedCategory || localCategories.length === 0);
+
+  useEffect(() => {
+    const onGlobalKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
+        event.preventDefault();
+        if (!projectCreated) {
+          handleContinue();
+        } else if (isReadyToRegister) {
+          handleRegister();
+        }
+      }
+    };
+
+    window.addEventListener("keydown", onGlobalKeyDown);
+    return () => window.removeEventListener("keydown", onGlobalKeyDown);
+  }, [projectCreated, isReadyToRegister, handleContinue, handleRegister]);
   const isCollapsed = eventContext?.isCollapsed ?? false;
   const userRole = eventContext?.userRole ?? "Participante";
   
@@ -316,7 +328,7 @@ export default function RegisterParticipant() {
                         onClick={async () => {
                           if (projectData.newMemberEmail && projectData.newMemberEmail.includes("@")) {
                               try {
-                                  const response = await fetch(`http://localhost:5245/api/usuario/email/${projectData.newMemberEmail}`);
+                                  const response = await fetch(`${API_BASE_URL}/api/usuario/email/${projectData.newMemberEmail}`);
                                   if (!response.ok) {
                                       toast.error("Usuario no encontrado", { description: "El correo no está registrado en Votify" });
                                       return;

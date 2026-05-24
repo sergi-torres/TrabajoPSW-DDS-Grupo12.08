@@ -86,7 +86,7 @@ export function EventSidebar({ color: propColor, position = 'left' }: EventSideb
         roleLinks.push({ label: "Control Estados", path: `/eventos/${eventoId}/control-estados`, icon: Timer });
         roleLinks.push({ label: "Configuraciones", path: `/eventos/${eventoId}/configuraciones`, icon: Cog });
         roleLinks.push({ label: "Ajustes del evento", path: `/eventos/${eventoId}/ajustes`, icon: Settings });
-        roleLinks.push({ label: "premios", path: `/eventos/${eventoId}/premios`, icon: Trophy });
+        roleLinks.push({ label: "Premios", path: `/eventos/${eventoId}/premios`, icon: Trophy });
     } else if (userRole === "Jurado") {
         roleLinks.push({ label: "Votaciones", path: `/eventos/${eventoId}/votar`, icon: Vote });
     } else if (userRole === "Participante") {

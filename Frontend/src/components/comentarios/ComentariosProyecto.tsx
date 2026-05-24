@@ -1,4 +1,5 @@
 import { useState, useEffect, useContext } from "react";
+import { API_BASE_URL } from "../../config/api";
 import { EventContext } from "../../context/EventContext";
 import { comentariosApi } from "../../api/comentariosApi";
 import { categoriasApi } from "../../api/categoriasApi";
@@ -63,7 +64,7 @@ export default function ComentariosProyecto({ themeColor }: ComentariosProyectoP
         const catMap = new Map(allCats.map(c => [c.id, c.nombre]));
 
         // 2. Obtener los votos básicos del proyecto para identificar categorías con comentarios
-        const votoRes = await fetch(`http://localhost:5245/api/votacion/porProyecto?proyectoId=${idProyecto}`);
+        const votoRes = await fetch(`${API_BASE_URL}/api/votacion/porProyecto?proyectoId=${idProyecto}`);
         const votosBasicos: any[] = await votoRes.json();
         
         const catIds = Array.from(new Set(votosBasicos.map(v => v.idcategoria || v.categoriaId)));

@@ -1,4 +1,5 @@
-const API_URL = "http://localhost:5000/api/comentarios";
+import { API_BASE_URL } from "../config/api";
+const API_URL = `${API_BASE_URL}/api/comentarios`;
 
 export async function obtenerVotos(): Promise<any[]> {
     const response = await fetch(`${API_URL}/Votos`, {

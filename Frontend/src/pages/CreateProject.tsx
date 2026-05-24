@@ -3,7 +3,7 @@ import { useNavigate } from "react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { createProyecto } from "../api/proyectoApi";
 import { toast } from "sonner";
 
@@ -47,41 +47,57 @@ export default function CreateProject() {
     setTechnologies(technologies.filter(t => t !== tech));
   };
 
-const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const submitProject = useCallback(async () => {
     if (!projectData.name || !projectData.description) {
-        toast.error("Faltan campos obligatorios", { description: "Por favor completa el nombre y descripción del proyecto "});
-        return;
+      toast.error("Faltan campos obligatorios", { description: "Por favor completa el nombre y descripción del proyecto " });
+      return;
     }
 
-    // Obtener datos del usuario logueado
     const userId = localStorage.getItem("userId");
-    // const eventoId = localStorage.getItem("eventoId");
 
-    // ✅ CORREGIDO: Usa los nombres de propiedad que espera el backend
     const newProject = {
-        nombre: projectData.name,              // ← "nombre" no "name"
-        descripcion: projectData.description,  // ← "descripcion" no "description"
-        urlMultimedia: imagePreview || projectData.image || "🚀", // ← "urlMultimedia" no "image"
-        idEvento: null,
-        idParticipante: userId ? parseInt(userId) : 16,
-        idCategoria: null,
-        estado: "disponible"
+      nombre: projectData.name,
+      descripcion: projectData.description,
+      urlMultimedia: imagePreview || projectData.image || "🚀",
+      idEvento: null,
+      idParticipante: userId ? parseInt(userId) : 16,
+      idCategoria: null,
+      estado: "disponible"
     };
 
-    console.log("Datos del nuevo proyecto:", newProject);
-    
     try {
-        const res = await createProyecto(newProject);
-        console.log("Proyecto creado:", res);
-        toast.success("Tu proyecto ha sido registrado con éxito");
-        navigate("/participantRegister");
+      const res = await createProyecto(newProject);
+      toast.success("Tu proyecto ha sido registrado con éxito");
+      navigate("/participantRegister");
     } catch (error: any) {
-        console.error("Error al crear el proyecto:", error);
-        toast.error("Error al crear proyecto: " + (error?.message || "Ocurrió un error"));
+      console.error("Error al crear el proyecto:", error);
+      toast.error("Error al crear proyecto: " + (error?.message || "Ocurrió un error"));
     }
-};
+  }, [projectData, imagePreview, navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await submitProject();
+  };
+
+  const handleFormKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      submitProject();
+    }
+  };
+
+  useEffect(() => {
+    const onGlobalKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        submitProject();
+      }
+    };
+
+    window.addEventListener("keydown", onGlobalKeyDown);
+    return () => window.removeEventListener("keydown", onGlobalKeyDown);
+  }, [submitProject]);
 
   return (
     <div className="min-h-screen bg-[#F8F9FA]">
@@ -103,7 +119,7 @@ const handleSubmit = async (e: React.FormEvent) => {
       </div>
 
       <div className="max-w-4xl mx-auto p-6">
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} onKeyDown={handleFormKeyDown} className="space-y-6">
           {/* Imagen del Proyecto */}
           <Card className="border-purple-200 shadow-lg">
             <CardHeader>
@@ -209,7 +225,15 @@ const handleSubmit = async (e: React.FormEvent) => {
                     onChange={handleInputChange}
                     placeholder="Ej: React, Node.js, MongoDB"
                     className="flex-1 px-4 py-2 border border-purple-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTechnology())}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                        return;
+                      }
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addTechnology();
+                      }
+                    }}
                   />
                   <Button
                     type="button"
