@@ -1,4 +1,4 @@
-import { Link, useLocation, useParams, useNavigate } from "react-router-dom";
+﻿import { Link, useLocation, useParams, useNavigate } from "react-router-dom";
 import { Info, FolderOpen, Trophy, Settings, ClipboardList, User, FileText, LogOut, ChevronUp, ChevronLeft, ChevronRight, Vote, Timer, Lightbulb, LucideIcon, Sparkles, List, HelpCircle} from "lucide-react";
 import { useState, useRef, useEffect, useContext } from "react";
 import { useAuth } from "../../hooks/useAuth";
@@ -7,6 +7,7 @@ import { LogoutConfirmModal } from "./LogoutConfirmModal";
 import FAQModal from "./FAQModal";
 import { cn } from "../ui/utils";
 import logo from "../../assets/LogoSinTexto.png";
+import { SidebarTooltip } from "./SidebarTooltip";
 
 export interface EventSidebarProps {
     color?: string;
@@ -98,31 +99,38 @@ export function EventSidebar({ color: propColor, position = 'left' }: EventSideb
 
     const allLinks = [...commonLinks, ...roleLinks];
 
-    const NavItem = ({ link }: { link: NavLink }) => {
-        const isActive = location.pathname === link.path;
-        const Icon = link.icon;
+ const NavItem = ({ link }: { link: NavLink }) => {
+  const isActive = location.pathname === link.path;
+  const Icon = link.icon;
 
-        return (
-            <Link
-                to={link.path}
-                className={cn(
-                    "flex flex-col lg:flex-row items-center gap-1 lg:gap-3 px-3 py-2.5 lg:px-4 lg:py-3 rounded-xl transition-all duration-200",
-                    isActive 
-                        ? cn(activeStyle.bg, activeStyle.text, "font-semibold shadow-sm")
-                        : "text-slate-500 hover:text-slate-900 hover:bg-slate-50",
-                    isCollapsed && "lg:justify-center lg:px-0 lg:w-12 lg:mx-auto"
-                )}
-            >
-                <Icon 
-                    size={22} 
-                    strokeWidth={isActive ? 2.5 : 2} 
-                    color={isActive ? (activeColor || undefined) : "currentColor"}
-                />
-                {!isCollapsed && <span className="text-[11px] lg:text-sm font-medium">{link.label}</span>}
-                {isCollapsed && <span className="text-[11px] lg:hidden font-medium">{link.label}</span>}
-            </Link>
-        );
-    };
+  return (
+    <SidebarTooltip 
+      label={link.label} 
+      isCollapsed={isCollapsed}
+      side="right"
+      delay={400}
+    >
+      <Link
+        to={link.path}
+        className={cn(
+          "flex flex-col lg:flex-row items-center gap-1 lg:gap-3 px-3 py-2.5 lg:px-4 lg:py-3 rounded-xl transition-all duration-200",
+          isActive 
+            ? cn(activeStyle.bg, activeStyle.text, "font-semibold shadow-sm")
+            : "text-slate-500 hover:text-slate-900 hover:bg-slate-50",
+          isCollapsed && "lg:justify-center lg:px-0 lg:w-12 lg:mx-auto"
+        )}
+      >
+        <Icon 
+          size={22} 
+          strokeWidth={isActive ? 2.5 : 2} 
+          color={isActive ? (activeColor || undefined) : "currentColor"}
+        />
+        {!isCollapsed && <span className="text-[11px] lg:text-sm font-medium">{link.label}</span>}
+        {isCollapsed && <span className="text-[11px] lg:hidden font-medium">{link.label}</span>}
+      </Link>
+    </SidebarTooltip>
+  );
+};
 
     const isRight = position === 'right';
 
@@ -166,82 +174,93 @@ export function EventSidebar({ color: propColor, position = 'left' }: EventSideb
                     ))}
 
                     {/* Ayuda / FAQ link */}
+                    <SidebarTooltip 
+                      label="Ayuda" 
+                      isCollapsed={isCollapsed}
+                      side="right"
+                      delay={400}
+                    >
                     <button
                         onClick={() => setShowFAQ(true)}
-                        className={cn(
-                            "flex flex-col lg:flex-row items-center gap-1 lg:gap-3 px-3 py-2.5 lg:px-4 lg:py-3 rounded-xl transition-all duration-200 text-slate-500 hover:text-slate-900 hover:bg-slate-50 mt-auto",
+                            className={cn(
+                              "flex flex-col lg:flex-row items-center gap-1 lg:gap-3 px-3 py-2.5 lg:px-4 lg:py-3 rounded-xl transition-all duration-200 text-   slate-500 hover:text-slate-900 hover:bg-slate-50 mt-auto",
                             isCollapsed && "lg:justify-center lg:px-0 lg:w-12 lg:mx-auto"
-                        )}
-                    >
+                          )}
+                        >
                         <HelpCircle size={22} strokeWidth={2} color="currentColor" />
-                        {!isCollapsed && <span className="text-[11px] lg:text-sm font-medium">Ayuda</span>}
-                        {isCollapsed && <span className="text-[11px] lg:hidden font-medium">Ayuda</span>}
-                    </button>
+                            {!isCollapsed && <span className="text-[11px] lg:text-sm font-medium">Ayuda</span>}
+                            {isCollapsed && <span className="text-[11px] lg:hidden font-medium">Ayuda</span>}
+                        </button>
+                    </SidebarTooltip>
                 </nav>
 
                 {/* User Profile Section (Bottom) */}
-                <div className="relative mt-auto border-t border-slate-100 pt-4 px-2" ref={menuRef}>
-                    <div 
-                        className={cn(
-                            "flex items-center justify-between gap-3 cursor-pointer group hover:bg-slate-50 p-2 rounded-xl transition-all",
-                            isCollapsed && "justify-center"
-                        )}
-                        onClick={() => setIsMenuOpen(!isMenuOpen)}
-                    >
-                        <div className="flex items-center gap-3 min-w-0">
-                            <div className="h-9 w-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-700 font-medium text-sm shadow-sm ring-2 ring-slate-50 group-hover:ring-slate-100 transition-all flex-shrink-0">
-                                {initials}
-                            </div>
-                            {!isCollapsed && (
-                                <div className="flex flex-col min-w-0">
-                                    <p className="text-sm font-bold truncate text-slate-900">{userName || "Usuario"}</p>
-                                    <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">{userRole || "Invitado"}</p>
-                                </div>
-                            )}
-                        </div>
-                        {!isCollapsed && (
-                            <ChevronUp 
-                                size={16} 
-                                strokeWidth={2.5} 
-                                className={`text-slate-400 transition-transform duration-200 flex-shrink-0 ${isMenuOpen ? "rotate-180" : ""}`} 
-                            />
-                        )}
-                    </div>
+<div className="relative mt-auto border-t border-slate-100 pt-4 px-2" ref={menuRef}>
+  <SidebarTooltip 
+    label={userName || "Usuario"} 
+    isCollapsed={isCollapsed}
+    side="right"
+    delay={400}
+  >
+    <div 
+      className={cn(
+        "flex items-center justify-between gap-3 cursor-pointer group hover:bg-slate-50 p-2 rounded-xl transition-all",
+        isCollapsed && "justify-center"
+      )}
+      onClick={() => setIsMenuOpen(!isMenuOpen)}
+    >
+      <div className="flex items-center gap-3 min-w-0">
+        <div className="h-9 w-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-700 font-medium text-sm shadow-sm ring-2 ring-slate-50 group-hover:ring-slate-100 transition-all flex-shrink-0">
+          {initials}
+        </div>
+        {!isCollapsed && (
+          <div className="flex flex-col min-w-0">
+            <p className="text-sm font-bold truncate text-slate-900">{userName || "Usuario"}</p>
+            <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">{userRole || "Invitado"}</p>
+          </div>
+        )}
+      </div>
+      {!isCollapsed && (
+        <ChevronUp 
+          size={16} 
+          strokeWidth={2.5} 
+          className={`text-slate-400 transition-transform duration-200 flex-shrink-0 ${isMenuOpen ? "rotate-180" : ""}`} 
+        />
+      )}
+    </div>
+  </SidebarTooltip>
 
-                    {/* Pop-up Menu */}
-                    {isMenuOpen && (
-                        <div className={cn(
-                            "absolute bottom-full mb-2 bg-white border border-slate-100 rounded-2xl shadow-xl py-2 z-50 animate-in fade-in zoom-in slide-in-from-bottom-2 duration-200 text-slate-700",
-                            isCollapsed ? "left-full ml-2 w-48" : "left-2 right-2"
-                        )}>
-                            <button 
-                                onClick={() => navigate("/perfil")}
-                                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-slate-50 transition-colors"
-                            >
-                                <User size={16} className="text-slate-400" />
-                                Mi Perfil
-                            </button>
-                            <button 
-                                onClick={() => navigate("/ayuda")}
-                                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-slate-50 transition-colors"
-                            >
-                                <HelpCircle size={16} className="text-slate-400" />
-                                Ayuda
-                            </button>
-                            <div className="h-px bg-slate-100 my-1 mx-2" />
-                                    <button 
-                                onClick={() => {
-                                    setIsMenuOpen(false);
-                                    setShowLogoutModal(true);
-                                }}
-                                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-rose-600 hover:bg-rose-50 transition-colors font-semibold"
-                            >
-                                <LogOut size={16} />
-                                Cerrar sesión
-                            </button>
-                        </div>
-                    )}
-                </div>
+  {/* Pop-up Menu - solo visible cuando no está colapsado */}
+  {!isCollapsed && isMenuOpen && (
+    <div className="absolute bottom-full mb-2 left-2 right-2 bg-white border border-slate-100 rounded-2xl shadow-xl py-2 z-50 animate-in fade-in zoom-in slide-in-from-bottom-2 duration-200 text-slate-700">
+      <button 
+        onClick={() => navigate("/perfil")}
+        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-slate-50 transition-colors"
+      >
+        <User size={16} className="text-slate-400" />
+        Mi Perfil
+      </button>
+      <button 
+        onClick={() => navigate("/ayuda")}
+        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-slate-50 transition-colors"
+      >
+        <HelpCircle size={16} className="text-slate-400" />
+        Ayuda
+      </button>
+      <div className="h-px bg-slate-100 my-1 mx-2" />
+      <button 
+        onClick={() => {
+          setIsMenuOpen(false);
+          setShowLogoutModal(true);
+        }}
+        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-rose-600 hover:bg-rose-50 transition-colors font-semibold"
+      >
+        <LogOut size={16} />
+        Cerrar sesión
+      </button>
+    </div>
+  )}
+</div>
             </aside>
 
             <LogoutConfirmModal

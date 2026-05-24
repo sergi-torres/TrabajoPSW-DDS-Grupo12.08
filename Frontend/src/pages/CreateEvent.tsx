@@ -1,7 +1,7 @@
 import { useState, useEffect, useContext } from "react";
 import { API_BASE_URL } from "../config/api";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, ArrowRight, Check, Loader2, Sparkles, HelpCircle, Target, Scale, Award, Trash2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Loader2, Sparkles, HelpCircle, Target, Scale, Award, Trash2, Settings, Wrench } from "lucide-react";
 import StepIndicator from "../components/createEvent/StepIndicator";
 import StepDetalles from "../components/createEvent/StepDetalles";
 import StepVotaciones from "../components/createEvent/StepVotaciones";
@@ -15,6 +15,7 @@ import { EventContext } from "../context/EventContext";
 import { cn } from "../components/ui/utils";
 import { useVoting } from "../context/VotingContext";
 import ConfigHelpPanel from "../components/ui/ConfigHelpPanel";
+import { EventConfigPanel } from "../components/organizator_dashboard/EventConfigPanel";
 
 const steps = [
   { number: 1, label: "Detalles" },
@@ -43,6 +44,14 @@ const CreateEvent = () => {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
+  const [showConfigPanel, setShowConfigPanel] = useState(false);
+  const [configAvanzada, setConfigAvanzada] = useState({
+    voteLimit: 3,
+    categoryDuration: 30,
+    anonymousVoting: false,
+    allowComments: false,
+  });
+
   const [detalles, setDetalles] = useState({
     nombre: "",
     descripcion: "",
@@ -70,6 +79,24 @@ const CreateEvent = () => {
     analisisAutomatico: false,
   });
 
+  // Handler para sincronizar comentarios entre StepVotaciones y EventConfigPanel
+  const handleComentariosChange = (value: boolean) => {
+    setVotacion(prev => ({ ...prev, comentariosObligatorios: value }));
+    setConfigAvanzada(prev => ({ ...prev, allowComments: value }));
+  };
+
+  // Handler para editar paso 3 desde el panel
+  const handleEditStep3 = () => {
+    setCurrentStep(3);
+    setShowConfigPanel(false);
+    
+    // Scroll suave al componente de pesos después de cambiar de paso
+    setTimeout(() => {
+      const element = document.getElementById('step3-votaciones');
+      element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+  };
+
   // Cargar datos del evento en modo edición
   useEffect(() => {
     if (!isEditMode) return;
@@ -93,14 +120,20 @@ const CreateEvent = () => {
         // Prellenar votación
         const categorias = (data.categorias || []).map((c: any) => c.nombre);
         const pesoJurado = data.categorias?.[0]?.pesos?.find((p: any) => p.rolVotante === "Jurado")?.peso ?? 70;
-        const pesoPublico = data.categorias?.[0]?.pesos?.find((p: any) => p.rolVotante === "Publico")?.peso ?? 30;
+        const comentariosObligatorios = data.comentariosObligatorios ?? false;
 
         setVotacion({
-          votoPublicoHabilitado: pesoPublico > 0,
+          votoPublicoHabilitado: true,
           pesoJurado: pesoJurado,
           categorias: categorias.length > 0 && categorias[0] !== "Global" ? categorias : [],
-          comentariosObligatorios: data.comentariosObligatorios ?? false,
+          comentariosObligatorios: comentariosObligatorios,
         });
+
+        // Sincronizar configAvanzada con los datos cargados
+        setConfigAvanzada(prev => ({
+          ...prev,
+          allowComments: comentariosObligatorios,
+        }));
 
         // Prellenar reglas/baremos
         const baremo = data.baremos?.[0];
@@ -183,6 +216,11 @@ const CreateEvent = () => {
       if (!detalles.nombre.trim()) throw new Error("El nombre del evento es obligatorio.");
       if (!detalles.fechaInicio) throw new Error("La fecha de inicio es obligatoria.");
       if (!detalles.fechaFin) throw new Error("La fecha de fin es obligatoria.");
+      
+      const categoriasValidas = votacion.categorias?.filter((cat: string) => cat && cat.trim() !== "") || [];
+      if (categoriasValidas.length === 0) {
+        throw new Error("Debes agregar al menos una categoría válida para el evento.");
+      }
 
       const inicio = new Date(detalles.fechaInicio);
       const fin = new Date(detalles.fechaFin);
@@ -211,13 +249,7 @@ const CreateEvent = () => {
           }]
         : [];
 
-      const categoriasFinales = [
-        ...new Set(
-          votacion.categorias.length === 0
-            ? ["Global"]
-            : votacion.categorias
-        )
-      ];
+      const categoriasFinales = [...new Set(categoriasValidas)];
 
       if (isEditMode) {
         const updateBody = {
@@ -238,6 +270,12 @@ const CreateEvent = () => {
           votoPublicoHabilitado: votacion.votoPublicoHabilitado,
           pesoJurado: votacion.pesoJurado,
           comentariosObligatorios: votacion.comentariosObligatorios,
+          configuracionAvanzada: {
+            voteLimit: configAvanzada.voteLimit,
+            categoryDuration: configAvanzada.categoryDuration,
+            anonymousVoting: configAvanzada.anonymousVoting,
+            allowComments: configAvanzada.allowComments,
+          }
         };
 
         await updateEvento(Number(eventoId), updateBody);
@@ -262,7 +300,13 @@ const CreateEvent = () => {
             { rolVotante: "Jurado", peso: votacion.pesoJurado },
             { rolVotante: "Publico", peso: 100 - votacion.pesoJurado }
           ]
-        }))
+        })),
+        configuracionAvanzada: {
+          voteLimit: configAvanzada.voteLimit,
+          categoryDuration: configAvanzada.categoryDuration,
+          anonymousVoting: configAvanzada.anonymousVoting,
+          allowComments: configAvanzada.allowComments,
+        }
       };
 
       const response = await fetch(`${API_BASE_URL}/api/event`, {
@@ -275,9 +319,7 @@ const CreateEvent = () => {
       if (!response.ok) throw new Error(data?.error || "Error al crear el evento");
 
       toast.success("Evento creado exitosamente");
-
       addNotification("event_created", "Evento creado");
-
       navigate("/eventos");
 
     } catch (error: any) {
@@ -401,7 +443,15 @@ const CreateEvent = () => {
           <div className="bg-white rounded-[32px] shadow-sm border border-gray-100 p-6 sm:p-10 mb-8">
             {currentStep === 1 && <StepDetalles data={detalles} onChange={setDetalles} />}
             {currentStep === 2 && <StepReglas data={reglas} onChange={setReglas} readOnlyBaremos={readOnlyBaremos} />}
-            {currentStep === 3 && <StepVotaciones data={votacion} onChange={setVotacion} />}
+            {currentStep === 3 && (
+              <div id="step3-votaciones">
+                <StepVotaciones 
+                  data={votacion} 
+                  onChange={setVotacion}
+                  onComentariosChange={handleComentariosChange}
+                />
+              </div>
+            )}
           </div>
 
           {isEditMode && (
@@ -473,8 +523,47 @@ const CreateEvent = () => {
         </main>
       </div>
 
+      {/* Botón flotante de configuración avanzada */}
+      <button
+        onClick={() => setShowConfigPanel(!showConfigPanel)}
+        className="fixed bottom-6 right-6 z-50 p-4 bg-purple-600 text-white rounded-full shadow-lg hover:bg-purple-700 transition-all transform hover:scale-105"
+      >
+        <Settings className="w-6 h-6" />
+      </button>
+
+      {/* Panel deslizable de configuración avanzada */}
+      <div className={cn(
+        "fixed top-0 right-0 h-full w-96 bg-white shadow-2xl z-40 transition-transform duration-300 ease-in-out overflow-y-auto",
+        showConfigPanel ? "translate-x-0" : "translate-x-full"
+      )}>
+        <div className="sticky top-0 bg-white p-4 border-b border-gray-100 flex justify-between items-center z-10">
+          <h2 className="text-xl font-bold flex items-center gap-2">
+            <Wrench className="w-5 h-5 text-purple-600" />
+            Configuración Avanzada
+          </h2>
+          <button 
+            onClick={() => setShowConfigPanel(false)}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            ✕
+          </button>
+        </div>
+        <div className="p-4">
+          <EventConfigPanel 
+            eventConfig={configAvanzada}
+            onUpdateConfig={setConfigAvanzada}
+            allowComments={votacion.comentariosObligatorios}
+            onAllowCommentsChange={handleComentariosChange}
+            juryWeight={votacion.pesoJurado}
+            publicWeight={100 - votacion.pesoJurado}
+            onEditStep3={handleEditStep3}
+          />
+        </div>
+      </div>
+
       {/* Floating config help panel */}
       <ConfigHelpPanel />
+      
       <InfoModal
         isOpen={showHelpModal}
         title="Guía de Creación de Eventos"
