@@ -46,12 +46,16 @@ function TabButton({
   active, 
   onClick, 
   children, 
-  icon 
+  icon,
+  accentColor,
+  accentHover,
 }: { 
   active: boolean; 
   onClick: () => void; 
   children: React.ReactNode;
   icon: React.ReactNode;
+  accentColor: string;
+  accentHover: string;
 }) {
   return (
     <button
@@ -59,15 +63,25 @@ function TabButton({
       className={cn(
         "flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all",
         active
-          ? "bg-purple-600 text-white shadow-lg"
+          ? "text-white shadow-lg"
           : "bg-gray-100 text-gray-700 hover:bg-gray-200"
       )}
+      style={active ? { backgroundColor: accentColor } : undefined}
+      onMouseEnter={(e) => {
+        if (!active) return;
+        (e.currentTarget as HTMLButtonElement).style.backgroundColor = accentHover;
+      }}
+      onMouseLeave={(e) => {
+        if (!active) return;
+        (e.currentTarget as HTMLButtonElement).style.backgroundColor = accentColor;
+      }}
     >
       {icon}
       {children}
     </button>
   );
 }
+
 
 // ============================================
 // COMPONENTE PRINCIPAL
@@ -301,10 +315,15 @@ try {
           {/* Tabs de Categorías */}
           <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-2.5 rounded-xl bg-purple-50 text-purple-600">
+              <div
+                className="p-2.5 rounded-xl"
+                style={{ color: userRole === "Organizador" ? "var(--color-org)" : userRole === "Jurado" ? "var(--color-jur)" : "var(--color-part)" }}
+              >
                 <Target size={20} />
               </div>
+
               <h2 className="text-xl font-heading font-bold text-gray-900">Categorías del Evento</h2>
+
             </div>
             
             <div className="flex flex-wrap gap-3">
@@ -314,11 +333,26 @@ try {
                   active={categoriaActiva === cat.id}
                   onClick={() => setCategoriaActiva(cat.id)}
                   icon={<Target size={16} />}
+                  accentColor={
+                    userRole === "Organizador"
+                      ? "var(--color-org)"
+                      : userRole === "Jurado"
+                        ? "var(--color-jur)"
+                        : "var(--color-part)"
+                  }
+                  accentHover={
+                    userRole === "Organizador"
+                      ? "rgba(59, 130, 246, 0.92)"
+                      : userRole === "Jurado"
+                        ? "rgba(249, 115, 22, 0.92)"
+                        : "rgba(139, 92, 246, 0.92)"
+                  }
                 >
                   {cat.nombre}
                 </TabButton>
               ))}
             </div>
+
           </div>
 
           {/* Ranking de Proyectos por Categoría */}
@@ -346,10 +380,30 @@ try {
                         localStorage.removeItem("proyectoABCD");
                       }
 
+                      localStorage.setItem("registrationColorMode", (userRole === "Organizador" ? "org" : "part"));
                       navigate(`/eventos/${localStorage.getItem("eventoId")}/participantRegister`);
                       console.log(localStorage.getItem("eventoId"));
                     }}
-                    className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl transition-all text-sm font-medium"
+                    className="flex items-center gap-2 px-4 py-2 text-white rounded-xl transition-all text-sm font-medium"
+                    style={{ backgroundColor: userRole === "Organizador" ? "var(--color-org)" : userRole === "Jurado" ? "var(--color-jur)" : "var(--color-part)" }}
+                    onMouseEnter={(e) => {
+                      const btn = e.currentTarget;
+                      btn.style.backgroundColor =
+                        userRole === "Organizador"
+                          ? "rgba(59, 130, 246, 0.92)"
+                          : userRole === "Jurado"
+                            ? "rgba(249, 115, 22, 0.92)"
+                            : "rgba(139, 92, 246, 0.92)";
+                    }}
+                    onMouseLeave={(e) => {
+                      const btn = e.currentTarget;
+                      btn.style.backgroundColor =
+                        userRole === "Organizador"
+                          ? "var(--color-org)"
+                          : userRole === "Jurado"
+                            ? "var(--color-jur)"
+                            : "var(--color-part)";
+                    }}
                   >
                     <Plus size={16} />
                     Crear proyecto
@@ -392,9 +446,15 @@ try {
                           </div>
                           <div className="flex items-center gap-3">
                             <div className="text-right">
-                              <div className="text-2xl font-bold text-purple-600">{puntajeTotal}%</div>
+                              <div
+                                className="text-2xl font-bold"
+                                style={{ color: userRole === "Organizador" ? "var(--color-org)" : userRole === "Jurado" ? "var(--color-jur)" : "var(--color-part)" }}
+                              >
+                                {puntajeTotal}%
+                              </div>
                               <div className="text-xs text-gray-400">Puntaje Total</div>
                             </div>
+
                             {/* Botón de eliminar - solo organizador */}
                             {esOrganizador && (
                               <button
