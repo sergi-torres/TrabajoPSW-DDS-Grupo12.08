@@ -76,6 +76,8 @@ const CreateEvent = () => {
       try {
         setLoadingEvento(true);
         const data = await getEventoDetalle(Number(eventoId));
+        console.log('[CreateEvent] evento detalle recibido:', data);
+
 
         setEventoEstado(data.estado);
 
@@ -93,12 +95,30 @@ const CreateEvent = () => {
         const pesoJurado = data.categorias?.[0]?.pesos?.find((p: any) => p.rolVotante === "Jurado")?.peso ?? 70;
         const pesoPublico = data.categorias?.[0]?.pesos?.find((p: any) => p.rolVotante === "Publico")?.peso ?? 30;
 
+        // Nota: el backend puede no devolver el booleano con el mismo nombre que usamos en el frontend.
+        // Por eso, priorizamos varias keys y al final hacemos fallback con el peso de público.
+        const votoPublicoHabilitadoBackend =
+          (data as any).votoPublicoHabilitado ??
+          (data as any).votoPublico ??
+          (data as any).publicoHabilitado ??
+          undefined;
+
+        // Si el organizador guarda el toggle desactivado, el backend debe devolverlo.
+        // Si no lo devuelve (undefined), como último fallback usamos el peso público.
+        const votoPublicoHabilitadoFinal =
+          votoPublicoHabilitadoBackend !== undefined
+            ? Boolean(votoPublicoHabilitadoBackend)
+            : Boolean(pesoPublico > 0);
+
         setVotacion({
-          votoPublicoHabilitado: pesoPublico > 0,
+          votoPublicoHabilitado: votoPublicoHabilitadoFinal,
           pesoJurado: pesoJurado,
           categorias: categorias.length > 0 && categorias[0] !== "Global" ? categorias : [],
           comentariosObligatorios: data.comentariosObligatorios ?? false,
         });
+
+
+
 
         // Prellenar reglas/baremos
         const baremo = data.baremos?.[0];
@@ -164,6 +184,7 @@ const CreateEvent = () => {
       if (!detalles.nombre.trim()) throw new Error("El nombre del evento es obligatorio.");
       if (!detalles.fechaInicio) throw new Error("La fecha de inicio es obligatoria.");
       if (!detalles.fechaFin) throw new Error("La fecha de fin es obligatoria.");
+
 
       const inicio = new Date(detalles.fechaInicio);
       const fin = new Date(detalles.fechaFin);
@@ -269,6 +290,10 @@ const CreateEvent = () => {
   };
 
   const handleCtrlEnter = (e: React.KeyboardEvent<HTMLDivElement> | KeyboardEvent) => {
+    // Evitar que el hotkey dispare en repetición mientras se mantiene presionado
+    // (repeat es true cuando el navegador re-emite el keydown por mantener la tecla)
+    if ('repeat' in e && e.repeat) return;
+
     if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
       e.preventDefault();
       if (currentStep < 3) {
@@ -279,13 +304,25 @@ const CreateEvent = () => {
     }
   };
 
+
   useEffect(() => {
-    const onGlobalKeyDown = (event: KeyboardEvent) => handleCtrlEnter(event);
+    const onGlobalKeyDown = (event: KeyboardEvent) => {
+      // Evitar que el hotkey dispare acciones si el usuario está en un input/textarea
+      // (por ejemplo, en el último paso se puede disparar justo al cambiar foco)
+      const target = event.target as HTMLElement | null;
+      const tag = target?.tagName?.toLowerCase();
+      const isTyping = tag === 'input' || tag === 'textarea' || (target as any)?.isContentEditable;
+      if (isTyping) return;
+
+      handleCtrlEnter(event);
+    };
+
     window.addEventListener("keydown", onGlobalKeyDown);
     return () => window.removeEventListener("keydown", onGlobalKeyDown);
   }, [currentStep, handleNext, handlePublish]);
 
   const readOnlyBaremos = isEditMode && (eventoEstado === "Activo" || eventoEstado === "EnVotacion");
+
 
   if (loadingEvento) {
     return (
