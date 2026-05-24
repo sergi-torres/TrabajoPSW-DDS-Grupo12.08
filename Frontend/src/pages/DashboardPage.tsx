@@ -98,7 +98,7 @@ export default function DashboardPage() {
     const loading = activeTab === "mis-eventos" ? loadingMis : loadingDisponibles;
 
     return (
-        <div className="min-h-screen bg-background font-body pb-[88px] lg:pb-12 lg:pt-[72px] text-foreground">
+        <div className="min-h-screen bg-background font-body pb-[120px] lg:pb-12 lg:pt-[72px] text-foreground">
             <DesktopHeader searchQuery={searchQuery} onSearchChange={setSearchQuery} />
 
             <main className="max-w-7xl mx-auto px-4 lg:px-8 py-6 lg:py-10">

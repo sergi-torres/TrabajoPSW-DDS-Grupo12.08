@@ -1,4 +1,4 @@
-﻿import React, { useState, useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import ProyectosLista from '../components/votacion/votacionProyectos/ProyectosLista';
 import OpcionesSeleccionado from '../components/votacion/votacionProyectos/OpcionesSeleccionado';
 import EvaluacionCriterios from '../components/votacion/votacionProyectos/EvaluacionCriterios';
@@ -120,7 +120,7 @@ const DashboardVotacionProyectos: React.FC<Props> = ({ categoria, alVolver, come
     <div className="min-h-screen bg-gray-50 font-body relative">
       {!effectivelyPublic && <EventSidebar />}
 
-      <div className="pb-[88px] lg:pb-0">
+      <div className="pb-[120px] lg:pb-0">
         <header 
           className={cn(
             "text-white p-6 lg:p-10 transition-all duration-300",

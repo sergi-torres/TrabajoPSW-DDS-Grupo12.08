@@ -193,7 +193,7 @@ export default function OrganizerDashboard() {
     <div className="min-h-screen bg-gray-50 font-body relative">
       <EventSidebar />
 
-      <div className="pb-[88px] lg:pb-0">
+      <div className="pb-[120px] lg:pb-0">
         <header 
             className={cn(
               "text-white p-6 lg:p-10 transition-all duration-300",

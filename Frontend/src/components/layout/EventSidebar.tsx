@@ -162,7 +162,7 @@ export function EventSidebar({ color: propColor, position = 'left' }: EventSideb
                 {/* Logo Section */}
                 <div 
                     className={cn(
-                        "flex items-center gap-3 text-[1.25rem] font-bold font-heading tracking-tight px-4 py-8 mb-4 cursor-pointer group",
+                        "flex items-center gap-3 text-[1.25rem] font-bold font-heading tracking-tight px-4 py-5 mb-2 cursor-pointer group",
                         isCollapsed && "justify-center px-0"
                     )}
                     onClick={() => navigate("/eventos")}
@@ -173,12 +173,15 @@ export function EventSidebar({ color: propColor, position = 'left' }: EventSideb
                     {!isCollapsed && <span className="text-slate-900">Votify</span>}
                 </div>
 
-                <nav className="flex flex-col gap-2 flex-1">
-                    {allLinks.map((link) => (
-                        <NavItem key={link.path} link={link} />
-                    ))}
+                <nav className="flex flex-col flex-1 min-h-0">
+                    {/* Scrollable links */}
+                    <div className="flex flex-col gap-2 flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                        {allLinks.map((link) => (
+                            <NavItem key={link.path} link={link} />
+                        ))}
+                    </div>
 
-                    {/* Ayuda / FAQ link */}
+                    {/* Ayuda / FAQ link — always visible at bottom */}
                     <SidebarTooltip
                       label="Ayuda"
                       isCollapsed={isCollapsed}
@@ -187,7 +190,7 @@ export function EventSidebar({ color: propColor, position = 'left' }: EventSideb
                     <button
                         onClick={() => setShowFAQ(true)}
                             className={cn(
-                              "flex flex-col lg:flex-row items-center gap-1 lg:gap-3 px-3 py-2.5 lg:px-4 lg:py-3 rounded-xl transition-all duration-200 text-   slate-500 hover:text-slate-900 hover:bg-slate-50 mt-auto",
+                              "flex flex-col lg:flex-row items-center gap-1 lg:gap-3 px-3 py-2.5 lg:px-4 lg:py-3 rounded-xl transition-all duration-200 text-slate-500 hover:text-slate-900 hover:bg-slate-50 mt-2 flex-shrink-0",
                             isCollapsed && "lg:justify-center lg:px-0 lg:w-12 lg:mx-auto"
                           )}
                         >

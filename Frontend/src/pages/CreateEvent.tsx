@@ -384,7 +384,7 @@ const CreateEvent = () => {
     <div className="min-h-screen bg-gray-50 font-body relative" onKeyDown={handleCtrlEnter}>
       {isEditMode && !isPublicRole && <EventSidebar />}
 
-      <div className="pb-[88px] lg:pb-0">
+      <div className="pb-[120px] lg:pb-0">
         {/* Full-width Header for Settings matching OrganizerDashboard */}
         <header 
           className={cn(

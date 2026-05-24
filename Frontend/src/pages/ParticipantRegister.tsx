@@ -1,4 +1,4 @@
-﻿import { ArrowLeft, Check, Target, Calendar, Users, Upload, X, Image as ImageIcon } from "lucide-react";
+import { ArrowLeft, Check, Target, Calendar, Users, Upload, X, Image as ImageIcon } from "lucide-react";
 import { API_BASE_URL } from "../config/api";
 import { useNavigate, useParams } from "react-router";
 import { useState, useEffect, useContext, useCallback } from "react"; 
@@ -171,7 +171,7 @@ export default function RegisterParticipant() {
     <div className="min-h-screen bg-gray-50 font-body relative">
       <EventSidebar />
       
-      <div className="pb-[88px] lg:pb-12">
+      <div className="pb-[120px] lg:pb-12">
         {/* Header - Full Width Background */}
         <header 
           className={cn(

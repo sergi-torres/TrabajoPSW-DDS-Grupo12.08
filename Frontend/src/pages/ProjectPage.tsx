@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, useContext } from "react";
+import { useEffect, useState, useContext } from "react";
 import { API_BASE_URL } from "../config/api";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
@@ -279,7 +279,7 @@ try {
     <div className="min-h-screen bg-gray-50 font-body relative">
       {!isPublicRole && <EventSidebar />}
 
-      <div className="pb-[88px] lg:pb-12">
+      <div className="pb-[120px] lg:pb-12">
         <header
           className={cn(
             "text-white p-6 lg:p-10 transition-all duration-300",

@@ -83,7 +83,7 @@ const DashboardVotacionCategorias = () => {
     <div className="min-h-screen bg-gray-50 font-body relative">
       {!effectivelyPublic && <EventSidebar />}
 
-      <div className="pb-[88px] lg:pb-0">
+      <div className="pb-[120px] lg:pb-0">
         {/* HEADER - Dynamic Style - Full Width */}
         <header 
           className={cn(

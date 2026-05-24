@@ -48,7 +48,7 @@ export default function ProfilePage() {
         : null;
 
     return (
-        <div className="min-h-screen bg-background font-body pb-[88px] lg:pb-12 lg:pt-[72px] text-foreground">
+        <div className="min-h-screen bg-background font-body pb-[120px] lg:pb-12 lg:pt-[72px] text-foreground">
             <DesktopHeader />
 
             <main className="max-w-3xl mx-auto px-4 lg:px-8 py-8 lg:py-12 space-y-6">
