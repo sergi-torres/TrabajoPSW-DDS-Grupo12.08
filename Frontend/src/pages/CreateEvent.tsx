@@ -1,6 +1,6 @@
-import { useState, useEffect, useContext } from "react";
+﻿import { useState, useEffect, useContext } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, ArrowRight, Check, Loader2, Sparkles, HelpCircle, Target, Scale, Award } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Loader2, Sparkles, HelpCircle, Target, Scale, Award, Settings, Wrench } from "lucide-react";
 import StepIndicator from "../components/createEvent/StepIndicator";
 import StepDetalles from "../components/createEvent/StepDetalles";
 import StepVotaciones from "../components/createEvent/StepVotaciones";
@@ -14,6 +14,7 @@ import { EventContext } from "../context/EventContext";
 import { cn } from "../components/ui/utils";
 import { useVoting } from "../context/VotingContext";
 import ConfigHelpPanel from "../components/ui/ConfigHelpPanel";
+import { EventConfigPanel } from "../components/organizator_dashboard/EventConfigPanel";
 
 const steps = [
   { number: 1, label: "Detalles" },
@@ -39,6 +40,17 @@ const CreateEvent = () => {
   const [loadingEvento, setLoadingEvento] = useState(false);
   const [eventoEstado, setEventoEstado] = useState("");
   const [showHelpModal, setShowHelpModal] = useState(false);
+  
+  // Estado para el panel de configuración avanzada
+  const [showConfigPanel, setShowConfigPanel] = useState(false);
+  const [configAvanzada, setConfigAvanzada] = useState({
+    voteLimit: 3,
+    categoryDuration: 30,
+    anonymousVoting: false,
+    juryWeight: 70,
+    publicWeight: 30,
+    allowComments: true,
+  });
 
   const [detalles, setDetalles] = useState({
     nombre: "",
@@ -218,6 +230,12 @@ const CreateEvent = () => {
           votoPublicoHabilitado: votacion.votoPublicoHabilitado,
           pesoJurado: votacion.pesoJurado,
           comentariosObligatorios: votacion.comentariosObligatorios,
+          configuracionAvanzada: {
+            voteLimit: configAvanzada.voteLimit,
+            categoryDuration: configAvanzada.categoryDuration,
+            anonymousVoting: configAvanzada.anonymousVoting,
+            allowComments: configAvanzada.allowComments,
+          }
         };
 
         await updateEvento(Number(eventoId), updateBody);
@@ -242,7 +260,13 @@ const CreateEvent = () => {
             { rolVotante: "Jurado", peso: votacion.pesoJurado },
             { rolVotante: "Publico", peso: 100 - votacion.pesoJurado }
           ]
-        }))
+        })),
+        configuracionAvanzada: {
+          voteLimit: configAvanzada.voteLimit,
+          categoryDuration: configAvanzada.categoryDuration,
+          anonymousVoting: configAvanzada.anonymousVoting,
+          allowComments: configAvanzada.allowComments,
+        }
       };
 
       const response = await fetch("http://localhost:5245/api/event", {
@@ -398,8 +422,42 @@ const CreateEvent = () => {
         </main>
       </div>
 
+      {/* Botón flotante de configuración avanzada */}
+      <button
+        onClick={() => setShowConfigPanel(!showConfigPanel)}
+        className="fixed bottom-6 right-6 z-50 p-4 bg-purple-600 text-white rounded-full shadow-lg hover:bg-purple-700 transition-all transform hover:scale-105"
+      >
+        <Settings className="w-6 h-6" />
+      </button>
+
+      {/* Panel deslizable de configuración avanzada */}
+      <div className={cn(
+        "fixed top-0 right-0 h-full w-96 bg-white shadow-2xl z-40 transition-transform duration-300 ease-in-out overflow-y-auto",
+        showConfigPanel ? "translate-x-0" : "translate-x-full"
+      )}>
+        <div className="sticky top-0 bg-white p-4 border-b border-gray-100 flex justify-between items-center z-10">
+          <h2 className="text-xl font-bold flex items-center gap-2">
+            <Wrench className="w-5 h-5 text-purple-600" />
+            Configuración Avanzada
+          </h2>
+          <button 
+            onClick={() => setShowConfigPanel(false)}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            ✕
+          </button>
+        </div>
+        <div className="p-4">
+          <EventConfigPanel 
+            eventConfig={configAvanzada}
+            onUpdateConfig={setConfigAvanzada}
+          />
+        </div>
+      </div>
+
       {/* Floating config help panel */}
       <ConfigHelpPanel />
+      
       <InfoModal
         isOpen={showHelpModal}
         title="Guía de Creación de Eventos"
