@@ -47,9 +47,7 @@ const CreateEvent = () => {
     voteLimit: 3,
     categoryDuration: 30,
     anonymousVoting: false,
-    juryWeight: 70,
-    publicWeight: 30,
-    allowComments: true,
+    allowComments: false,
   });
 
   const [detalles, setDetalles] = useState({
@@ -79,6 +77,24 @@ const CreateEvent = () => {
     analisisAutomatico: false,
   });
 
+  // Handler para sincronizar comentarios entre StepVotaciones y EventConfigPanel
+  const handleComentariosChange = (value: boolean) => {
+    setVotacion(prev => ({ ...prev, comentariosObligatorios: value }));
+    setConfigAvanzada(prev => ({ ...prev, allowComments: value }));
+  };
+
+  // Handler para editar paso 3 desde el panel
+  const handleEditStep3 = () => {
+    setCurrentStep(3);
+    setShowConfigPanel(false);
+    
+    // Scroll suave al componente de pesos después de cambiar de paso
+    setTimeout(() => {
+      const element = document.getElementById('step3-votaciones');
+      element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+  };
+
   // Cargar datos del evento en modo edición
   useEffect(() => {
     if (!isEditMode) return;
@@ -102,14 +118,20 @@ const CreateEvent = () => {
         // Prellenar votación
         const categorias = (data.categorias || []).map((c: any) => c.nombre);
         const pesoJurado = data.categorias?.[0]?.pesos?.find((p: any) => p.rolVotante === "Jurado")?.peso ?? 70;
-        const pesoPublico = data.categorias?.[0]?.pesos?.find((p: any) => p.rolVotante === "Publico")?.peso ?? 30;
+        const comentariosObligatorios = data.comentariosObligatorios ?? false;
 
         setVotacion({
-          votoPublicoHabilitado: pesoPublico > 0,
+          votoPublicoHabilitado: true,
           pesoJurado: pesoJurado,
           categorias: categorias.length > 0 && categorias[0] !== "Global" ? categorias : [],
-          comentariosObligatorios: data.comentariosObligatorios ?? false,
+          comentariosObligatorios: comentariosObligatorios,
         });
+
+        // Sincronizar configAvanzada con los datos cargados
+        setConfigAvanzada(prev => ({
+          ...prev,
+          allowComments: comentariosObligatorios,
+        }));
 
         // Prellenar reglas/baremos
         const baremo = data.baremos?.[0];
@@ -175,6 +197,11 @@ const CreateEvent = () => {
       if (!detalles.nombre.trim()) throw new Error("El nombre del evento es obligatorio.");
       if (!detalles.fechaInicio) throw new Error("La fecha de inicio es obligatoria.");
       if (!detalles.fechaFin) throw new Error("La fecha de fin es obligatoria.");
+      
+      const categoriasValidas = votacion.categorias?.filter((cat: string) => cat && cat.trim() !== "") || [];
+      if (categoriasValidas.length === 0) {
+        throw new Error("Debes agregar al menos una categoría válida para el evento.");
+      }
 
       const inicio = new Date(detalles.fechaInicio);
       const fin = new Date(detalles.fechaFin);
@@ -203,13 +230,7 @@ const CreateEvent = () => {
           }]
         : [];
 
-      const categoriasFinales = [
-        ...new Set(
-          votacion.categorias.length === 0
-            ? ["Global"]
-            : votacion.categorias
-        )
-      ];
+      const categoriasFinales = [...new Set(categoriasValidas)];
 
       if (isEditMode) {
         const updateBody = {
@@ -279,9 +300,7 @@ const CreateEvent = () => {
       if (!response.ok) throw new Error(data?.error || "Error al crear el evento");
 
       toast.success("Evento creado exitosamente");
-
       addNotification("event_created", "Evento creado");
-
       navigate("/eventos");
 
     } catch (error: any) {
@@ -388,7 +407,15 @@ const CreateEvent = () => {
           <div className="bg-white rounded-[32px] shadow-sm border border-gray-100 p-6 sm:p-10 mb-8">
             {currentStep === 1 && <StepDetalles data={detalles} onChange={setDetalles} />}
             {currentStep === 2 && <StepReglas data={reglas} onChange={setReglas} readOnlyBaremos={readOnlyBaremos} />}
-            {currentStep === 3 && <StepVotaciones data={votacion} onChange={setVotacion} />}
+            {currentStep === 3 && (
+              <div id="step3-votaciones">
+                <StepVotaciones 
+                  data={votacion} 
+                  onChange={setVotacion}
+                  onComentariosChange={handleComentariosChange}
+                />
+              </div>
+            )}
           </div>
 
           <div className="flex justify-between items-center pb-20">
@@ -451,6 +478,11 @@ const CreateEvent = () => {
           <EventConfigPanel 
             eventConfig={configAvanzada}
             onUpdateConfig={setConfigAvanzada}
+            allowComments={votacion.comentariosObligatorios}
+            onAllowCommentsChange={handleComentariosChange}
+            juryWeight={votacion.pesoJurado}
+            publicWeight={100 - votacion.pesoJurado}
+            onEditStep3={handleEditStep3}
           />
         </div>
       </div>

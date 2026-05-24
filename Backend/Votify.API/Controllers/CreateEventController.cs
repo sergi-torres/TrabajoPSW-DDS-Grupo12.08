@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
 using Votify.API.Services;
@@ -25,24 +25,40 @@ namespace Votify.API.Controllers
         {
             try
             {
+                // 1. Validar que haya al menos una categoría
+                if (dto.Categorias == null || dto.Categorias.Count == 0)
+                {
+                    return BadRequest(new { error = "Debe especificar al menos una categoría" });
+                }
+
+                // 2. Crear el evento
                 var eventoGuardado = await _eventService.CreateEventAsync(dto);
 
+                // 3. Crear las categorías asociadas al evento
+                foreach (var categoriaDto in dto.Categorias)
+                {
+                    var categoria = new Categoria
+                    {
+                        Nombre = categoriaDto.Nombre,
+                        IdEvento = eventoGuardado.Id,
+                        Estado = "Pendiente" // Estado inicial
+                    };
+
+                    await _categoriaService.CreateAsync(categoria);
+                }
 
                 return Created($"/api/event/{eventoGuardado.Id}", new
                 {
                     id = eventoGuardado.Id,
                     nombre = eventoGuardado.Nombre,
                     estado = eventoGuardado.Estado,
-                    mensaje = "¡Evento creado con éxito en Supabase!"
+                    categorias = dto.Categorias.Count,
+                    mensaje = "¡Evento creado con éxito!"
                 });
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(new { error = ex.Message });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { error = "Hubo un problema al crear el evento.", detalle = ex.Message });
+                return StatusCode(500, new { error = ex.Message });
             }
         }
     }
