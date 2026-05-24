@@ -1,36 +1,146 @@
 # Votify — Plataforma Inteligente de Votación
-Trabajo de la asignatura PSW-DDS (Grupo 12.08)
+
+> Gestión de votaciones para eventos competitivos con análisis IA integrado.  
+> Trabajo de la asignatura PSW-DDS — Grupo 12.08
 
 ---
 
-## Guía de Instalación y Configuración
+## Stack tecnológico
 
-### 1. Configurar Variables de Entorno
-El proyecto utiliza un archivo `.env` en la raíz para la configuración de Supabase.
-1.  Copia el archivo de ejemplo:
-    ```powershell
-    copy .env.example .env
-    ```
-2.  Abre el nuevo archivo `.env` y rellena los valores `SUPABASE_URL` y `SUPABASE_KEY` con tus credenciales de Supabase.
+| Capa | Tecnología |
+|---|---|
+| **Backend** | .NET 9 Web API |
+| **Frontend** | React 19 + Vite + TypeScript |
+| **Base de datos** | Supabase (PostgreSQL) |
+| **Autenticación** | Supabase Auth (JWT) |
+| **IA** | Google Gemini (síntesis de comentarios) |
+| **Email** | Resend (invitaciones de jurado) |
 
-### 2. Configurar el Backend (.NET 9.0)
-Navega a la carpeta del backend y restaura las dependencias:
+---
+
+## Características principales
+
+- **Roles diferenciados** — Organizador, Jurado, Participante y Público, cada uno con su flujo y permisos propios.
+- **Votación en tiempo real** — Panel de control con actualización automática cada 30 segundos.
+- **Votación pública anónima** — Huella digital (FingerprintJS) para prevenir votos duplicados sin requerir registro.
+- **Síntesis IA** — Análisis automático de comentarios cualitativos con Gemini, separando fortalezas y áreas de mejora.
+- **Ranking por categoría** — Ponderación configurable por rol y categoría mediante `peso_categoria_rol`.
+- **Invitación de jurado por email** — Token de un solo uso enviado por correo.
+- **Gestión de premios** — Asignación de premios por categoría con vista pública de ganadores.
+- **Hoja de ruta IA** — Generación de roadmap personalizado por proyecto.
+
+---
+
+## Instalación y configuración
+
+### Requisitos previos
+
+- [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
+- [Node.js 20+](https://nodejs.org/)
+- Cuenta de [Supabase](https://supabase.com/) con el schema del proyecto aplicado
+
+### 1. Variables de entorno
+
+Copia el archivo de ejemplo y rellena los valores:
+
+```powershell
+copy .env.example .env
+```
+
+El archivo `.env` debe estar en la **raíz del repositorio**. El backend lo busca dos niveles por encima de su directorio de ejecución.
+
+| Variable | Requerida | Descripción |
+|---|---|---|
+| `SUPABASE_URL` | Sí | URL de tu proyecto Supabase |
+| `SUPABASE_KEY` | Sí | Clave `service_role` de Supabase |
+| `GEMINI_API_KEY` | Para IA | Clave de API de Google Gemini |
+| `GEMINI_MODEL` | No | Modelo a usar (default: `gemini-2.5-flash`) |
+| `RESEND_API_KEY` | Para emails | Clave de API de Resend |
+
+### 2. Backend (.NET 9)
+
 ```powershell
 cd Backend/Votify.API
 dotnet restore
 dotnet run
+# Disponible en http://localhost:5245
 ```
 
-### 3. Configurar el Frontend (React + Vite)
-En una nueva terminal, navega a la carpeta del frontend e instala las dependencias:
+### 3. Frontend (React + Vite)
+
 ```powershell
 cd Frontend
 npm install
 npm run dev
+# Disponible en http://localhost:5173
 ```
-### Credenciales de prueba
-Usuario de prueba: jorge@gmail.com
-Contraseña: jorgeee
 
-Para la vista del público - Código evento: 123455
 ---
+
+## Scripts disponibles
+
+### Backend
+
+```powershell
+dotnet run          # Servidor de desarrollo
+dotnet build        # Compilar
+dotnet test Backend/Votify.sln   # Ejecutar tests (xUnit + Moq)
+```
+
+### Frontend
+
+```powershell
+npm run dev         # Servidor de desarrollo (HMR)
+npm run build       # Compilar para producción (tsc + vite)
+npm run lint        # Linting con ESLint
+npm test            # Tests con Vitest
+```
+
+---
+
+## Estructura del proyecto
+
+```
+TrabajoPSW-DDS/
+├── Backend/
+│   ├── Votify.API/
+│   │   ├── Controllers/        # Endpoints REST
+│   │   ├── Services/           # Lógica de negocio
+│   │   │   ├── Decorators/     # Decorator pattern
+│   │   │   └── Strategies/     # Strategy pattern 
+│   │   ├── Repositories/       # Acceso a datos (Supabase ORM)
+│   │   ├── Models/
+│   │   │   ├── Domain/         # Entidades
+│   │   │   │   └── Factories/  # Factory Method pattern
+│   │   │   └── DTOs/           # Objetos de transferencia
+│   │   ├── Filters/            # OrganizerOnlyFilter (autorización)
+│   │   └── Adapters/           # GeminiClient (HTTP externo)
+│   └── Votify.Tests/           # Tests unitarios
+└── Frontend/
+    └── src/
+        ├── api/                # Capa de llamadas HTTP
+        ├── components/         # Componentes reutilizables
+        ├── context/            # AuthContext, EventContext, VotingContext
+        ├── hooks/              # Custom hooks
+        ├── pages/              # Vistas de la aplicación
+        └── types/              # Tipos TypeScript compartidos
+```
+
+---
+
+
+## Credenciales de prueba
+
+| Campo | Valor |
+|---|---|
+| Usuario | `jorge@gmail.com` |
+| Contraseña | `jorgeee` |
+| Código de evento (Público) | `123455` |
+
+---
+
+## Documentación adicional
+
+- [`docs/adr/`](docs/adr/) — Decisiones de arquitectura (ADRs)
+- [`docs/ai-logs/`](docs/ai-logs/) — Registro de cambios asistidos por IA
+- [`Guia_Diseño.md`](Guia_Diseño.md) — Guía de estilos y componentes visuales

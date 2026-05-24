@@ -1,4 +1,5 @@
 import { Plus, Trash2, Zap, AlertCircle, Lock } from "lucide-react";
+import InfoTooltip from "../ui/InfoTooltip";
 
 /**
  * Plantillas de baremos predefinidas.
@@ -100,6 +101,7 @@ const StepReglas = ({ data, onChange, readOnlyBaremos = false }: { data: any, on
             <div className="space-y-3">
                 <label className="text-gray-400 text-[11px] font-black uppercase tracking-widest ml-1">
                     Plantillas de Evaluación
+                    <InfoTooltip text="Una plantilla preconfigura los criterios y sus pesos. Puedes personalizar cualquier plantilla después de seleccionarla." />
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     {Object.entries(PLANTILLAS_BAREMOS).map(([key, p]) => (
@@ -133,6 +135,7 @@ const StepReglas = ({ data, onChange, readOnlyBaremos = false }: { data: any, on
                 <div className="flex items-center justify-between">
                     <label className="text-gray-400 text-[11px] font-black uppercase tracking-widest ml-1">
                         Dimensiones de Evaluación
+                        <InfoTooltip text="Cada dimensión es un criterio que el jurado valorará. El peso (%) indica cuánto influye en la puntuación final. La suma debe ser exactamente 100%." />
                     </label>
                     <button
                         type="button"

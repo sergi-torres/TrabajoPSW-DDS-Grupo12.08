@@ -7,6 +7,7 @@ import { ArrowLeft, LogOut } from "lucide-react";
 import { getDashboard } from "../api/orgDashboardApi";
 import ConfigTiempoVotacionBar from '../components/configuraciones/ConfigTiempoVotacionBar';
 import ConfigLimiteVotos from '../components/configuraciones/ConfigLimiteVotos';
+import ConfigHelpPanel from '../components/ui/ConfigHelpPanel';
 
 const Configuraciones: React.FC = () => {
   const { eventoId } = useParams<{ eventoId: string }>();
@@ -89,6 +90,9 @@ const Configuraciones: React.FC = () => {
           )}
         </main>
       </div>
+
+      {/* Floating config help panel */}
+      <ConfigHelpPanel />
     </div>
   );
 };

@@ -66,3 +66,30 @@ export async function updateEvento(eventoId: number, data: any): Promise<any> {
 
     return response.json();
 }
+
+export async function getEventosDisponibles(userId: number): Promise<Event[]> {
+    const response = await fetch(`${API_URL}/disponibles?userId=${userId}`);
+    if (!response.ok) throw new Error("Error al obtener eventos disponibles");
+    const data = await response.json();
+    return EventFactory.createEvents(data);
+}
+
+export async function unirseAEvento(eventoId: number, userId: number): Promise<void> {
+    const response = await fetch(`${API_URL}/${eventoId}/unirse?userId=${userId}`, {
+        method: "POST",
+    });
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || "Error al unirse al evento");
+    }
+}
+
+export async function abandonarEvento(eventoId: number, userId: number): Promise<void> {
+    const response = await fetch(`${API_URL}/${eventoId}/abandonar?userId=${userId}`, {
+        method: "DELETE",
+    });
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || "Error al abandonar el evento");
+    }
+}

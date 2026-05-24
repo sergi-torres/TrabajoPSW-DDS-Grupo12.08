@@ -1,4 +1,5 @@
 import { Users, Scale, MessageSquare } from "lucide-react";
+import InfoTooltip from "../ui/InfoTooltip";
 
 const maxCategorias = 10; // Definimos un máximo de categorías
 
@@ -65,7 +66,10 @@ const StepVotaciones = ({ data, onChange }: StepVotacionesProps) => {
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <Scale className="w-5 h-5 text-muted-foreground" strokeWidth={1.75} />
-                            <span className="text-sm font-medium text-foreground">Peso del Jurado</span>
+                            <span className="text-sm font-medium text-foreground">
+                              Peso del Jurado
+                              <InfoTooltip text="Define qué porcentaje de la nota final viene del jurado experto. El resto se asigna automáticamente al público." />
+                            </span>
                         </div>
                         <span className="text-lg font-heading font-bold text-org">
                             {data.pesoJurado}%
@@ -110,7 +114,10 @@ const StepVotaciones = ({ data, onChange }: StepVotacionesProps) => {
                             <MessageSquare className="w-5 h-5 text-info" strokeWidth={1.75} />
                         </div>
                         <div>
-                            <label className="text-sm font-medium text-foreground">Comentarios Obligatorios</label>
+                            <label className="text-sm font-medium text-foreground">
+                              Comentarios Obligatorios
+                              <InfoTooltip text="Si activas esta opción, cada votante deberá justificar su puntuación con un comentario escrito." />
+                            </label>
                             <p className="text-xs text-muted-foreground">
                                 {data.comentariosObligatorios ? "Los votantes deberán dejar un comentario" : "Los comentarios son opcionales"}
                             </p>
@@ -132,6 +139,7 @@ const StepVotaciones = ({ data, onChange }: StepVotacionesProps) => {
                 <div className="flex items-center justify-between">
                     <h4 className="text-base font-heading font-semibold text-foreground">
                         Categorías del evento
+                        <InfoTooltip text="Las categorías agrupan los proyectos que compiten entre sí. Si no defines ninguna, se creará una categoría 'Global' por defecto." />
                     </h4>
                     <button
                         type="button"
