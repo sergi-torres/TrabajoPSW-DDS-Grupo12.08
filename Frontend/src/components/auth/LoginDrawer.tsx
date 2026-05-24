@@ -1,18 +1,21 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Drawer } from "vaul";
 import { AuthForm } from "./AuthForm";
 
-/**
- * LoginDrawer.tsx
- * 
- * Modal inferior que desliza hacia arriba en vista móvil.
- * Soporta cambio entre login y register con scroll correcto.
- */
 export function LoginDrawer() {
     const [mode, setMode] = useState<"login" | "register">("login");
+    const [open, setOpen] = useState(false);
+    const navigate = useNavigate();
+
+    const handleSuccess = (path: string) => {
+        setOpen(false);
+        // Let vaul finish its close animation before navigating
+        setTimeout(() => navigate(path), 300);
+    };
 
     return (
-        <Drawer.Root shouldScaleBackground>
+        <Drawer.Root open={open} onOpenChange={setOpen}>
 
             <Drawer.Trigger asChild>
                 <button className="text-muted-foreground font-body font-semibold hover:text-[var(--color-org)] transition-colors py-4 px-6 rounded-full hover:bg-black/5">
@@ -58,7 +61,7 @@ export function LoginDrawer() {
                                 {mode === "login" ? "Bienvenido de nuevo" : "Crea tu cuenta"}
                             </h3>
 
-                            <AuthForm mode={mode} isMobile={true} />
+                            <AuthForm mode={mode} isMobile={true} onSuccess={handleSuccess} />
                         </div>
                     </div>
                 </Drawer.Content>
