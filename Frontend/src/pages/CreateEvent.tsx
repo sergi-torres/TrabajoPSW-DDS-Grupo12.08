@@ -330,21 +330,41 @@ const CreateEvent = () => {
   };
 
   const handleCtrlEnter = (e: React.KeyboardEvent<HTMLDivElement> | KeyboardEvent) => {
-    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
-      e.preventDefault();
-      if (currentStep < 3) {
-        handleNext();
-      } else {
-        handlePublish();
-      }
+    // En vez de "hotkey repetitiva", usamos un guard para que solo dispare una vez
+    // y el usuario tenga que soltar y volver a apretar Ctrl+Enter.
+    if (e.key !== "Enter" || !(e.ctrlKey || e.metaKey)) return;
+
+    const anyE = e as KeyboardEvent;
+    // Ignorar si es repetición del SO.
+    if (typeof anyE.repeat === 'boolean' && anyE.repeat) return;
+
+    // Guardar "debounce" por combinación.
+    const now = Date.now();
+    const last = (window as any).__lastCtrlEnterAt as number | undefined;
+    if (last && now - last < 400) return;
+    (window as any).__lastCtrlEnterAt = now;
+
+    e.preventDefault();
+    if (currentStep < 3) {
+      handleNext();
+    } else {
+      handlePublish();
     }
   };
 
   useEffect(() => {
-    const onGlobalKeyDown = (event: KeyboardEvent) => handleCtrlEnter(event);
+    const onGlobalKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      const tag = target?.tagName?.toLowerCase();
+      const isTyping = tag === 'input' || tag === 'textarea' || (target as any)?.isContentEditable;
+      if (isTyping) return;
+      handleCtrlEnter(event);
+    };
+
     window.addEventListener("keydown", onGlobalKeyDown);
     return () => window.removeEventListener("keydown", onGlobalKeyDown);
   }, [currentStep, handleNext, handlePublish]);
+
 
   const readOnlyBaremos = isEditMode && (eventoEstado === "Activo" || eventoEstado === "EnVotacion");
 
