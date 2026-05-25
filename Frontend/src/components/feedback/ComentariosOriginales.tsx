@@ -37,6 +37,20 @@ function obtenerIniciales(nombre?: string | null, email?: string | null): string
     return (partes[0][0] + partes[1][0]).toUpperCase();
 }
 
+/**
+ * Parses the combined comment format stored by the backend:
+ *   "[GENERAL] globalComment\n\n---\n\ncriterionComment"
+ * Returns { general?, criterion? }
+ */
+function parseCombinedComment(texto: string): { general?: string; criterion?: string } {
+    if (!texto.includes('[GENERAL]')) return { criterion: texto };
+    const [rawGeneral, rawCriterion] = texto.split('\n\n---\n\n');
+    return {
+        general: rawGeneral.replace('[GENERAL]', '').trim() || undefined,
+        criterion: rawCriterion?.trim() || undefined,
+    };
+}
+
 function formatFecha(iso: string): string {
     try {
         const d = new Date(iso);
@@ -181,7 +195,7 @@ export function ComentariosOriginales({
                             No hay comentarios para mostrar.
                         </p>
                     ) : (
-                        <ul className="flex flex-col gap-3 mt-2">
+                        <ul className="flex flex-col gap-3 mt-2 max-h-[420px] overflow-y-auto pr-1">
                             {comentarios.map((c) => (
                                 <li
                                     key={c.id}
@@ -207,9 +221,26 @@ export function ComentariosOriginales({
                                                 {formatFecha(c.fecha)}
                                             </span>
                                         </div>
-                                        <p className="text-xs text-slate-600 leading-relaxed whitespace-pre-wrap line-clamp-4">
-                                            {c.comentario}
-                                        </p>
+                                        {(() => {
+                                            const { general, criterion } = parseCombinedComment(c.comentario ?? '');
+                                            return (
+                                                <div className="space-y-1.5">
+                                                    {general && (
+                                                        <div>
+                                                            <span className="inline-block text-[9px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-full mb-1">
+                                                                General
+                                                            </span>
+                                                            <p className="text-xs text-slate-600 leading-relaxed">{general}</p>
+                                                        </div>
+                                                    )}
+                                                    {criterion && (
+                                                        <div className={cn(general && "border-t border-slate-100 pt-1.5")}>
+                                                            <p className="text-xs text-slate-600 leading-relaxed line-clamp-4">{criterion}</p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })()}
                                     </div>
                                 </li>
                             ))}

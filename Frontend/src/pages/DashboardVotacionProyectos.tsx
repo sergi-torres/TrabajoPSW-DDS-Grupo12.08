@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useRef } from 'react';
 import ProyectosLista from '../components/votacion/votacionProyectos/ProyectosLista';
 import OpcionesSeleccionado from '../components/votacion/votacionProyectos/OpcionesSeleccionado';
 import EvaluacionCriterios from '../components/votacion/votacionProyectos/EvaluacionCriterios';
@@ -28,61 +28,66 @@ const DashboardVotacionProyectos: React.FC<Props> = ({ categoria, alVolver, come
   const [seleccionado, setSeleccionado] = useState<any>(null);
   const [comentario, setComentario] = useState("");
   const [pasoEvaluacion, setPasoEvaluacion] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const submitLock = useRef(false);
 
   const effectivelyPublic = (!isAuthenticated && isPublic) || userRole === "Público";
   const isJurado = userRole === "Jurado";
   const themeColor = effectivelyPublic ? "#059669" : (userColor || "#2563eb");
 
   const handleConfirmarPublico = async () => {
-    if (!seleccionado) return;
+    if (!seleccionado || submitLock.current) return;
 
     if (comentariosObligatorios && !comentario.trim()) {
       toast.error("El comentario es obligatorio para evaluar en este evento.");
       return;
     }
 
-    const userIdRaw = localStorage.getItem('userId');
-    const idUsuario = userIdRaw ? parseInt(userIdRaw) : null;
-    const sessionId = localStorage.getItem('sessionId');
-    const storedEventoId = localStorage.getItem('eventoId');
-    const finalEventoId = eventoId || (storedEventoId ? parseInt(storedEventoId) : 0);
+    submitLock.current = true;
+    setSubmitting(true);
+    try {
+      const userIdRaw = localStorage.getItem('userId');
+      const idUsuario = userIdRaw ? parseInt(userIdRaw) : null;
+      const sessionId = localStorage.getItem('sessionId');
+      const storedEventoId = localStorage.getItem('eventoId');
+      const finalEventoId = eventoId || (storedEventoId ? parseInt(storedEventoId) : 0);
 
-    const votoDto = {
-      eventoId: finalEventoId,
-      categoriaId: categoria.id,
-      proyectoId: seleccionado.id,
-      comentario: comentario,
-      idUsuario: (idUsuario !== null && !Number.isNaN(idUsuario)) ? idUsuario : null,
-      sessionId: sessionId || null,
-      identificadorHash: fingerprint || undefined,
-      valor: 1, // Voto público vale 1
-      idcriterio: null,
-      idproyecto: seleccionado.id,
-      idevaluador: idUsuario,
-      idcategoria: categoria.id
-    };
+      const votoDto = {
+        eventoId: finalEventoId,
+        categoriaId: categoria.id,
+        proyectoId: seleccionado.id,
+        comentario: comentario,
+        idUsuario: (idUsuario !== null && !Number.isNaN(idUsuario)) ? idUsuario : null,
+        sessionId: sessionId || null,
+        identificadorHash: fingerprint || undefined,
+        valor: 1,
+        idcriterio: null,
+        idproyecto: seleccionado.id,
+        idevaluador: idUsuario,
+        idcategoria: categoria.id
+      };
 
-    await enviarVoto(votoDto as any);
-    // Independientemente de si fue éxito o error (ej: "No se ha podido procesar"),
-    // volvemos a la pantalla de categorías. El Toast informará al usuario.
-    alVolver(); 
+      await enviarVoto(votoDto as any);
+      alVolver();
+    } finally {
+      submitLock.current = false;
+      setSubmitting(false);
+    }
   };
 
   const { addNotification } = useVoting();
 
   const handleConfirmarJurado = async (evaluaciones: { criterioId: number, valor: number, comentario: string }[], comentarioGlobal: string) => {
-    if (!seleccionado) return;
-
+    if (!seleccionado || submitLock.current) return;
 
     const userIdRaw = localStorage.getItem('userId');
     const idUsuario = userIdRaw ? parseInt(userIdRaw) : null;
     const storedEventoId = localStorage.getItem('eventoId');
     const finalEventoId = eventoId || (storedEventoId ? parseInt(storedEventoId) : 0);
 
-
-
+    submitLock.current = true;
+    setSubmitting(true);
     try {
-      // Enviar todas las evaluaciones en una sola petición batch
       const batchPayload = {
         eventoId: finalEventoId,
         categoriaId: categoria.id,
@@ -98,11 +103,14 @@ const DashboardVotacionProyectos: React.FC<Props> = ({ categoria, alVolver, come
 
       await enviarDatosVotoBatch(batchPayload);
       toast.success("Evaluación completa registrada correctamente");
-      addNotification("vote_cast", "Categoría: " + categoria.nombre);
+      addNotification("vote_cast");
       alVolver();
     } catch (err) {
       console.error(err);
       toast.error((err as any)?.message || "Error al procesar la evaluación completa");
+    } finally {
+      submitLock.current = false;
+      setSubmitting(false);
     }
   };
 
@@ -157,19 +165,15 @@ const DashboardVotacionProyectos: React.FC<Props> = ({ categoria, alVolver, come
         )}>
           <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 lg:p-10">
             {pasoEvaluacion ? (
-              <EvaluacionCriterios 
+              <EvaluacionCriterios
                 proyecto={seleccionado}
                 eventoId={eventoId || 0}
                 categoriaId={categoria.id}
                 onConfirmar={isJurado ? handleConfirmarJurado : async (evals, global) => {
-                    // Adaptar el flujo de público para que use EvaluacionCriterios
-                    // pero solo enviando el primer voto o simplificado si el backend espera 1 solo valor.
-                    // Para el MVP, si el público ahora usa criterios, enviamos el batch como el jurado
-                    // pero con valores de peso 1 o según se configure.
                     await handleConfirmarJurado(evals, global);
                 }}
                 onCancelar={() => setPasoEvaluacion(false)}
-                cargando={cargando}
+                cargando={cargando || submitting}
                 comentariosObligatorios={comentariosObligatorios}
                 themeColor={themeColor}
               />
