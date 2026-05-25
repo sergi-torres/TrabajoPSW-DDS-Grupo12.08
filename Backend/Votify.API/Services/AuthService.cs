@@ -32,7 +32,7 @@ namespace Votify.API.Services
             {
                 Email = request.Email,
                 NombreCompleto = request.NombreCompleto,
-                NombreUsuario = request.NombreUsuario ?? request.Email,
+                NombreUsuario = !string.IsNullOrWhiteSpace(request.NombreUsuario) ? request.NombreUsuario : request.Email,
                 Password = request.Password,
                 FechaRegistro = DateTime.UtcNow
             };

@@ -19,7 +19,7 @@ namespace Votify.API.Services
             var invitationUrl = $"{frontendUrl}/accept-invite?token={token}";
 
             var message = new EmailMessage();
-            message.From = "Votify <onboarding@resend.dev>"; 
+            message.From = "Votify <onboarding@resend.dev>";
             message.To.Add(email);
             
             // Usamos un asunto sencillo y limpio para evitar problemas de codificación en el header

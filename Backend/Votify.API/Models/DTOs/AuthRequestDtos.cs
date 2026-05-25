@@ -22,7 +22,6 @@ namespace Votify.API.Models.DTOs
         public string NombreCompleto { get; set; } = string.Empty;
 
         [MaxLength(60)]
-        [MinLength(4)]
         public string? NombreUsuario { get; set; } = string.Empty;
 
         public string? InvitationToken { get; set; }

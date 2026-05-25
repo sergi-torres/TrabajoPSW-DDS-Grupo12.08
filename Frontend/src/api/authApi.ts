@@ -44,6 +44,9 @@ export async function register(data: any): Promise<any> {
     body: JSON.stringify(data),
   });
 
-  if (!response.ok) throw new Error("Error en el registro");
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => "");
+    throw new Error(errorText || "Error en el registro");
+  }
   return response.json();
 }
