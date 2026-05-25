@@ -235,6 +235,11 @@ export function ComentariosOriginales({
                                                     )}
                                                     {criterion && (
                                                         <div className={cn(general && "border-t border-slate-100 pt-1.5")}>
+                                                            {!general && (
+                                                                <span className="inline-block text-[9px] font-bold uppercase tracking-wider text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded-full mb-1">
+                                                                    Criterio
+                                                                </span>
+                                                            )}
                                                             <p className="text-xs text-slate-600 leading-relaxed line-clamp-4">{criterion}</p>
                                                         </div>
                                                     )}
