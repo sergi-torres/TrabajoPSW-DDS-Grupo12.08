@@ -12,7 +12,7 @@ namespace Votify.API.Services
         private readonly IUsuarioRepository _usuarioRepo;
         private readonly ISintesisRepository _sintesisRepo;
         private readonly IVotoRepository _votoRepo;
-        private readonly SintesisStrategyFactory _factory;
+        private readonly ISintesisStrategyFactory _factory;
 
         public SintesisComentariosService(
             ICategoriaRepository categoriaRepo,
@@ -20,7 +20,7 @@ namespace Votify.API.Services
             IUsuarioRepository usuarioRepo,
             ISintesisRepository sintesisRepo,
             IVotoRepository votoRepo,
-            SintesisStrategyFactory factory)
+            ISintesisStrategyFactory factory)
         {
             _categoriaRepo = categoriaRepo;
             _proyectoRepo = proyectoRepo;
@@ -32,7 +32,6 @@ namespace Votify.API.Services
 
         public async Task<SintesisProyectoDto> ObtenerAsync(int idProyecto, int idCategoria, string userEmail)
         {
-            // GET aplica las mismas validaciones de ownership que el POST (excepto estado y mínimo de comentarios).
             await ValidarProyectoYOwnershipAsync(idProyecto, idCategoria, userEmail);
 
             var lista = await _sintesisRepo.ObtenerPorProyectoCategoriaAsync(idProyecto, idCategoria);
@@ -47,9 +46,7 @@ namespace Votify.API.Services
             int idProyecto, int idCategoria, TipoSintesis tipo,
             string userEmail, Guid? authUid, CancellationToken ct = default)
         {
-            // Orden estricto de validaciones (spec §5.5):
-
-            // 1) Categoría existe y está Finalizada -> 400 si no.
+            // La síntesis requiere estado "Finalizada"; no se permite sobre categorías activas para evitar resultados parciales.
             Categoria categoria;
             try
             {
@@ -63,14 +60,11 @@ namespace Votify.API.Services
             if (!string.Equals(categoria.Estado, "Finalizada", StringComparison.OrdinalIgnoreCase))
                 throw new CategoriaNoFinalizadaException("La síntesis solo está disponible cuando la categoría está finalizada.");
 
-            // 2 + 3) Proyecto existe, participa en la categoría, y el usuario es propietario.
             await ValidarProyectoYOwnershipAsync(idProyecto, idCategoria, userEmail);
 
-            // 4) Strategy: cargar comentarios y verificar mínimo (lo hace SintesisStrategyBase, lanza SintesisInsuficienteException).
             var strategy = _factory.Crear(tipo);
             var resultado = await strategy.GenerarAsync(idProyecto, idCategoria, ct);
 
-            // 5 + 6) Persistir vía upsert.
             var entidad = new SintesisComentarios
             {
                 IdProyecto = idProyecto,
@@ -90,7 +84,6 @@ namespace Votify.API.Services
             return Map(persistida);
         }
 
-        // Validaciones 2 y 3 reutilizables.
         private async Task ValidarProyectoYOwnershipAsync(int idProyecto, int idCategoria, string userEmail)
         {
             var proyecto = await _proyectoRepo.ObtenerPorIdAsync(idProyecto);
@@ -110,7 +103,7 @@ namespace Votify.API.Services
 
             if (esPropietario) return;
 
-            // También permitimos al Organizador del evento (spec §5.1 / §4.5 del CLAUDE.md)
+            // El organizador puede acceder a la síntesis de cualquier proyecto, no solo a los suyos.
             if (proyecto.IdEvento.HasValue)
             {
                 var rol = await _votoRepo.ObtenerRolUsuarioEnEventoAsync(usuario.Id, proyecto.IdEvento.Value);
