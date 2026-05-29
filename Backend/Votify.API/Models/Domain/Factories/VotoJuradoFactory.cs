@@ -1,10 +1,9 @@
-using Votify.API.Models.Domain;
-
 namespace Votify.API.Models.Domain.Factories
 {
-    public class VotoJuradoFactory : IVotoFactory
+    public class VotoJuradoFactory : VotoFactoryBase
     {
-        public Voto CrearVoto(int proyectoId, float valorBase, int idCategoria, int idCriterio, string? comentario, string? urlAudio, int? idUsuario, string ipDispositivo)
+        protected override Voto CreateVoto(int proyectoId, float valorBase, int idCategoria, int idCriterio,
+            string? comentario, string? urlAudio, int? idUsuario, string ipDispositivo)
         {
             return new VotoJurado
             {
@@ -14,9 +13,8 @@ namespace Votify.API.Models.Domain.Factories
                 IdCriterio = idCriterio,
                 Comentario = comentario,
                 UrlAudio = urlAudio,
-                FechaVoto = DateTime.UtcNow,
-                IdEvaluador = idUsuario, // El jurado SÍ usa el idUsuario
-                IpDispositivo = ipDispositivo // El IdEvaluador se asignará en el Service tras validar la sesión
+                IdEvaluador = idUsuario,
+                IpDispositivo = ipDispositivo
             };
         }
     }
