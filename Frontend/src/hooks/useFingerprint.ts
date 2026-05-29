@@ -13,10 +13,10 @@ export function useFingerprint() {
         const result = await fp.get();
         setFingerprint(result.visitorId);
       } catch (e) {
-        console.error('FingerprintJS failed, falling back to LocalStorage:', e);
         setError(e as Error);
-        
-        // Fallback to LocalStorage
+        // FingerprintJS can be blocked by privacy browsers/extensions (ADR-008).
+        // Fall back to a random ID persisted in localStorage so repeat votes are
+        // still blocked within the same browser session.
         let fallbackId = localStorage.getItem('votify-fallback-id');
         if (!fallbackId) {
           fallbackId = 'ls-' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);

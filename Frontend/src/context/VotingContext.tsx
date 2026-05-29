@@ -43,7 +43,7 @@ export interface VotingContextType {
   clearAllNotifications: () => void;
   updateEventConfig: (config: Partial<EventConfig>) => void;
   addNotification: (state: string, categoryName?: string) => void;
-  reloadContext: () => Promise<void>; // ✅ Nuevo método
+  reloadContext: () => Promise<void>;
 }
 
 const VotingContext = createContext<VotingContextType | undefined>(undefined);
@@ -61,17 +61,14 @@ export function VotingProvider({ children }: { children: ReactNode }) {
   });
   const [loading, setLoading] = useState(true);
 
-  // Función principal para cargar datos (puede ser llamada desde useEffect o manualmente)
   const loadEventData = useCallback(async () => {
-    
     try {
       setLoading(true);
-      
+
       const eventoId = localStorage.getItem("eventoId");
       const eventName = localStorage.getItem("eventoNombre");
       const eventCode = localStorage.getItem("eventoCodigo") || "EVENTO";
 
-      // Configurar evento desde localStorage
       setEventConfig({
         voteLimit: 3,
         eventName: eventName || "Evento sin nombre",
@@ -79,12 +76,9 @@ export function VotingProvider({ children }: { children: ReactNode }) {
         allowComments: true,
       });
 
-      // Obtener categorías del evento
       if (eventoId) {
-        
         const categorias = await categoriasApi.getByEvento(parseInt(eventoId));
-        
-        // Mapear las categorías al formato que espera el frontend
+
         const formattedCategories: Category[] = categorias.map((cat: any) => ({
           id: cat.id,
           name: cat.nombre,
@@ -107,7 +101,6 @@ export function VotingProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Cargar notificaciones desde localStorage
   const loadNotifications = useCallback(() => {
     const stored = localStorage.getItem("notifications");
     if (stored) {
@@ -120,13 +113,12 @@ export function VotingProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Cargar datos al montar el componente
   useEffect(() => {
     loadEventData();
     loadNotifications();
   }, [loadEventData, loadNotifications]);
 
-  // Escuchar cambios en localStorage (para cuando se actualiza desde otra pestaña)
+  // Cross-tab sync: reloads data when eventoId or notifications change in another tab
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === "eventoId" || e.key === "eventoNombre" || e.key === "eventoCodigo") {

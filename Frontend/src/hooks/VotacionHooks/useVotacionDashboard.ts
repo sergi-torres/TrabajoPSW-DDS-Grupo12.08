@@ -17,16 +17,17 @@ export const useVotacionDashboard = (): UseVotacionDashboardReturn => {
   const { fingerprint, isLoading: fpLoading } = useFingerprint();
 
   const cargarDashboard = useCallback(async () => {
-    // No cargar si el fingerprint aún está cargando
     if (fpLoading) return;
 
     try {
       setCargando(true);
+      // Auth values are read from localStorage here because this hook is instantiated
+      // on the public voting dashboard (no AuthContext available in that subtree).
       const eventoId = localStorage.getItem('eventoId');
       const userIdRaw = localStorage.getItem('userId');
       const idUsuario = userIdRaw ? parseInt(userIdRaw) : null;
       const sessionId = localStorage.getItem('votacionSessionId');
-      
+
       if (!eventoId) {
         throw new Error('evento ID no encontrado');
       }
@@ -40,17 +41,15 @@ export const useVotacionDashboard = (): UseVotacionDashboardReturn => {
       setDatos(result);
       setError(null);
     } catch (err) {
-      console.error(err);
-      setError((err as any).message || "Error desconocido");
+      setError((err as Error).message || "Error desconocido");
     } finally {
       setCargando(false);
     }
   }, [fingerprint, fpLoading]);
 
-  // Recargar cuando el fingerprint esté listo
   useEffect(() => {
     if (!fpLoading) {
-        cargarDashboard();
+      cargarDashboard();
     }
   }, [fpLoading, cargarDashboard]);
 

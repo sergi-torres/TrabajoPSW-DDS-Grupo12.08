@@ -101,14 +101,14 @@ const DashboardVotacionProyectos: React.FC<Props> = ({ categoria, alVolver, come
           evaluaciones,
         });
 
+
         try {
           await enviarDatosVotoBatch(batchPayload);
           toast.success("Evaluación completa registrada correctamente");
           addNotification("vote_cast");
           alVolver();
         } catch (err) {
-          console.error(err);
-          toast.error((err as any)?.message || "Error al procesar la evaluación completa");
+          toast.error(err instanceof Error ? err.message : "Error al procesar la evaluación completa");
         }
       },
     });

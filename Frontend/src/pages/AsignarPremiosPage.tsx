@@ -17,7 +17,7 @@ const AsignarPremios: React.FC = () => {
     const navigate = useNavigate();
     const eventoIdNum = eventoId ? parseInt(eventoId, 10) : null;
     const { categorias, premios, obtenerCategorias, obtenerPremios, crearPremio, actualizarPremio, eliminarPremio, cargando } = usePremio();
-    const { userRole, userColor, isCollapsed } = useContext(EventContext) as any;
+    const { userRole, userColor, isCollapsed } = useContext(EventContext)!;
     const [eventInfo, setEventInfo] = useState<any>(null);
     const [selectedCategory, setSelectedCategory] = useState<Categoria | null>(null);
     const [selectedPremio, setSelectedPremio] = useState<Premio | null>(null);
@@ -32,8 +32,8 @@ const AsignarPremios: React.FC = () => {
         try {
             const data: any = await getDashboard(eventoId as any);
             setEventInfo(data.liveInfo);
-        } catch (err) {
-            console.error("Error cargando info del evento:", err);
+        } catch {
+            // Non-critical: event name in header degrades gracefully
         }
     }, [eventoId]);
 
@@ -94,7 +94,7 @@ const AsignarPremios: React.FC = () => {
             <div className="pb-[120px] lg:pb-12">
                 <header
                     className={`text-white p-6 lg:p-10 transition-all duration-300 ${isPublicRole ? 'lg:pl-10' : (isCollapsed ? 'lg:pl-28' : 'lg:pl-80')}`}
-                    style={{ backgroundColor: userColor }}
+                    style={{ backgroundColor: userColor ?? undefined }}
                 >
                     <div className="max-w-7xl mx-auto">
                         <div className="flex justify-between items-start mb-6">
@@ -168,4 +168,3 @@ const AsignarPremios: React.FC = () => {
 };
 
 export default AsignarPremios;
-//DSM

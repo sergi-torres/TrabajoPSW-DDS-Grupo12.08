@@ -24,7 +24,7 @@ const steps = [
 ];
 
 const CreateEvent = () => {
-  const { userId } = useContext(AuthContext)!;
+  const { userId, token } = useContext(AuthContext)!;
   const { userColor, isCollapsed, userRole, clearEventContext } = useContext(EventContext)!;
   const { addNotification } = useVoting();
   const navigate = useNavigate();
@@ -191,10 +191,9 @@ const CreateEvent = () => {
 
   const handleEliminarEvento = async () => {
     if (!eventoId) return;
-    const token = localStorage.getItem("token") || "";
     setDeleting(true);
     try {
-      await eliminarEvento(parseInt(eventoId), token);
+      await eliminarEvento(parseInt(eventoId), token || "");
       toast.success("Evento eliminado correctamente");
       clearEventContext();
       navigate('/eventos');

@@ -13,7 +13,7 @@ const Configuraciones: React.FC = () => {
   const { eventoId } = useParams<{ eventoId: string }>();
   const navigate = useNavigate();
   const { logout } = useAuth();
-  const { userRole, userColor, isCollapsed, clearEventContext } = useContext(EventContext) as any;
+  const { userRole, userColor, isCollapsed, clearEventContext } = useContext(EventContext)!;
   const [eventInfo, setEventInfo] = useState<any>(null);
 
   const isPublicRole = userRole === "Público";
@@ -23,8 +23,8 @@ const Configuraciones: React.FC = () => {
     try {
       const data: any = await getDashboard(eventoId as any);
       setEventInfo(data.liveInfo);
-    } catch (err) {
-      console.error("Error cargando info del evento:", err);
+    } catch {
+      // Non-critical: event info is cosmetic in this page
     }
   }, [eventoId]);
 
@@ -47,7 +47,7 @@ const Configuraciones: React.FC = () => {
       <div className="pb-[120px] lg:pb-12">
         <header
           className={`bg-blue-600 text-white p-6 lg:p-10 transition-all duration-300 ${isPublicRole ? 'lg:pl-10' : (isCollapsed ? 'lg:pl-28' : 'lg:pl-80')}`}
-          style={{ backgroundColor: userColor }}
+          style={{ backgroundColor: userColor ?? undefined }}
         >
           <div className="max-w-7xl mx-auto">
             <div className="flex justify-between items-start mb-6">

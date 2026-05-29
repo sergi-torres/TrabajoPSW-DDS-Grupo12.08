@@ -287,8 +287,6 @@ export default function AvisosPage() {
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
-  //console.log("Notificaciones cargadas:", notifications);
-
   return (
     <div className="min-h-screen bg-gray-50 font-body relative">
       {/* {!isPublicRole && <EventSidebar />} */} 

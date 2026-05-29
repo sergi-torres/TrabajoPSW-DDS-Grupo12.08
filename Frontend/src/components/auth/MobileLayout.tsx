@@ -6,14 +6,6 @@ import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { toast } from "sonner";
 
-/**
- * MobileLayout.tsx
- * 
- * Vista exclusiva para dispositivos móviles (app. Público / Gamificada).
- * Muestra el logo, un Input gigante centrado para el PIN del evento
- * y un `LoginDrawer` en la parte inferior para los demás roles.
- */
-
 export function MobileLayout() {
     const navigate = useNavigate();
     const authContext = useContext(AuthContext);
@@ -30,12 +22,11 @@ export function MobileLayout() {
 
         if (pin.length > 0) {
             try {
-                // PIN flow: loginPublic ya maneja el POST a /join, guarda en storage y devuelve el evento
-                const data = await loginPublic(pin);
-                // Redirigir directamente al panel de votación del evento
-                navigate(`/eventos/${data.id}/votar`, { replace: true });
+                await loginPublic(pin);
+                // eventoId is written to localStorage by loginPublic; read it for the redirect
+                const eventoId = localStorage.getItem("eventoId");
+                navigate(`/eventos/${eventoId}/votar`, { replace: true });
             } catch (error: any) {
-                console.error("Error validando PIN:", error);
                 toast.error(error?.message || "Error validando PIN");
             }
         }

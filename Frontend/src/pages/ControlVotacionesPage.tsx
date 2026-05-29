@@ -11,7 +11,7 @@ import { cn } from '../components/ui/utils';
 const ControlVotacionesPage: React.FC = () => {
     const navigate = useNavigate();
     const { eventoId } = useParams<{ eventoId: string }>();
-    const { userColor, isCollapsed } = useContext(EventContext) as any;
+    const { userColor, isCollapsed } = useContext(EventContext)!;
     const { categorias, cargando, cargarCategorias, cambiarEstado, actualizarTiempos } = useControlVotaciones();
     const [selectedId, setSelectedId] = useState<number | null>(null);
 

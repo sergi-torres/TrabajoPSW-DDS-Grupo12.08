@@ -20,7 +20,7 @@ import "../components/organizator_dashboard/Dashboard.css";
 
 export default function OrganizerDashboard() {
   const navigate = useNavigate();
-  const { logout, userId } = useContext(AuthContext)! as any;
+  const { logout, userId } = useContext(AuthContext)!;
   const { eventoId: contextEventoId, userRole, userColor, isCollapsed, clearEventContext } = useContext(EventContext)!;
   
   const [toast, setToast] = useState<any>(null);
@@ -56,7 +56,6 @@ export default function OrganizerDashboard() {
       setDashboardData(data);
       setError(null);
     } catch (err: any) {
-      console.error("Error cargando dashboard:", err);
       setError(err.message || "Error al conectar con el servidor.");
     } finally {
       setLoading(false);
@@ -71,7 +70,7 @@ export default function OrganizerDashboard() {
       });
       premiosApi.obtenerPremios(Number(eventoId)).then(res => {
         setPremios(res);
-      }).catch(err => console.error("Error cargando premios:", err));
+      }).catch(() => { /* premios son optativos en el dashboard */ });
     }
   }, [eventoId]);
 
@@ -96,7 +95,7 @@ export default function OrganizerDashboard() {
 
   const handleAbandonar = async () => {
     try {
-      await abandonarEvento(Number(eventoId), userId);
+      await abandonarEvento(Number(eventoId), userId!);
       clearEventContext();
       navigate('/eventos');
     } catch (err: any) {
@@ -162,12 +161,9 @@ export default function OrganizerDashboard() {
   const { liveInfo, stats, ranking } = dashboardData;
 
 
-  // Build CategoryRankingData from categorias + ranking
   const categoryRankingData: CategoryRankingData[] = categorias.map((cat: any) => {
-    // Use the Estado field from backend categories API (Pendiente / Activa / Finalizada)
     const finalizada = cat.estado === "Finalizada";
 
-    // Filter ranking projects for this category and take top 3
     // Backend returns camelCase: idCategoria, name, score, team
     const catProjects = (ranking || [])
       .filter((p: any) => p.idCategoria === cat.id)

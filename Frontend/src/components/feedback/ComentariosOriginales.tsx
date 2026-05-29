@@ -117,7 +117,6 @@ export function ComentariosOriginales({
 
             setComentarios(lista);
         } catch (err) {
-            console.error("[ComentariosOriginales] Error:", err);
             const message = err instanceof Error ? err.message : "Error al cargar comentarios";
             toast.error(message);
             setComentarios([]);

@@ -1,13 +1,15 @@
-﻿import { useState, useEffect } from "react";
+﻿import { useState, useEffect, useContext } from "react";
 import { API_BASE_URL } from "../config/api";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Save, X, Users } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "../components/ui/badge";
+import { AuthContext } from "../context/AuthContext";
 
 export default function EditarProyectoPage() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { userId, userName } = useContext(AuthContext)!;
   const [proyecto, setProyecto] = useState<any>(null);
   const [cargando, setCargando] = useState(true);
   const [additionalMembers, setAdditionalMembers] = useState<any[]>([]);
@@ -29,30 +31,28 @@ export default function EditarProyectoPage() {
             email: usuario.email,
             nombre: usuario.nombreCompleto || usuario.email
           });
-        } else {
-          console.warn(`No se pudo cargar el usuario ${memberId}`);
         }
-      } catch (error) {
-        console.error(`Error cargando miembro ${memberId}:`, error);
+      } catch {
+        // Non-critical: member is omitted from the display list
       }
     }
     return miembros;
   };
 
-  const miembros = localStorage.getItem("usuarios") || "[]";
 
   useEffect(() => {
   const cargarProyecto = async () => {
     try {
       let proyectoData = null;
       
-      // Intentar cargar desde localStorage primero
+      // ProjectPage caches the project in localStorage before navigating here
+      // because this page has no route param for project data beyond the ID.
       const stored = localStorage.getItem("proyectoEditando");
       if (stored) {
         try {
           proyectoData = JSON.parse(stored);
-        } catch (parseError) {
-          console.error("Error parseando localStorage:", parseError);
+        } catch {
+          // Corrupted cache — fall through to fetch from API
         }
       }
       
@@ -67,9 +67,7 @@ export default function EditarProyectoPage() {
       if (proyectoData) {
         // Asegurar que idParticipante existe
         if (!proyectoData.idParticipante) {
-          proyectoData.idParticipante = proyectoData.idCreador || 
-                                        proyectoData.liderId || 
-                                        parseInt(localStorage.getItem("userId") || "0");
+          proyectoData.idParticipante = proyectoData.idCreador || proyectoData.liderId || 0;
         }
         
         setProyecto(proyectoData);
@@ -85,11 +83,8 @@ export default function EditarProyectoPage() {
         } else {
           setAdditionalMembers([]);
         }
-      } else {
-        console.warn("No se pudo cargar el proyecto");
       }
-    } catch (error) {
-      console.error("Error cargando proyecto:", error);
+    } catch {
     } finally {
       setCargando(false);
     }
@@ -148,8 +143,7 @@ export default function EditarProyectoPage() {
       idMiembros: nuevosMemberIds
     }));
     
-  } catch (error) {
-    console.error("Error:", error);
+  } catch {
     toast.error("Error al buscar usuario");
   }
 };
@@ -167,7 +161,6 @@ export default function EditarProyectoPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const userId = localStorage.getItem("userId");
     const proyectoIdEvento = proyecto.idEvento;
 
     const miembrosOriginales = proyecto.idMiembros || []; // Los que ya tenía el proyecto
@@ -183,20 +176,22 @@ export default function EditarProyectoPage() {
       nombre: proyecto.nombre,
       descripcion: proyecto.descripcion,
       urlMultimedia: proyecto.urlMultimedia,
-      idParticipante: userId ? parseInt(userId) : proyecto.idParticipante,
+      idParticipante: userId ?? proyecto.idParticipante,
       idCategoria: proyecto.idCategoria,
-      idEvento: proyectoIdEvento || parseInt(localStorage.getItem("idEvento") || "0"),
+      idEvento: proyectoIdEvento || parseInt(localStorage.getItem("idEvento") || "0"), // idEvento cache set by ProjectPage
       estado: proyecto.estado,
       idMiembros: miembrosNuevos
     };
 
     try {
+      // Token is read from localStorage here because EditarProyectoPage
+      // does not have access to AuthContext token through the API layer.
       const token = localStorage.getItem("token");
       const response = await fetch(`${API_BASE_URL}/api/proyectos/${proyecto.id}`, {
         method: "PUT",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+          ...(token ? { "Authorization": `Bearer ${token}` } : {}),
         },
         body: JSON.stringify(proyectoActualizado)
       });
@@ -211,12 +206,9 @@ export default function EditarProyectoPage() {
         toast.success("Proyecto actualizado exitosamente");
         navigate(-1);
       } else {
-        const error = await response.json();
-        console.error("Error:", error);
         toast.error("Error al actualizar el proyecto");
       }
-    } catch (error) {
-      console.error("Error:", error);
+    } catch {
       toast.error("Error al actualizar el proyecto");
     }
   };
@@ -349,11 +341,11 @@ export default function EditarProyectoPage() {
               {/* Líder del proyecto */}
               <div className="flex items-center gap-3 p-4 bg-purple-50 rounded-2xl border border-purple-200 shadow-sm">
                 <div className="w-10 h-10 rounded-xl bg-purple-600 flex items-center justify-center text-white font-bold">
-                  {localStorage.getItem("email")?.charAt(0).toUpperCase() || "L"}
+                  {userName?.charAt(0).toUpperCase() || "L"}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-bold text-gray-900 truncate">
-                    {localStorage.getItem("email") || "Usuario"}
+                    {userName || "Usuario"}
                   </p>
                   <p className="text-[10px] text-purple-600 uppercase font-black tracking-widest">Organizador</p>
                 </div>

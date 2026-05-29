@@ -19,7 +19,6 @@ export const categoriasApi = {
       throw new Error("ID de categoría no proporcionado");
     }
     
-    // ✅ URL correcta: api/categorias/id/{id}
     const res = await fetch(`${API_URL}/id/${id}`);
     
     if (!res.ok) {

@@ -1,6 +1,6 @@
 import type { Dispatch, SetStateAction } from 'react';
 
-// Mantener builders como funciones puras (sin efectos colaterales) para facilitar refactor.
+// Pure builder functions — no side effects, no localStorage access.
 
 export type LocalVotingContext = {
   idUsuario: number | null;
@@ -50,20 +50,18 @@ export function buildPublicVoteDto(params: {
     valor = 1,
   } = params;
 
-  const idUsuarioUndefined = idUsuario ?? undefined;
-
   return {
     eventoId,
     categoriaId,
     proyectoId,
     comentario,
-    idUsuario: idUsuarioUndefined,
+    idUsuario: idUsuario ?? undefined,
     sessionId,
     identificadorHash: identificadorHash || undefined,
     valor,
     idcriterio: null,
     idproyecto: proyectoId,
-    idevaluador: idUsuarioUndefined,
+    idevaluador: idUsuario ?? undefined,
     idcategoria: categoriaId,
   };
 }

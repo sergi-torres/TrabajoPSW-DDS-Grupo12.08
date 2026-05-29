@@ -22,7 +22,7 @@ export const useAuth = (onSuccess?: (path: string) => void) => {
     }
   };
 
-  const handleLogin = async (credentials: any) => {
+  const handleLogin = async (credentials: { email: string; password: string; invitationToken?: string | null }) => {
     try {
       await contextLogin(credentials);
       toast.success("¡Bienvenido!");
@@ -33,7 +33,7 @@ export const useAuth = (onSuccess?: (path: string) => void) => {
     }
   };
 
-  const handleRegister = async (data: any) => {
+  const handleRegister = async (data: { email: string; password: string; nombreCompleto: string; nombreUsuario?: string; invitationToken?: string | null }) => {
     try {
       await register(data);
       toast.success("Registro exitoso. Ahora puedes iniciar sesión.");

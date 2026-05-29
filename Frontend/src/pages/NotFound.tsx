@@ -1,16 +1,11 @@
-import { useLocation, useNavigate } from "react-router-dom";
-import { useEffect, useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import { useContext } from "react";
 import { AlertTriangle, Home, LogIn } from "lucide-react";
 import { AuthContext } from "../context/AuthContext";
 
 const NotFound = () => {
-    const location = useLocation();
     const navigate = useNavigate();
     const { isAuthenticated } = useContext(AuthContext)!;
-
-    useEffect(() => {
-        console.error("404 Error: Ruta no encontrada:", location.pathname);
-    }, [location.pathname]);
 
     const handleRedirect = () => {
         navigate(isAuthenticated ? "/eventos" : "/login", { replace: true });

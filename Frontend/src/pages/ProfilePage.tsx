@@ -23,7 +23,7 @@ export default function ProfilePage() {
         ]).then(([p, ev]) => {
             setPerfil(p);
             setEventos(ev);
-        }).catch(console.error)
+        }).catch(() => { /* profile data loads silently */ })
           .finally(() => setLoading(false));
     }, [userId]);
 

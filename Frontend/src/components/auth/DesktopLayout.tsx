@@ -7,9 +7,6 @@ import { joinEvento } from "../../api/eventosApi";
 import { AuthContext } from "../../context/AuthContext";
 import { toast } from "sonner";
 
-/**
- * DesktopLayout.tsx
- */
 export function DesktopLayout() {
     const navigate = useNavigate();
     const auth = useContext(AuthContext);
@@ -24,13 +21,9 @@ export function DesktopLayout() {
         try {
             const data = await joinEvento(pin);
 
-            // PIN flow: siempre sesión pública nueva, sin identidad de jurado
-            const newSessionId = crypto.randomUUID();
-
-            await loginPublic(pin); // loginPublic now takes PIN based on useAuth.ts/AuthContext.tsx
+            await loginPublic(pin);
             navigate(`/eventos/${data.id}/votar`);
         } catch (error: any) {
-            console.error("Error validando PIN:", error);
             toast.error(error?.message || "Error validando PIN");
         }
     };

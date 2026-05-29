@@ -11,10 +11,6 @@ import { toast } from "sonner";
 import { ConfirmModal } from "../components/layout/ConfirmModal";
 import SimpleSearchBar from "../components/layout/SimpleSearchBar";
 
-// ============================================
-// TIPOS
-// ============================================
-
 interface Project {
   id: number;
   nombre: string;
@@ -38,10 +34,6 @@ interface Categoria {
   nombre: string;
   estado: string;
 }
-
-// ============================================
-// COMPONENTE DE TAB
-// ============================================
 
 function TabButton({ 
   active, 
@@ -84,10 +76,6 @@ function TabButton({
 }
 
 
-// ============================================
-// COMPONENTE PRINCIPAL
-// ============================================
-
 export default function ProjectPage() {
   const navigate = useNavigate();
   const { isPublic, userName } = useContext(AuthContext)!;
@@ -109,19 +97,8 @@ export default function ProjectPage() {
 
   const { addNotification } = useVoting();
 
-  // Obtener rol del organizador
-  const getRol = () => {
-    try {
-      const rolData = JSON.parse(localStorage.getItem("propsRol") || "{}");
-      return rolData.label;
-    } catch {
-      return null;
-    }
-  };
+  const esOrganizador = userRole === "Organizador";
 
-  const esOrganizador = getRol() === "Organizador";
-
-  // Obtener puntuación de un proyecto en una categoría específica
   const obtenerPuntaje = (
     proyectoId: number,
     categoriaId: number,
@@ -137,31 +114,27 @@ export default function ProjectPage() {
   };
 
   const editarProyecto = (proyecto: Project) => {
-  // Guardar datos del proyecto a editar en localStorage
-  localStorage.setItem("proyectoEditando", JSON.stringify({
-    id: proyecto.id,
-    nombre: proyecto.nombre,
-    descripcion: proyecto.descripcion,
-    urlMultimedia: proyecto.urlMultimedia,
-    idCategoria: proyecto.idCategoria,
-    idMiembros: proyecto.idMiembros
-  }));
-  
-  // Redirigir a la página de edición (crea esta página después)
-  localStorage.setItem("idEvento", String(proyecto.idEvento));
-  localStorage.setItem("categorias", JSON.stringify(categorias));
-  localStorage.setItem("usuarios", JSON.stringify(proyecto.idMiembros)); // Asumiendo que idMiembros es un array de IDs de usuarios
-  navigate(`/editar-proyecto/${proyecto.id}`);
-};
+    // EditarProyectoPage reads these from localStorage because it has no route params for them.
+    // It falls back to the API if the cache is absent.
+    localStorage.setItem("proyectoEditando", JSON.stringify({
+      id: proyecto.id,
+      nombre: proyecto.nombre,
+      descripcion: proyecto.descripcion,
+      urlMultimedia: proyecto.urlMultimedia,
+      idCategoria: proyecto.idCategoria,
+      idMiembros: proyecto.idMiembros
+    }));
+    localStorage.setItem("idEvento", String(proyecto.idEvento));
+    localStorage.setItem("categorias", JSON.stringify(categorias));
+    navigate(`/editar-proyecto/${proyecto.id}`);
+  };
 
-  // Calcular puntaje total de un proyecto en la categoría activa
   const obtenerPuntajeTotal = (proyectoId: number, categoriaId: number) => {
     const jurado = obtenerPuntaje(proyectoId, categoriaId, "JURADO");
     const publico = obtenerPuntaje(proyectoId, categoriaId, "PUBLICO");
     return jurado + publico;
   };
 
-  // Eliminar proyecto
   const confirmDeleteProyecto = (proyecto: Project) => {
     setProjectIdToDelete(proyecto.id);
     setProjectNameToDelete(proyecto.nombre);
@@ -190,8 +163,7 @@ try {
   } else {
     toast.error("Error al eliminar el proyecto");
   }
-} catch (error) {
-  console.error("Error:", error);
+} catch {
   toast.error("Error al eliminar el proyecto");
 } finally {
   setIsDeletingProject(false);
@@ -211,39 +183,36 @@ try {
     );
   });
 
-  // Ordenar proyectos por puntaje total
   const proyectosOrdenados = [...proyectosFiltrados].sort((a, b) => {
     const puntajeA = categoriaActiva ? obtenerPuntajeTotal(a.id, categoriaActiva) : 0;
     const puntajeB = categoriaActiva ? obtenerPuntajeTotal(b.id, categoriaActiva) : 0;
     return puntajeB - puntajeA;
   });
 
-  // Cargar datos
+  const { eventoId: eventoIdCtx } = useContext(EventContext)!;
+
   useEffect(() => {
     const cargarDatos = async () => {
-      try {
-        const eventoId = localStorage.getItem("eventoId");
-        if (!eventoId) {
-          console.error("No hay eventoId");
-          setCargando(false);
-          return;
-        }
+      // eventoId comes from EventContext (populated from URL params when entering an event)
+      const eventoId = eventoIdCtx;
+      if (!eventoId) {
+        setCargando(false);
+        return;
+      }
 
-        // 1. Cargar categorías del evento
+      try {
         const categoriasRes = await fetch(`${API_BASE_URL}/api/categorias/evento/${eventoId}`);
         const categoriasData = await categoriasRes.json();
         setCategorias(categoriasData);
-        
+
         if (categoriasData.length > 0) {
           setCategoriaActiva(categoriasData[0].id);
         }
 
-        // 2. Cargar proyectos del evento
         const proyectosRes = await fetch(`${API_BASE_URL}/api/proyectos/evento/${eventoId}`);
         const proyectosData = await proyectosRes.json();
         setProyectos(proyectosData);
 
-        // 3. Cargar puntuaciones
         const todasPuntuaciones: Puntuacion[] = [];
         for (const proyecto of proyectosData) {
           const res = await fetch(`${API_BASE_URL}/api/votacion/porProyecto?proyectoId=${proyecto.id}`);
@@ -254,15 +223,14 @@ try {
         }
         setPuntuaciones(todasPuntuaciones);
 
-      } catch (error) {
-        console.error("Error cargando datos:", error);
+      } catch {
       } finally {
         setCargando(false);
       }
     };
 
     cargarDatos();
-  }, []);
+  }, [eventoIdCtx]);
 
   if (cargando) {
     return (
@@ -376,12 +344,8 @@ try {
                 <div className="mb-6 flex justify-end">
                   <button
                     onClick={() => {
-                      if (localStorage.getItem("proyectoABCD")) {
-                        localStorage.removeItem("proyectoABCD");
-                      }
-
-                      localStorage.setItem("registrationColorMode", (userRole === "Organizador" ? "org" : "part"));
-                      navigate(`/eventos/${localStorage.getItem("eventoId")}/participantRegister`);
+                      localStorage.removeItem("proyectoABCD");
+                      navigate(`/eventos/${eventoIdCtx}/participantRegister`);
                     }}
                     className="flex items-center gap-2 px-4 py-2 text-white rounded-xl transition-all text-sm font-medium"
                     style={{ backgroundColor: userRole === "Organizador" ? "var(--color-org)" : userRole === "Jurado" ? "var(--color-jur)" : "var(--color-part)" }}
@@ -454,7 +418,6 @@ try {
                               <div className="text-xs text-gray-400">Puntaje Total</div>
                             </div>
 
-                            {/* Botón de eliminar - solo organizador */}
                             {esOrganizador && (
                               <button
                                 onClick={() => confirmDeleteProyecto(proyecto)}
@@ -464,7 +427,6 @@ try {
                                 <Trash2 size={18} />
                               </button>
                             )}
-                            {/* Botón Modificar */}
                             {esOrganizador && (
                               <button
                                 onClick={() => editarProyecto(proyecto)}

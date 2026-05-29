@@ -70,8 +70,7 @@ const EvaluacionCriterios: React.FC<Props> = ({
           initialEval[c.id] = { valor: 5, comentario: "" };
         });
         setEvaluaciones(initialEval);
-      } catch (err) {
-        console.error(err);
+      } catch {
         setError("No se pudieron cargar los criterios de evaluación.");
       } finally {
         setFetching(false);

@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { API_BASE_URL } from "../config/api";
-import { useEffect, useState, useContext } from "react";
+import { useEffect, useState, useContext, useMemo } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { EventContext } from "../context/EventContext";
 import { EventSidebar } from "../components/layout/EventSidebar";
@@ -8,9 +8,8 @@ import { useVoting } from "../context/VotingContext";
 import { comentariosApi } from "../api/comentariosApi";
 import { deleteProyecto } from "../api/proyectoApi";
 import { 
-  ArrowLeft, 
-  Target, 
-  Award, 
+  ArrowLeft,
+  Target,
   Trash2,
   ChevronLeft,
   ChevronRight,
@@ -71,7 +70,7 @@ export default function VotosPage() {
   const navigate = useNavigate();
   const authCtx = useContext(AuthContext);
   const { userColor, isCollapsed, userRole } = useContext(EventContext)!;
-  const { addNotification } = useVoting();
+  const { addNotification, eventConfig } = useVoting();
 
   const [votaciones, setVotaciones] = useState<any[]>([]);
   const [categoria, setCategoria] = useState<any>(null);
@@ -86,10 +85,11 @@ export default function VotosPage() {
 
   const isPublicRole = userRole === "Público";
   const themeColor = userColor || "#9333ea";
-  const userName = authCtx?.userName || localStorage.getItem("userName") || "Usuario";
+  const userName = authCtx?.userName || "Usuario";
 
-  // Obtener categoría
   const obtenerCategoria = async () => {
+    // categoriaProyecto is written by DashboardPage when the participant enters an event;
+    // it is not available via route params on this page.
     const idCategoria = localStorage.getItem("categoriaProyecto");
     if (idCategoria) {
       try {
@@ -97,20 +97,17 @@ export default function VotosPage() {
         if (catRes.ok) {
           const catData = await catRes.json();
           setCategoria(catData);
-          localStorage.setItem("categoriaNombre", catData.nombre);
         }
-      } catch (error) {
-        console.error("Error obteniendo categoría:", error);
+      } catch {
+        // Non-critical: category name degrades to "Global"
       }
     }
   };
 
-  // Cargar datos del proyecto
   const fetchData = async (proyectoId: string) => {
     if (!proyectoId) return;
-    
+
     try {
-      // Obtener resumen de comentarios
       const catIdRaw = proyectoActual?.idCategoria || localStorage.getItem("categoriaProyecto");
       if (catIdRaw && proyectoId) {
         const catId = Number(catIdRaw);
@@ -121,8 +118,7 @@ export default function VotosPage() {
           const grupoPublico = resumen.find((g: any) => g.tipo === "Público");
           setComentariosJuradoCount(grupoJurado?.totalComentarios || 0);
           setComentariosPublicoCount(grupoPublico?.totalComentarios || 0);
-        } catch (err) {
-          console.warn("Error al cargar resumen de comentarios:", err);
+        } catch {
           setComentariosJuradoCount(0);
           setComentariosPublicoCount(0);
         }
@@ -134,13 +130,14 @@ export default function VotosPage() {
     }
   };
 
-  // Cargar lista de proyectos desde localStorage
   useEffect(() => {
+    // DashboardPage caches the participant's projects in localStorage when they enter an event,
+    // so this page can navigate between them without an extra API call.
     const storedProyectos = localStorage.getItem("proyectos");
     if (storedProyectos) {
       const proyectos = JSON.parse(storedProyectos);
       setProyectosDisponibles(proyectos);
-      
+
       const currentId = localStorage.getItem("proyectoId");
       const current = proyectos.find((p: any) => p.id == currentId);
       if (current) {
@@ -159,33 +156,28 @@ export default function VotosPage() {
     }
   }, [proyectoActual]);
 
-  // Navegar a proyecto anterior
+  const navigateToProject = (project: any) => {
+    // Keep localStorage in sync so obtenerCategoria() reads the right category on the next render
+    localStorage.setItem("proyectoId", project.id);
+    localStorage.setItem("categoriaProyecto", project.idCategoria);
+    setProyectoActual(project);
+  };
+
   const goToPreviousProject = () => {
     if (!proyectosDisponibles.length || !proyectoActual) return;
     const currentIndex = proyectosDisponibles.findIndex(p => p.id == proyectoActual.id);
     if (currentIndex > 0) {
-      const prevProject = proyectosDisponibles[currentIndex - 1];
-      localStorage.setItem("proyectoId", prevProject.id);
-      localStorage.setItem("proyectoNombre", prevProject.nombre);
-      localStorage.setItem("proyectoDescripcion", prevProject.descripcion);
-      localStorage.setItem("categoriaProyecto", prevProject.idCategoria);
-      setProyectoActual(prevProject);
+      navigateToProject(proyectosDisponibles[currentIndex - 1]);
     } else {
       toast.error("No hay proyecto anterior");
     }
   };
 
-  // Navegar a proyecto siguiente
   const goToNextProject = () => {
     if (!proyectosDisponibles.length || !proyectoActual) return;
     const currentIndex = proyectosDisponibles.findIndex(p => p.id == proyectoActual.id);
     if (currentIndex < proyectosDisponibles.length - 1) {
-      const nextProject = proyectosDisponibles[currentIndex + 1];
-      localStorage.setItem("proyectoId", nextProject.id);
-      localStorage.setItem("proyectoNombre", nextProject.nombre);
-      localStorage.setItem("proyectoDescripcion", nextProject.descripcion);
-      localStorage.setItem("categoriaProyecto", nextProject.idCategoria);
-      setProyectoActual(nextProject);
+      navigateToProject(proyectosDisponibles[currentIndex + 1]);
     } else {
       toast.error("No hay proyecto siguiente");
     }
@@ -227,8 +219,7 @@ export default function VotosPage() {
         setProjectToDelete(null);
         toast.success("Proyecto eliminado exitosamente");
       }
-    } catch (error) {
-      console.error("Error al eliminar proyecto:", error);
+    } catch {
       toast.error("Error al eliminar el proyecto");
     } finally {
       setIsDeletingProject(false);
@@ -237,13 +228,6 @@ export default function VotosPage() {
 
   const currentIndex = proyectoActual ? proyectosDisponibles.findIndex(p => p.id == proyectoActual.id) : -1;
   
-  const EVALUATION_CRITERIA = [
-    { name: "Innovación", score: 85, maxScore: 100 },
-    { name: "Diseño", score: 92, maxScore: 100 },
-    { name: "Funcionalidad", score: 78, maxScore: 100 },
-    { name: "Presentación", score: 88, maxScore: 100 }
-  ];
-
   if (cargando) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -278,7 +262,7 @@ export default function VotosPage() {
 
             <div>
               <h1 className="text-3xl lg:text-4xl font-heading font-bold tracking-tight mb-2">
-                {localStorage.getItem("eventoNombre") || "Evento"}
+                {eventConfig.eventName || "Evento"}
               </h1>
               <p className="opacity-90 text-lg font-medium">
                 Bienvenido de nuevo, {userName}
@@ -342,7 +326,7 @@ export default function VotosPage() {
                   <span style={{ color: themeColor }}>Nombre:</span> {proyectoActual?.nombre || "Sin nombre"}
                 </p>
                 <p className="text-xl font-heading font-bold text-gray-900">
-                  <span className="text-blue-600">Categoría:</span> {localStorage.getItem("categoriaNombre") || "Global"}
+                  <span className="text-blue-600">Categoría:</span> {categoria?.nombre || "Global"}
                 </p>
               </div>
               <p className="text-gray-600 text-lg leading-relaxed">

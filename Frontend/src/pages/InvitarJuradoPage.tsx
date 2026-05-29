@@ -90,8 +90,7 @@ export default function InvitarJuradoPage() {
     try {
       const data = await getJuradosEvento(Number(eventoId));
       setJurados(data);
-    } catch (err: any) {
-      console.error("Error cargando jurados:", err);
+    } catch {
       showToast("Error al cargar la lista de jurados", "error");
     }
   }, [eventoId, showToast]);
@@ -101,8 +100,8 @@ export default function InvitarJuradoPage() {
     try {
       const data = await getDashboard(Number(eventoId));
       setEventInfo(data.liveInfo);
-    } catch (err) {
-      console.error("Error cargando info del evento:", err);
+    } catch {
+      // Non-critical: event name in the email preview defaults gracefully
     }
   }, [eventoId]);
 

@@ -113,8 +113,8 @@ export default function ComentariosProyecto({ themeColor }: ComentariosProyectoP
         // Filtrar tipos que no tengan comentarios
         setComentariosPorTipo(resultadosCompletos.filter(t => t.totalComentarios > 0));
 
-      } catch (err) {
-        console.error("Error cargando comentarios unificados:", err);
+      } catch {
+        // Comments load silently — the UI shows empty state on error
       } finally {
         setCargando(false);
       }

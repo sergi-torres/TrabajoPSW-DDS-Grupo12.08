@@ -25,15 +25,13 @@ export const useConfigTiempos = (): UseConfigTiemposReturn => {
     try {
       const datos = await ConfigTiemposVotacion.obtenerPorEvento(Number(eventoId));
       setCategorias(datos);
-    } catch (error) {
-      console.error("Error al obtener categorías:", error);
+    } catch {
       toast.error("No se pudieron cargar las categorías del evento");
     } finally {
       setCargandoCategorias(false);
     }
   }, []);
 
-  //Enviar la configuración (Guardar o Desactivar)
   const guardarConfiguracion = useCallback(async (datosDto: ConfiguracionTiempoDto, esDesactivacion = false) => {
     setEstaGuardando(true);
     try {
@@ -45,8 +43,7 @@ export const useConfigTiempos = (): UseConfigTiemposReturn => {
       );
       return true;
     } catch (error) {
-      console.error("Error al guardar:", error);
-      toast.error((error as any).message || "Error al conectar con el servidor");
+      toast.error(error instanceof Error ? error.message : "Error al conectar con el servidor");
       return false;
     } finally {
       setEstaGuardando(false);
@@ -59,8 +56,7 @@ export const useConfigTiempos = (): UseConfigTiemposReturn => {
     try {
       const datos = await ConfigTiemposVotacion.obtenerParaControl(Number(eventoId));
       setCategorias(datos);
-    } catch (error) {
-      console.error("Error al obtener categorías de control:", error);
+    } catch {
       toast.error("No se pudieron cargar las categorías del evento");
     } finally {
       setCargandoCategorias(false);
@@ -74,8 +70,7 @@ export const useConfigTiempos = (): UseConfigTiemposReturn => {
       toast.success("Límite de votos actualizado correctamente");
       return true;
     } catch (error) {
-      console.error("Error al actualizar límite:", error);
-      toast.error((error as any).message || "Error al conectar con el servidor");
+      toast.error(error instanceof Error ? error.message : "Error al conectar con el servidor");
       return false;
     } finally {
       setEstaGuardando(false);
