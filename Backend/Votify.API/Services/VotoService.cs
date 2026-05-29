@@ -87,13 +87,11 @@ namespace Votify.API.Services
             try
             {
                 var claveSesion = SessionHelper.ObtenerClaveSesion(idUsuario, sessionId);
-
-                // Refactorización 2: Extract Method (DeterminarVotosUsuarioAsync)
                 var votosUsuario = await DeterminarVotosUsuarioAsync(idUsuario, claveSesion, identificadorHash);
 
                 var (categoriasDelEvento, todosProyectos) = await ObtenerDatosEventoAsync(eventoId);
 
-                // 2. Pre-cargar votos públicos si hay hash
+                // Carga todos los votos públicos del hash de una vez para evitar N consultas al iterar categorías.
                 List<RegistroVotoPublico> todosVotosPublicosHash = new();
                 if (!idUsuario.HasValue && !string.IsNullOrEmpty(identificadorHash))
                 {
@@ -105,16 +103,13 @@ namespace Votify.API.Services
 
                 foreach (var cat in categoriasDelEvento)
                 {
-                    // Check if public user already voted in this category via fingerprint
                     var proyectosVotadosPublico = todosVotosPublicosHash
                         .Where(v => v.IdCategoria == cat.Id && v.IdProyecto.HasValue)
                         .Select(v => v.IdProyecto!.Value)
                         .ToList();
 
-                    // Filtrar proyectos de esta categoría
                     var proyectosCategoria = todosProyectos.Where(p => p.IdCategoria == cat.Id).ToList();
 
-                    // Convertir proyectos a DTO y marcar estado basado en votos de sesión o BD
                     var proyectosDto = proyectosCategoria.Select(p => new ProyectosResponseDto
                     {
                         Id = p.Id,
@@ -123,12 +118,10 @@ namespace Votify.API.Services
                         Estado = (proyectosVotadosPublico.Contains(p.Id) || votosUsuario.Any(v => v.CategoriaId == cat.Id && v.ProyectoId == p.Id)) ? "votado" : "disponible"
                     }).ToList();
 
-                    // Usar el valor dinámico configurado en la base de datos para cada categoría
                     int maxVotos = cat.VotosRestantes;
                     var votosEnCategoria = proyectosVotadosPublico.Count + votosUsuario.Count(v => v.CategoriaId == cat.Id && !proyectosVotadosPublico.Contains(v.ProyectoId));
                     var votosRestantes = maxVotos - votosEnCategoria;
 
-                    // Usar el estado de la base de datos pero verificar si por tiempo debe cambiar
                     string estadoReal = cat.Estado ?? "Pendiente";
 
                     bool haLlegadoLaFechaDeInicio = cat.FechaIni.HasValue && nowTime >= cat.FechaIni.Value;
@@ -138,18 +131,16 @@ namespace Votify.API.Services
                     if (estadoReal == "Pendiente" && haLlegadoLaFechaDeInicio)
                     {
                         estadoReal = "Activa";
-                        // Actualizamos en BD para que sea persistente
-                        await _categoriaRepository.ActualizarAsync(new Categoria { Id = cat.Id, Nombre = cat.Nombre, IdEvento = cat.IdEvento, FechaIni = cat.FechaIni, FechaFin = cat.FechaFin, Estado = estadoReal });
+                        await _categoriaRepository.ActualizarAsync(new Categoria { Id = cat.Id, Nombre = cat.Nombre, IdEvento = cat.IdEvento, FechaIni = cat.FechaIni, FechaFin = cat.FechaFin, Estado = estadoReal, VotosMaximos = cat.VotosRestantes });
                     }
                     else if (estaEnFaseDeVotacion && haLlegadoLaFechaDeFin)
                     {
                         estadoReal = "Finalizada";
-                        // Actualizamos en BD para que sea persistente
-                        await _categoriaRepository.ActualizarAsync(new Categoria { Id = cat.Id, Nombre = cat.Nombre, IdEvento = cat.IdEvento, FechaIni = cat.FechaIni, FechaFin = cat.FechaFin, Estado = estadoReal });
+                        await _categoriaRepository.ActualizarAsync(new Categoria { Id = cat.Id, Nombre = cat.Nombre, IdEvento = cat.IdEvento, FechaIni = cat.FechaIni, FechaFin = cat.FechaFin, Estado = estadoReal, VotosMaximos = cat.VotosRestantes });
                     }
 
-                    // Calcular estado final para el frontend. Si no le quedan votos, es "completado" sin importar la fecha (a menos que esté finalizada/pendiente en cuyo caso también se bloquea).
-                    string estadoFrontend = estadoReal.ToLower(); // "activa", "pendiente", "finalizada"
+                    // "completado": el usuario agotó sus votos en esta categoría pero ésta sigue activa para otros.
+                    string estadoFrontend = estadoReal.ToLower();
                     if (estadoReal == "Activa" && votosRestantes <= 0)
                     {
                         estadoFrontend = "completado";
@@ -215,33 +206,26 @@ namespace Votify.API.Services
         {
             var claveSesion = SessionHelper.ObtenerClaveSesion(idUsuario, sessionId);
 
-            // 1. Validar unicidad para voto público usando el hash del dispositivo
             if (!idUsuario.HasValue && !string.IsNullOrEmpty(request.IdentificadorHash))
             {
                 var proyectosVotados = await _votoRepository.ObtenerProyectosVotadosPublicoAsync(request.EventoId, request.CategoriaId, request.IdentificadorHash);
 
                 if (proyectosVotados.Contains(request.ProyectoId))
-                {
                     throw new Exception("Ya has votado por este proyecto.");
-                }
 
-                // Fetch the category to know the real max votes from DB
                 var categoriasDb = await _categoriaRepository.ObtenerTodosCamposAsync(request.EventoId);
                 var catDb = categoriasDb.FirstOrDefault(c => c.Id == request.CategoriaId);
-                var maxVotos = catDb?.VotosMaximos ?? 3; // Default to 3 (as requested) if not found
+                // Default 3 coincide con el default de la columna votosmaximos en la BD.
+                var maxVotos = catDb?.VotosMaximos ?? 3;
 
                 if (proyectosVotados.Count >= maxVotos)
-                {
                     throw new Exception($"Ya has agotado tus {maxVotos} votos para esta categoría.");
-                }
             }
 
-            // Obtener dashboard actual para el evento específico
             var dashboard = await ObtenerDashboardAsync(request.EventoId, idUsuario, sessionId, request.IdentificadorHash);
 
             var categoria = dashboard.Categorias.FirstOrDefault(c => c.Id == request.CategoriaId);
 
-            // Solo permitir voto si la categoría existe y está activa
             if (categoria == null) throw new Exception("Categoría no encontrada.");
 
             if (categoria.Estado != "activa")
@@ -256,7 +240,6 @@ namespace Votify.API.Services
 
             var factory = await ObtenerFactoryPorRolAsync(request.EventoId, idUsuario);
 
-            // Crear voto usando el patrón Factory
             var voto = factory.CrearVoto(
                 proyectoId: request.ProyectoId,
                 valorBase: request.Valor,
@@ -270,7 +253,6 @@ namespace Votify.API.Services
 
             var votoCreado = await _votoRepository.AgregarVotoAsync(voto);
 
-            // 2. Registrar el hash si es voto público para control de unicidad futuro
             if (!idUsuario.HasValue && !string.IsNullOrEmpty(request.IdentificadorHash))
             {
                 await _votoRepository.RegistrarVotoPublicoAsync(new RegistroVotoPublico
@@ -284,7 +266,6 @@ namespace Votify.API.Services
             }
 
 
-            // CREAR COMENTARIO
             if (!string.IsNullOrWhiteSpace(request.Comentario))
             {
                 await _comentarioService.CreateComentarioAsync(
@@ -293,7 +274,6 @@ namespace Votify.API.Services
                 );
             }
 
-            // Actualizar estado en memoria para este usuario
             if (!VotosRealizadosPorUsuario.ContainsKey(claveSesion))
             {
                 VotosRealizadosPorUsuario[claveSesion] = new List<(int CategoriaId, int ProyectoId)>();
@@ -310,7 +290,6 @@ namespace Votify.API.Services
             var sessionId = request.SessionId;
             var claveSesion = SessionHelper.ObtenerClaveSesion(idUsuario, sessionId);
 
-            // Obtener dashboard actual para verificar VotosRestantes
             var dashboard = await ObtenerDashboardAsync(request.EventoId, idUsuario, sessionId);
             var categoria = dashboard.Categorias.FirstOrDefault(c => c.Id == request.CategoriaId);
 
@@ -324,7 +303,6 @@ namespace Votify.API.Services
             int? primerVotoId = null;
             string? comentarioPrimerVoto = null;
 
-            // Crear y persistir un voto por cada criterio evaluado
             for (int i = 0; i < request.Evaluaciones.Count; i++)
             {
                 var evaluacion = request.Evaluaciones[i];
@@ -348,7 +326,6 @@ namespace Votify.API.Services
                 }
                 else
                 {
-                    // Crear comentario cualitativo por criterio si hay texto
                     if (!string.IsNullOrWhiteSpace(evaluacion.Comentario))
                     {
                         await _comentarioService.CreateComentarioAsync(
@@ -359,7 +336,7 @@ namespace Votify.API.Services
                 }
             }
 
-            // Guardar el comentario global del proyecto y el del primer criterio en un solo registro
+            // El comentario global y el del primer criterio se consolidan en un único comentario_cualitativo.
             if (primerVotoId.HasValue)
             {
                 var comentariosACombinar = new List<string>();
@@ -381,7 +358,7 @@ namespace Votify.API.Services
                 }
             }
 
-            // Registrar como UN SOLO voto en la categoría (no uno por criterio)
+            // El batch (múltiples criterios) cuenta como un único voto en la categoría.
             if (!VotosRealizadosPorUsuario.ContainsKey(claveSesion))
             {
                 VotosRealizadosPorUsuario[claveSesion] = new List<(int CategoriaId, int ProyectoId)>();
@@ -411,7 +388,6 @@ namespace Votify.API.Services
 
             var resultado = new List<TipoComentaristaDto>();
 
-            // Grupo Jurado
             var votosJurado = todosVotos.Where(v => v.IdEvaluador.HasValue).ToList();
             if (votosJurado.Any())
             {
@@ -423,7 +399,7 @@ namespace Votify.API.Services
                     grupoJurado.Usuarios.Add(new UsuarioComentariosDto
                     {
                         Referencia = $"J-{g.Key.GetHashCode():X}",
-                        Nombre = "Jurado", // Anonimizado
+                        Nombre = "Jurado",
                         Iniciales = "J",
                         TotalComentarios = g.Count(v => !string.IsNullOrWhiteSpace(v.Comentario))
                     });
@@ -432,7 +408,6 @@ namespace Votify.API.Services
                 if (grupoJurado.TotalComentarios > 0) resultado.Add(grupoJurado);
             }
 
-            // Grupo Público
             var votosPublico = todosVotos.Where(v => !v.IdEvaluador.HasValue).ToList();
             if (votosPublico.Any())
             {
@@ -444,7 +419,7 @@ namespace Votify.API.Services
                     grupoPublico.Usuarios.Add(new UsuarioComentariosDto
                     {
                         Referencia = $"P-{g.Key.GetHashCode():X}",
-                        Nombre = "Público", // Anonimizado
+                        Nombre = "Público",
                         Iniciales = "P",
                         TotalComentarios = g.Count(v => !string.IsNullOrWhiteSpace(v.Comentario))
                     });
