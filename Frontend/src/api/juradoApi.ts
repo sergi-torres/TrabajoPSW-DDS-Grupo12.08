@@ -3,7 +3,6 @@ import { Jurado, AsignarJuradoRequest, ReenviarInvitacionRequest } from '../type
 import { API_BASE_URL } from "../config/api";
 const API_URL = `${API_BASE_URL}/api/Jurado`;
 
-// Helper para obtener el token del localStorage
 const getAuthHeader = (): Record<string, string> => {
     const token = localStorage.getItem("token");
     return token ? { "Authorization": `Bearer ${token}` } : {};

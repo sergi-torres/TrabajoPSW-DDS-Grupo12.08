@@ -1,10 +1,9 @@
-using Votify.API.Models.Domain;
-
 namespace Votify.API.Models.Domain.Factories
 {
-    public class VotoPublicoFactory : IVotoFactory
+    public class VotoPublicoFactory : VotoFactoryBase
     {
-        public Voto CrearVoto(int proyectoId, float valorBase, int idCategoria, int idCriterio, string? comentario, string? urlAudio, int? idUsuario, string ipDispositivo)
+        protected override Voto CreateVoto(int proyectoId, float valorBase, int idCategoria, int idCriterio,
+            string? comentario, string? urlAudio, int? idUsuario, string ipDispositivo)
         {
             return new VotoPublico
             {
@@ -14,8 +13,7 @@ namespace Votify.API.Models.Domain.Factories
                 IdCriterio = idCriterio,
                 Comentario = comentario,
                 UrlAudio = urlAudio,
-                FechaVoto = DateTime.UtcNow,
-                IdEvaluador = null, // El público es anónimo, ignora el idUsuario
+                IdEvaluador = null,
                 IpDispositivo = ipDispositivo
             };
         }

@@ -3,7 +3,6 @@ using Supabase.Postgrest.Models;
 
 namespace Votify.API.Models.DTOs
 {
-    // DTO concreto para consultar la tabla de votos (solo para BD)
     [Table("voto")]
     public class VotoQuery : BaseModel
     {

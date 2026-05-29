@@ -15,8 +15,8 @@ import { EventContext } from "../context/EventContext";
 type Tab = "mis-eventos" | "unirse";
 
 export default function DashboardPage() {
-    const { userId } = useContext(AuthContext) as any;
-    const { setEventContext } = useContext(EventContext) as any;
+    const { userId } = useContext(AuthContext)!;
+    const { setEventContext } = useContext(EventContext)!;
     const navigate = useNavigate();
 
     const [activeTab, setActiveTab] = useState<Tab>("mis-eventos");
@@ -37,13 +37,13 @@ export default function DashboardPage() {
         async function fetchMisEventos() {
             try {
                 setLoadingMis(true);
-                const mis = await getMisEventos(userId);
+                const mis = await getMisEventos(userId!);
                 setMisEventos(mis);
+                // Cache used by eventosApi.joinEvento to resolve a PIN locally before hitting the backend
                 localStorage.setItem("misEventosCache", JSON.stringify(mis));
-                const proyectos = await getProyectosByParticipante(userId);
+                const proyectos = await getProyectosByParticipante(userId!);
                 setMisProyectos(proyectos);
             } catch (err: any) {
-                console.error("Error cargando eventos:", err);
                 setError(err.message);
             } finally {
                 setLoadingMis(false);
@@ -56,10 +56,9 @@ export default function DashboardPage() {
         if (eventosDisponibles.length > 0) return;
         try {
             setLoadingDisponibles(true);
-            const disponibles = await getEventosDisponibles(userId);
+            const disponibles = await getEventosDisponibles(userId as number);
             setEventosDisponibles(disponibles);
-        } catch (err: any) {
-            console.error("Error cargando disponibles:", err);
+        } catch {
         } finally {
             setLoadingDisponibles(false);
         }
@@ -73,7 +72,7 @@ export default function DashboardPage() {
 
     async function handleUnirse(evento: any) {
         try {
-            await unirseAEvento(evento.id, userId);
+            await unirseAEvento(evento.id, userId!);
             setMisEventos(prev => [...prev, { ...evento, rol: "Participante" }]);
             setEventosDisponibles(prev => prev.filter(e => e.id !== evento.id));
             setActiveTab("mis-eventos");
@@ -98,12 +97,12 @@ export default function DashboardPage() {
     const loading = activeTab === "mis-eventos" ? loadingMis : loadingDisponibles;
 
     return (
-        <div className="min-h-screen bg-background font-body pb-[88px] lg:pb-12 lg:pt-[72px] text-foreground">
+        <div className="min-h-screen bg-background font-body pb-[120px] lg:pb-12 lg:pt-[72px] text-foreground">
             <DesktopHeader searchQuery={searchQuery} onSearchChange={setSearchQuery} />
 
             <main className="max-w-7xl mx-auto px-4 lg:px-8 py-6 lg:py-10">
 
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8 lg:mb-10">
+                <div className="flex flex-col items-center sm:flex-row sm:items-center sm:justify-between gap-6 mb-8 lg:mb-10">
                     <div className="bg-muted rounded-full p-1 inline-flex">
                         <button
                             onClick={() => handleTabChange("mis-eventos")}
@@ -168,12 +167,8 @@ export default function DashboardPage() {
                                     <EventCard
                                         key={evento.id}
                                         {...evento}
-                                        onClick={() => {
-                                            const propsRolRaw = localStorage.getItem("propsRol");
-                                            let rol = "Participante";
-                                            try {
-                                                if (propsRolRaw) rol = JSON.parse(propsRolRaw).label;
-                                            } catch (_e) {}
+                                                        onClick={() => {
+                                            const rol = (evento as any).rol || "Participante";
 
                                             setEventContext({
                                                 eventoId: evento.id,
@@ -182,7 +177,9 @@ export default function DashboardPage() {
                                             });
 
                                             if (rol === "Participante") {
-                                                if (localStorage.getItem("proyectoABCD")) localStorage.removeItem("proyectoABCD");
+                                                // Cache participant's own projects so VotosPage can navigate between them
+                                                // without an extra fetch. Cleared when a new event is entered.
+                                                localStorage.removeItem("proyectoABCD");
                                                 const misProyectosDelEvento = misProyectos.filter(p => p.idEvento === evento.id);
                                                 if (misProyectosDelEvento.length > 0) {
                                                     localStorage.setItem("eventoNombre", evento.nombre);

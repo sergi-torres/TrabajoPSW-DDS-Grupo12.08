@@ -1,4 +1,4 @@
-﻿import { ArrowLeft, Check, Target, Calendar, Users, Upload, X, Image as ImageIcon } from "lucide-react";
+import { ArrowLeft, Check, Target, Calendar, Users, Upload, X, Image as ImageIcon } from "lucide-react";
 import { API_BASE_URL } from "../config/api";
 import { useNavigate, useParams } from "react-router";
 import { useState, useEffect, useContext, useCallback } from "react"; 
@@ -18,6 +18,7 @@ export default function RegisterParticipant() {
   const navigate = useNavigate();
   const { categories, eventConfig, addNotification, reloadContext } = useVoting();
   const eventContext = useContext(EventContext);
+  const { userName, userId } = useContext(AuthContext)!;
 
   const [localCategories, setLocalCategories] = useState<any[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
@@ -36,7 +37,6 @@ export default function RegisterParticipant() {
   useEffect(() => {
     const cargarProyectos = async () => {
       try {
-        const userId = localStorage.getItem("userId");
         if (userId) {
           const response = await fetch(`${API_BASE_URL}/api/proyectos/participante/${userId}`);
           if (response.ok) {
@@ -44,8 +44,7 @@ export default function RegisterParticipant() {
             setProyectosUsuario(proyectos);
           }
         }
-      } catch (error) {
-        console.error("Error cargando proyectos:", error);
+      } catch {
       }
     };
 
@@ -62,8 +61,7 @@ export default function RegisterParticipant() {
                     await reloadContext();
                 }
             }
-        } catch (error) {
-            console.error("Error cargando evento:", error);
+        } catch {
         }
     };
 
@@ -72,14 +70,10 @@ export default function RegisterParticipant() {
   }, []);
 
   useEffect(() => {
-    const userId = localStorage.getItem("userId");
     if (userId && projectData.memberIds.length === 0) {
-      setProjectData((prev: any) => ({
-        ...prev,
-        memberIds: [parseInt(userId)]
-      }));
+      setProjectData((prev: any) => ({ ...prev, memberIds: [userId] }));
     }
-  }, []); // Solo se ejecuta una vez al montar
+  }, []); // Run once on mount to seed the creator as first member
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -115,15 +109,15 @@ export default function RegisterParticipant() {
   const handleRegister = useCallback(async () => {
     if (projectCreated && (localCategories.length === 0 || selectedCategory)) {
       try {
-        const userId = localStorage.getItem("userId");
-        const eventoId = localStorage.getItem("eventoId");      
+        const eventoId = localStorage.getItem("eventoId");
 
         const newProject = {
           nombre: projectData.name,
           descripcion: projectData.description,
-          urlMultimedia: "🚀", // No enviamos el Base64 porque supera los 500 caracteres del VARCHAR en DB
+          // Base64 image omitted — exceeds VARCHAR(500) limit in the DB schema
+          urlMultimedia: "🚀",
           idEvento: eventoId ? parseInt(eventoId) : null,
-          idParticipante: userId ? parseInt(userId) : 16,
+          idParticipante: userId ?? 16,
           idCategoria: selectedCategory ? parseInt(selectedCategory) : null,
           idMiembros : projectData.memberIds,
           estado: "disponible"
@@ -138,7 +132,6 @@ export default function RegisterParticipant() {
         addNotification("project_registered", newProject.nombre);
 
       } catch (error: any) {
-        console.error("Error al crear el proyecto:", error);
         toast.error("Error al crear proyecto", { description: error.message });
       }
     }
@@ -171,7 +164,7 @@ export default function RegisterParticipant() {
     <div className="min-h-screen bg-gray-50 font-body relative">
       <EventSidebar />
       
-      <div className="pb-[88px] lg:pb-12">
+      <div className="pb-[120px] lg:pb-12">
         {/* Header - Full Width Background */}
         <header 
           className={cn(
@@ -278,10 +271,10 @@ export default function RegisterParticipant() {
                       {/* Participante actual */}
                       <div className="flex items-center gap-3 p-4 bg-purple-50 rounded-2xl border border-purple-200 shadow-sm">
                         <div className="w-10 h-10 rounded-xl bg-purple-600 flex items-center justify-center text-white font-bold">
-                          {localStorage.getItem("email")?.charAt(0).toUpperCase() || "U"}
+                          {userName?.charAt(0).toUpperCase() || "U"}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-bold text-gray-900 truncate">{localStorage.getItem("email") || "Usuario"}</p>
+                          <p className="font-bold text-gray-900 truncate">{userName || "Usuario"}</p>
                           <p className="text-[10px] text-purple-600 uppercase font-black tracking-widest">Tú (Creador)</p>
                         </div>
                         <Badge className="bg-purple-100 text-purple-700 font-bold border-none">Líder</Badge>
@@ -347,8 +340,7 @@ export default function RegisterParticipant() {
                                     newMemberEmail: "" 
                                   }));
                                   toast.success(`¡${usuario.nombrecompleto || usuario.email} añadido al equipo!`);
-                              } catch (error) {
-                                  console.error("Error al buscar usuario:", error);
+                              } catch {
                                   toast.error("Error al conectar con el servidor");
                               }
                           } else {

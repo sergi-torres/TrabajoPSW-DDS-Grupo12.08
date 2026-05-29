@@ -74,21 +74,12 @@ export const obtenerVotosPorProyecto = async (proyectoId: number): Promise<any[]
         throw new Error('proyectoId es obligatorio');
     }
 
-    try {
-        const response = await fetch(`/porProyecto?proyectoId=${encodeURIComponent(proyectoId)}`, {
-            method: 'GET'
-        });
+    const response = await fetch(`${API_URL}/porProyecto?proyectoId=${encodeURIComponent(proyectoId)}`);
+    const data = await response.json();
 
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data?.error || 'Error al obtener votos');
-        }
-
-        return data;
-
-    } catch (error: any) {
-        console.error('Error:', error.message);
-        throw error;
+    if (!response.ok) {
+        throw new Error(data?.error || 'Error al obtener votos');
     }
+
+    return data;
 };

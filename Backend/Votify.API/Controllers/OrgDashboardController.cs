@@ -15,9 +15,6 @@ namespace Votify.API.Controllers
             _dashboardService = dashboardService;
         }
 
-        /// <summary>
-        /// Obtiene todos los datos del dashboard del organizador para un evento.
-        /// </summary>
         [HttpGet("{eventoId}")]
         public async Task<IActionResult> GetDashboardAsync(int eventoId)
         {
@@ -32,9 +29,6 @@ namespace Votify.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Extiende el tiempo de votación del evento.
-        /// </summary>
         [HttpPost("{eventoId}/extend")]
         public async Task<IActionResult> ExtenderTiempoAsync(int eventoId, [FromBody] ExtenderTiempoRequestDto request)
         {
@@ -49,9 +43,6 @@ namespace Votify.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Cierra la votación del evento inmediatamente.
-        /// </summary>
         [HttpPost("{eventoId}/close")]
         public async Task<IActionResult> CerrarVotacionAsync(int eventoId)
         {

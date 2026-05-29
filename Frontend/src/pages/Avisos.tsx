@@ -1,8 +1,9 @@
-﻿import { useEffect, useState, useContext } from "react";
+import { useEffect, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { EventContext } from "../context/EventContext";
 import { EventSidebar } from "../components/layout/EventSidebar";
+import { MobileNav } from "../components/eventos/MobileNav";
 import { 
   ArrowLeft, 
   Bell, 
@@ -286,13 +287,11 @@ export default function AvisosPage() {
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
-  //console.log("Notificaciones cargadas:", notifications);
-
   return (
     <div className="min-h-screen bg-gray-50 font-body relative">
       {/* {!isPublicRole && <EventSidebar />} */} 
 
-      <div className="pb-[88px] lg:pb-12">
+      <div className="pb-[120px] lg:pb-12">
         <header
           className={cn(
             "text-white p-6 lg:p-10 transition-all duration-300",
@@ -430,6 +429,7 @@ export default function AvisosPage() {
           )}
         </main>
       </div>
+      <MobileNav />
     </div>
   );
 }

@@ -1,28 +1,24 @@
-
 using Microsoft.AspNetCore.Mvc;
 using Votify.API.Models.DTOs;
 using Votify.API.Services;
 
 namespace Votify.API.Controllers
 {
-
     [ApiController]
     [Route("api/[controller]")]
     public class ConfiguracionesController : ControllerBase
     {
         private readonly IEventoService _eventoService;
 
-        public ConfiguracionesController(
-        IEventoService eventoService)
+        public ConfiguracionesController(IEventoService eventoService)
         {
             _eventoService = eventoService;
         }
 
-        // GET: api/VotacionConfig/evento/5
         [HttpGet("evento/{eventoId}")]
         public async Task<IActionResult> ObtenerConfiguracionesTiemposEvento(int eventoId)
         {
-            try 
+            try
             {
                 var resultado = await _eventoService.ListarConfiguracionesTiempoAsync(eventoId);
                 return Ok(resultado);
@@ -36,7 +32,7 @@ namespace Votify.API.Controllers
         [HttpGet("evento/{eventoId}/control")]
         public async Task<IActionResult> ObtenerCategoriasControl(int eventoId)
         {
-            try 
+            try
             {
                 var resultado = await _eventoService.ListarCategoriasControlAsync(eventoId);
                 return Ok(resultado);
@@ -102,9 +98,3 @@ namespace Votify.API.Controllers
         }
     }
 }
-
-
-
-
-
-        

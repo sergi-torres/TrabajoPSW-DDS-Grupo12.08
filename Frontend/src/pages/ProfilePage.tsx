@@ -23,7 +23,7 @@ export default function ProfilePage() {
         ]).then(([p, ev]) => {
             setPerfil(p);
             setEventos(ev);
-        }).catch(console.error)
+        }).catch(() => { /* profile data loads silently */ })
           .finally(() => setLoading(false));
     }, [userId]);
 
@@ -48,7 +48,7 @@ export default function ProfilePage() {
         : null;
 
     return (
-        <div className="min-h-screen bg-background font-body pb-[88px] lg:pb-12 lg:pt-[72px] text-foreground">
+        <div className="min-h-screen bg-background font-body pb-[120px] lg:pb-12 lg:pt-[72px] text-foreground">
             <DesktopHeader />
 
             <main className="max-w-3xl mx-auto px-4 lg:px-8 py-8 lg:py-12 space-y-6">
@@ -69,18 +69,11 @@ export default function ProfilePage() {
                                 <h1 className="font-heading font-bold text-2xl text-foreground leading-tight">
                                     {perfil?.nombreCompleto || perfil?.nombreUsuario || "Usuario"}
                                 </h1>
-                                <p className="text-muted-foreground text-sm mt-0.5">@{perfil?.nombreUsuario}</p>
-                                <div className="flex flex-col sm:flex-row gap-3 mt-4 text-sm text-muted-foreground">
+                                <div className="flex flex-col sm:flex-row gap-3 mt-1 text-sm text-muted-foreground">
                                     <span className="flex items-center justify-center sm:justify-start gap-1.5">
                                         <Mail size={14} strokeWidth={1.75} />
                                         {perfil?.email}
                                     </span>
-                                    {fechaRegistro && (
-                                        <span className="flex items-center justify-center sm:justify-start gap-1.5">
-                                            <Calendar size={14} strokeWidth={1.75} />
-                                            Desde {fechaRegistro}
-                                        </span>
-                                    )}
                                 </div>
                             </>
                         )}

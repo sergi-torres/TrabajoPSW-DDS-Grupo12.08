@@ -2,7 +2,7 @@ using Votify.API.Models.Domain;
 
 namespace Votify.API.Services.Strategies.Sintesis
 {
-    public class SintesisStrategyFactory
+    public class SintesisStrategyFactory : ISintesisStrategyFactory
     {
         private readonly SintesisJuradoStrategy _jurado;
         private readonly SintesisPublicoStrategy _publico;
@@ -13,7 +13,7 @@ namespace Votify.API.Services.Strategies.Sintesis
             _publico = publico;
         }
 
-        public virtual ISintesisStrategy Crear(TipoSintesis tipo) => tipo switch
+        public ISintesisStrategy Crear(TipoSintesis tipo) => tipo switch
         {
             TipoSintesis.Jurado => _jurado,
             TipoSintesis.Publico => _publico,

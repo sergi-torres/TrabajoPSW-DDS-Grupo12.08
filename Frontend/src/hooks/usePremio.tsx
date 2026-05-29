@@ -5,11 +5,8 @@ import {categoriasApi} from "../api/categoriasApi";
 import {Categoria, CrearPremioRequest, Premio} from "../types/index";
 
 interface UsePremioReturn {
-    // Estados de datos
     categorias: Categoria[];
     premios: Premio[];
-    
-    // Estados de carga (puedes agruparlos si quieres)
     cargando: {
         categorias: boolean;
         premios: boolean;
@@ -17,8 +14,6 @@ interface UsePremioReturn {
         actualizando: boolean;
         eliminando: boolean;
     };
-
-    // Acciones
     obtenerCategorias: (eventoId: number) => Promise<void>;
     crearPremio: (premioDto: CrearPremioRequest) => Promise<void>;
     obtenerPremios: (eventoId: number) => Promise<void>;
@@ -48,8 +43,7 @@ export const usePremio = (): UsePremioReturn => {
         try{
             const categorias = await categoriasApi.getByEvento(eventoId);
             setCategorias(categorias);
-        }catch(error){
-            console.error("Error al obtener categorias:", error);
+        }catch{
             toast.error("Error al obtener categorías");
         }finally{
             setCargandoCategorias(false);
@@ -66,8 +60,7 @@ export const usePremio = (): UsePremioReturn => {
             await premiosApi.crearPremio(premioDto);
             toast.dismiss();
             toast.success("Se guardo el premio correctamente");
-        }catch(error){
-            console.error("Error al guardar premio:", error);
+        }catch{
             toast.dismiss();
             toast.error("Error al guardar el premio");
         }finally{
@@ -83,8 +76,7 @@ export const usePremio = (): UsePremioReturn => {
         setcargandoPremio(true);
         try{
             setPremios(await premiosApi.obtenerPremios(eventoId));
-        }catch(error){
-            console.error("Error al obtener premios:", error);
+        }catch{
             toast.dismiss();
             toast.error("Error al obtener los premios");
         }finally{
@@ -102,8 +94,7 @@ export const usePremio = (): UsePremioReturn => {
             await premiosApi.actualizarPremio(premioDto);
             toast.dismiss();
             toast.success("Se actualizo el premio correctamente");
-        }catch(error){
-            console.error("Error al actualizar premio:", error);
+        }catch{
             toast.dismiss();
             toast.error("Error al actualizar el premio");
         }finally{
@@ -121,8 +112,7 @@ export const usePremio = (): UsePremioReturn => {
             await premiosApi.eliminarPremio(premioId);
             toast.dismiss();
             toast.success("Se elimino el premio correctamente");
-        }catch(error){
-            console.error("Error al eliminar premio:", error);
+        }catch{
             toast.dismiss();
             toast.error("Error al eliminar el premio");
         }finally{

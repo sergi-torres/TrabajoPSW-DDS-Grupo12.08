@@ -25,7 +25,7 @@ const ProyectosLista = ({ proyectos = [], seleccionado, alSeleccionar }: Proyect
         >
           <div className="p-5">
             <h3 className="text-xl font-bold mb-3">{p.nombre}</h3>
-            <p className="text-gray-500 text-sm h-12 line-clamp-2">{p.descripcion || p.desc}</p>
+            <p className="text-gray-500 text-sm line-clamp-3 min-h-[3.75rem]">{p.descripcion || p.desc}</p>
           </div>
 
           <div className={`p-4 border-t flex justify-between items-center ${p.estado === 'votado' ? 'bg-red-50 text-red-500' : 'bg-gray-50 text-gray-400'}`}>

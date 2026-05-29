@@ -23,7 +23,6 @@ namespace Votify.API.Controllers
         {
             try
             {
-                // IdUsuario viene del frontend (localStorage) - null = PIN flow, valor = Jurado flow
                 var dashboard = await _votoService.ProcesarVotoAsync(request, request.IdUsuario, request.SessionId ?? request.IdentificadorHash);
 
                 return Ok(dashboard);
@@ -55,13 +54,12 @@ namespace Votify.API.Controllers
         {
             try
             {
-                // idUsuario from query param (localStorage) - null = PIN flow, valor = Jurado flow
                 var dashboard = await _votoService.ObtenerDashboardAsync(eventoId, idUsuario, sessionId, identificadorHash);
                 return Ok(dashboard);
             }
             catch (Exception ex)
             {
-                return BadRequest(new { error = ex.Message, inner = ex.InnerException?.Message, stack = ex.StackTrace });
+                return StatusCode(500, new { error = ex.Message });
             }
         }
 
@@ -71,12 +69,11 @@ namespace Votify.API.Controllers
             try
             {
                 var votosPorProyecto = await _votoService.ObtenerVotosPorProyectoAsync(proyectoId);
-
                 return Ok(votosPorProyecto);
             }
             catch (Exception ex)
             {
-                return BadRequest(new { error = ex.Message, inner = ex.InnerException?.Message, stack = ex.StackTrace });
+                return StatusCode(500, new { error = ex.Message });
             }
         }
     }

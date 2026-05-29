@@ -11,7 +11,7 @@ import { cn } from '../components/ui/utils';
 const ControlVotacionesPage: React.FC = () => {
     const navigate = useNavigate();
     const { eventoId } = useParams<{ eventoId: string }>();
-    const { userColor, isCollapsed } = useContext(EventContext) as any;
+    const { userColor, isCollapsed } = useContext(EventContext)!;
     const { categorias, cargando, cargarCategorias, cambiarEstado, actualizarTiempos } = useControlVotaciones();
     const [selectedId, setSelectedId] = useState<number | null>(null);
 
@@ -110,7 +110,7 @@ const ControlVotacionesPage: React.FC = () => {
 
                 {/* Opciones Bar - Bottom Fixed */}
                 <div className={cn(
-                    "fixed bottom-8 left-0 right-0 px-6 lg:px-10 z-[60] transition-all duration-300",
+                    "fixed bottom-[88px] lg:bottom-8 left-0 right-0 px-6 lg:px-10 z-[60] transition-all duration-300",
                     isCollapsed ? 'lg:pl-28' : 'lg:pl-80'
                 )}>
                     <div className="max-w-7xl mx-auto">

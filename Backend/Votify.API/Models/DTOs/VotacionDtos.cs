@@ -41,13 +41,12 @@ namespace Votify.API.Models.DTOs
         [MaxLength(200)]
         public string? Comentario { get; set; }
 
-        // null = PIN flow (anónimo), valor = Jurado flow (usuario autenticado)
+        // null → voto público anónimo; valor → evaluador autenticado (Jurado/Participante)
         public int? IdUsuario { get; set; }
 
-        // Solo para público: identifica una sesión de votación efímera
         public string? SessionId { get; set; }
 
-        // Hash único del dispositivo/navegador para unicidad en voto público
+        // FingerprintJS hash; garantiza unicidad de voto público por dispositivo
         public string? IdentificadorHash { get; set; }
     }
 
@@ -97,7 +96,7 @@ namespace Votify.API.Models.DTOs
         [Required]
         public int ProyectoId { get; set; }
 
-        // null = PIN flow (anónimo), valor = Jurado flow (usuario autenticado)
+        // null → voto público anónimo; valor → evaluador autenticado (Jurado/Participante)
         public int? IdUsuario { get; set; }
 
         public string? SessionId { get; set; }
@@ -131,7 +130,6 @@ namespace Votify.API.Models.DTOs
         [Required]
         public int VotosMaximos { get; set; }
 
-        // Null means apply to all pending categories in the event
         public int? CategoriaId { get; set; }
     }
 }

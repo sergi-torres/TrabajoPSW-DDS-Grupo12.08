@@ -24,7 +24,7 @@ const steps = [
 ];
 
 const CreateEvent = () => {
-  const { userId } = useContext(AuthContext)!;
+  const { userId, token } = useContext(AuthContext)!;
   const { userColor, isCollapsed, userRole, clearEventContext } = useContext(EventContext)!;
   const { addNotification } = useVoting();
   const navigate = useNavigate();
@@ -191,10 +191,9 @@ const CreateEvent = () => {
 
   const handleEliminarEvento = async () => {
     if (!eventoId) return;
-    const token = localStorage.getItem("token") || "";
     setDeleting(true);
     try {
-      await eliminarEvento(parseInt(eventoId), token);
+      await eliminarEvento(parseInt(eventoId), token || "");
       toast.success("Evento eliminado correctamente");
       clearEventContext();
       navigate('/eventos');
@@ -384,7 +383,7 @@ const CreateEvent = () => {
     <div className="min-h-screen bg-gray-50 font-body relative" onKeyDown={handleCtrlEnter}>
       {isEditMode && !isPublicRole && <EventSidebar />}
 
-      <div className="pb-[88px] lg:pb-0">
+      <div className="pb-[120px] lg:pb-0">
         {/* Full-width Header for Settings matching OrganizerDashboard */}
         <header 
           className={cn(
@@ -402,13 +401,13 @@ const CreateEvent = () => {
                 <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" strokeWidth={2.5} />
                 {isEditMode ? "Volver al Panel" : "Volver a eventos"}
               </button>
-              
+
               <button
                 onClick={() => setShowHelpModal(true)}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-white text-slate-900 hover:bg-slate-50 rounded-xl transition-all font-heading font-bold text-sm shadow-md active:scale-95"
               >
                 <HelpCircle className="w-4 h-4" />
-                Ayuda
+                <span className="hidden sm:inline">Ayuda</span>
               </button>
             </div>
 
@@ -456,7 +455,7 @@ const CreateEvent = () => {
           sidebarOffsetClass
         )}>
           {/* Mobile Step Indicator */}
-          <div className="md:hidden">
+          <div className="md:hidden pt-6">
             <StepIndicator steps={steps} currentStep={currentStep} />
           </div>
 
@@ -543,14 +542,6 @@ const CreateEvent = () => {
         </main>
       </div>
 
-      {/* Botón flotante de configuración avanzada */}
-      <button
-        onClick={() => setShowConfigPanel(!showConfigPanel)}
-        className="fixed bottom-6 right-6 z-50 p-4 bg-purple-600 text-white rounded-full shadow-lg hover:bg-purple-700 transition-all transform hover:scale-105"
-      >
-        <Settings className="w-6 h-6" />
-      </button>
-
       {/* Panel deslizable de configuración avanzada */}
       <div className={cn(
         "fixed top-0 right-0 h-full w-96 bg-white shadow-2xl z-40 transition-transform duration-300 ease-in-out overflow-y-auto",
@@ -580,6 +571,17 @@ const CreateEvent = () => {
           />
         </div>
       </div>
+
+      {/* Floating Settings button — stacked above ConfigHelpPanel trigger */}
+      <button
+        onClick={() => setShowConfigPanel(!showConfigPanel)}
+        className="fixed bottom-[144px] right-4 lg:bottom-[164px] lg:right-6 z-[89] w-[46px] h-[46px] lg:w-[52px] lg:h-[52px] rounded-[14px] lg:rounded-[16px] flex items-center justify-center text-white transition-all duration-200 hover:scale-[1.08]"
+        style={{ background: 'linear-gradient(135deg, #3B82F6, #2563eb)', boxShadow: '0 6px 24px rgba(37,99,235,0.35)' }}
+        title="Configuración avanzada"
+        aria-label="Configuración avanzada"
+      >
+        <Settings size={22} />
+      </button>
 
       {/* Floating config help panel */}
       <ConfigHelpPanel />

@@ -1,7 +1,5 @@
-// Controllers/UsuarioController.cs
 using Microsoft.AspNetCore.Mvc;
-using Votify.API.Models.Domain;
-using Supabase;
+using Votify.API.Repositories;
 
 namespace Votify.API.Controllers
 {
@@ -9,11 +7,11 @@ namespace Votify.API.Controllers
     [Route("api/[controller]")]
     public class UsuarioController : ControllerBase
     {
-        private readonly Client _supabase;
+        private readonly IUsuarioRepository _usuarioRepository;
 
-        public UsuarioController(Client supabase)
+        public UsuarioController(IUsuarioRepository usuarioRepository)
         {
-            _supabase = supabase;
+            _usuarioRepository = usuarioRepository;
         }
 
 
@@ -22,12 +20,7 @@ namespace Votify.API.Controllers
         {
             try
             {
-                var response = await _supabase
-                    .From<Usuario>()
-                    .Where(u => u.Email == email)
-                    .Get();
-
-                var usuario = response.Models.FirstOrDefault();
+                var usuario = await _usuarioRepository.GetByEmailAsync(email);
 
                 if (usuario == null)
                 {
@@ -47,12 +40,7 @@ namespace Votify.API.Controllers
         {
             try
             {
-                var response = await _supabase
-                    .From<Usuario>()
-                    .Where(u => u.Id == id)
-                    .Get();
-
-                var usuario = response.Models.FirstOrDefault();
+                var usuario = await _usuarioRepository.GetByIdAsync(id);
 
                 if (usuario == null)
                 {

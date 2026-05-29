@@ -181,11 +181,15 @@ const ConfigTiempoVotacionBar: React.FC<ConfigTiempoVotacionBarProps> = ({ event
                 className={`w-full p-4 bg-gray-50 border-2 rounded-2xl outline-none transition-all appearance-none cursor-pointer ${huboIntentoGuardar && !categoriaSel ? 'border-red-200 bg-red-50' : 'border-transparent focus:border-blue-500'}`}
               >
                 <option value="">{cargandoCategorias ? "Cargando categorías..." : "-- Elige una categoría --"}</option>
-                {categorias.map((cat: any) => (
-                  <option key={cat.categoriaId || cat.CategoriaId} value={cat.categoriaId || cat.CategoriaId}>
-                    {cat.nombre || cat.Nombre}
-                  </option>
-                ))}
+                {categorias.map((cat: any) => {
+                  const id = cat.categoriaId || cat.CategoriaId;
+                  const est = cat.estado || cat.Estado;
+                  return (
+                    <option key={id} value={id}>
+                      {cat.nombre || cat.Nombre}{est ? ` (${est})` : ''}
+                    </option>
+                  );
+                })}
               </select>
               {huboIntentoGuardar && !categoriaSel && (
                 <p className="text-red-500 text-[10px] font-bold mt-2 ml-1">Selecciona una categoría para continuar.</p>

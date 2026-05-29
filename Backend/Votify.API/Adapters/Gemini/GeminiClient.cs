@@ -92,14 +92,18 @@ namespace Votify.API.Adapters.Gemini
             if (!response.IsSuccessStatusCode)
             {
                 var errorBody = await SafeReadAsync(response);
-                var kind = response.StatusCode switch
-                {
-                    HttpStatusCode.TooManyRequests => SintesisGeminiErrorKind.RateLimit,
-                    HttpStatusCode.BadRequest => SintesisGeminiErrorKind.SafetyBlocked,
-                    HttpStatusCode.Unauthorized => SintesisGeminiErrorKind.AuthFailure,
-                    HttpStatusCode.Forbidden => SintesisGeminiErrorKind.AuthFailure,
-                    _ => SintesisGeminiErrorKind.Unknown
-                };
+                SintesisGeminiErrorKind kind;
+                if (response.StatusCode == HttpStatusCode.TooManyRequests)
+                    kind = SintesisGeminiErrorKind.RateLimit;
+                else if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
+                    kind = SintesisGeminiErrorKind.AuthFailure;
+                else if (response.StatusCode == HttpStatusCode.BadRequest &&
+                         (errorBody.Contains("API_KEY_INVALID") || errorBody.Contains("API key")))
+                    kind = SintesisGeminiErrorKind.AuthFailure;
+                else if (response.StatusCode == HttpStatusCode.BadRequest)
+                    kind = SintesisGeminiErrorKind.SafetyBlocked;
+                else
+                    kind = SintesisGeminiErrorKind.Unknown;
                 throw new SintesisGeminiException(kind,
                     $"Gemini devolvió {(int)response.StatusCode}: {errorBody}");
             }

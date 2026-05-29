@@ -4,7 +4,7 @@ namespace Votify.API.Models.Domain.Factories
 {
     public class HackatonEventCreator : EventCreator
     {
-        public override Event CreateEvent(
+        protected override Event CreateEvent(
          int id,
          string nombre,
          string descripcion,

@@ -10,5 +10,8 @@ namespace Votify.API.Repositories
         Task<bool> UpdateBasicAsync(int id, UpdateEventDto dto);
         Task<bool> DeleteAsync(int id);
         Task<List<EventoLite>> GetAllAsync();
+        Task<Event> InsertAsync(Event evento);
+        Task<bool> ExtenderTiempoAsync(int id, int minutosExtra);
+        Task<bool> UpdateEstadoAsync(int id, string nuevoEstado);
     }
 }

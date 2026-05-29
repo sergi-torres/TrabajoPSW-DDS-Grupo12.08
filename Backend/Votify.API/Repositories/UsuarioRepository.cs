@@ -35,7 +35,9 @@ namespace Votify.API.Repositories
         public async Task<Usuario> CreateAsync(Usuario usuario)
         {
             var response = await _supabase.From<Usuario>().Insert(usuario);
-            return response.Models.First();
+            return response.Models.FirstOrDefault()
+                ?? await GetByEmailAsync(usuario.Email)
+                ?? throw new InvalidOperationException("No se pudo crear el usuario en la base de datos.");
         }
     }
 }

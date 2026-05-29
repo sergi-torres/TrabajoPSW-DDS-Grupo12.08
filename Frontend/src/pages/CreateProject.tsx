@@ -3,12 +3,14 @@ import { useNavigate } from "react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useContext } from "react";
 import { createProyecto } from "../api/proyectoApi";
 import { toast } from "sonner";
+import { AuthContext } from "../context/AuthContext";
 
 export default function CreateProject() {
   const navigate = useNavigate();
+  const { userId } = useContext(AuthContext)!;
   const [projectData, setProjectData] = useState<any>({
     name: "",
     description: "",
@@ -53,24 +55,21 @@ export default function CreateProject() {
       return;
     }
 
-    const userId = localStorage.getItem("userId");
-
     const newProject = {
       nombre: projectData.name,
       descripcion: projectData.description,
       urlMultimedia: imagePreview || projectData.image || "🚀",
       idEvento: null,
-      idParticipante: userId ? parseInt(userId) : 16,
+      idParticipante: userId ?? 16,
       idCategoria: null,
       estado: "disponible"
     };
 
     try {
-      const res = await createProyecto(newProject);
+      await createProyecto(newProject);
       toast.success("Tu proyecto ha sido registrado con éxito");
       navigate("/participantRegister");
     } catch (error: any) {
-      console.error("Error al crear el proyecto:", error);
       toast.error("Error al crear proyecto: " + (error?.message || "Ocurrió un error"));
     }
   }, [projectData, imagePreview, navigate]);

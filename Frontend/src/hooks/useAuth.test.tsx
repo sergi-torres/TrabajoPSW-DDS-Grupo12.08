@@ -60,7 +60,7 @@ describe('useAuth', () => {
 
     await act(async () => {
       try {
-        await result.current.login({ email: 'wrong@test.com' });
+        await result.current.login({ email: 'wrong@test.com', password: 'wrong' });
       } catch (e) {
         // expected
       }

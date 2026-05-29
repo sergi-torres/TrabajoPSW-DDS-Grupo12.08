@@ -1,6 +1,6 @@
 using DotNetEnv;
 
-// Cargar las variables del .env situado en la raíz del repositorio
+// El backend busca el .env dos niveles por encima del directorio de ejecución (raíz del repo)
 Env.Load(Path.Combine(Directory.GetCurrentDirectory(), "..", "..", ".env"));
 Env.TraversePath().Load();
 
@@ -28,33 +28,33 @@ builder.Services.AddScoped<Supabase.Client>(_ =>
     new Supabase.Client(supabaseUrl, supabaseKey, new Supabase.SupabaseOptions { AutoConnectRealtime = true })
 );
 
-// Registro con Decorator para VotoService
+// VotoService se registra como concreto primero para que el Decorator pueda resolverlo
 builder.Services.AddScoped<Votify.API.Services.VotoService>();
-builder.Services.AddScoped<Votify.API.Services.IVotoService>(provider => 
+builder.Services.AddScoped<Votify.API.Services.IVotoService>(provider =>
 {
     var baseService = provider.GetRequiredService<Votify.API.Services.VotoService>();
-    var supabase = provider.GetRequiredService<Supabase.Client>();
-    return new Votify.API.Services.Decorators.VotoServiceValidationDecorator(baseService, supabase);
+    var eventoRepository = provider.GetRequiredService<Votify.API.Repositories.IEventoRepository>();
+    var baremoRepository = provider.GetRequiredService<Votify.API.Repositories.IBaremoRepository>();
+    return new Votify.API.Services.Decorators.VotoServiceValidationDecorator(baseService, eventoRepository, baremoRepository);
 });
 
 builder.Services.AddScoped<Votify.API.Services.IAuthService, Votify.API.Services.AuthService>();
 builder.Services.AddScoped<Votify.API.Repositories.ICategoriaRepository, Votify.API.Repositories.CategoriaRepository>();
 builder.Services.AddScoped<Votify.API.Repositories.IProyectoRepository, Votify.API.Repositories.ProyectoRepository>();
+builder.Services.AddScoped<Votify.API.Services.IProyectoService, Votify.API.Services.ProyectoService>();
 builder.Services.AddScoped<Votify.API.Repositories.IVotoRepository, Votify.API.Repositories.VotoRepository>();
 builder.Services.AddScoped<Votify.API.Repositories.IUsuarioRepository, Votify.API.Repositories.UsuarioRepository>();
 builder.Services.AddScoped<Votify.API.Repositories.IEventoUsuarioRepository, Votify.API.Repositories.EventoUsuarioRepository>();
 builder.Services.AddScoped<Votify.API.Repositories.IInvitacionPendienteRepository, Votify.API.Repositories.InvitacionPendienteRepository>();
 builder.Services.AddScoped<Votify.API.Models.Domain.Factories.VotoPublicoFactory>();
 builder.Services.AddScoped<Votify.API.Models.Domain.Factories.VotoJuradoFactory>();
-builder.Services.AddScoped<Votify.API.Services.IAuthService, Votify.API.Services.AuthService>();
 builder.Services.AddScoped<Votify.API.Repositories.IEventoRepository, Votify.API.Repositories.EventoRepository>();
 builder.Services.AddScoped<Votify.API.Repositories.IBaremoRepository, Votify.API.Repositories.BaremoRepository>();
 builder.Services.AddScoped<Votify.API.Services.IEventoService, Votify.API.Services.EventoService>();
+builder.Services.AddScoped<Votify.API.Repositories.IComentarioCualitativoRepository, Votify.API.Repositories.ComentarioCualitativoRepository>();
 builder.Services.AddScoped<Votify.API.Services.IComentarioCualitativoService, Votify.API.Services.ComentarioCualitativoService>();
-// El servicio IVotoService ya está registrado arriba con el Decorator
-builder.Services.AddScoped<Votify.API.Services.IComentarioCualitativoService, Votify.API.Services.ComentarioCualitativoService>();
+
 builder.Services.AddScoped<Votify.API.Services.IOrgDashboardService, Votify.API.Services.OrgDashboardService>();
-builder.Services.AddScoped<Votify.API.Services.ICategoriaService, Votify.API.Services.CategoriaService>();
 builder.Services.AddScoped<Votify.API.Services.IJuradoService, Votify.API.Services.JuradoService>();
 builder.Services.AddScoped<Votify.API.Services.IEmailService, Votify.API.Services.ResendEmailService>();
 builder.Services.AddScoped<Votify.API.Filters.OrganizerOnlyFilter>();
@@ -66,7 +66,7 @@ builder.Services.AddHttpClient<Votify.API.Adapters.Gemini.IGeminiClient, Votify.
 builder.Services.AddScoped<Votify.API.Repositories.ISintesisRepository, Votify.API.Repositories.SintesisRepository>();
 builder.Services.AddScoped<Votify.API.Services.Strategies.Sintesis.SintesisJuradoStrategy>();
 builder.Services.AddScoped<Votify.API.Services.Strategies.Sintesis.SintesisPublicoStrategy>();
-builder.Services.AddScoped<Votify.API.Services.Strategies.Sintesis.SintesisStrategyFactory>();
+builder.Services.AddScoped<Votify.API.Services.Strategies.Sintesis.ISintesisStrategyFactory, Votify.API.Services.Strategies.Sintesis.SintesisStrategyFactory>();
 builder.Services.AddScoped<Votify.API.Services.ISintesisComentariosService, Votify.API.Services.SintesisComentariosService>();
 
 var resendApiKey = Environment.GetEnvironmentVariable("RESEND_API_KEY");
@@ -79,7 +79,6 @@ if (!string.IsNullOrEmpty(resendApiKey))
 }
 else
 {
-    // Fallback or warning
     Console.WriteLine("Warning: RESEND_API_KEY not found. Email service may not work.");
 }
 

@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Votify.API.Repositories;
-using Votify.API.Models.Domain;
 
 namespace Votify.API.Filters
 {
@@ -9,16 +8,17 @@ namespace Votify.API.Filters
     {
         private readonly IEventoUsuarioRepository _eventoUsuarioRepo;
         private readonly Supabase.Client _supabase;
+        private readonly IUsuarioRepository _usuarioRepository;
 
-        public OrganizerOnlyFilter(IEventoUsuarioRepository eventoUsuarioRepo, Supabase.Client supabase)
+        public OrganizerOnlyFilter(IEventoUsuarioRepository eventoUsuarioRepo, Supabase.Client supabase, IUsuarioRepository usuarioRepository)
         {
             _eventoUsuarioRepo = eventoUsuarioRepo;
             _supabase = supabase;
+            _usuarioRepository = usuarioRepository;
         }
 
         public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
         {
-            // 1. Obtener el token de la cabecera Authorization
             string? token = context.HttpContext.Request.Headers["Authorization"].ToString()?.Replace("Bearer ", "");
 
             if (string.IsNullOrEmpty(token))
@@ -28,11 +28,10 @@ namespace Votify.API.Filters
                 return;
             }
 
-            try 
+            try
             {
-                // 2. Obtener el usuario autenticado desde Supabase Auth usando el token
                 var user = await _supabase.Auth.GetUser(token);
-                
+
                 if (user == null || string.IsNullOrEmpty(user.Email))
                 {
                     Console.WriteLine("[OrganizerOnlyFilter] Token invalido o usuario no encontrado en Supabase Auth");
@@ -40,7 +39,7 @@ namespace Votify.API.Filters
                     return;
                 }
 
-                // 2. Obtener el idEvento desde la ruta o el cuerpo de la peticiÃ³n
+                // idEvento se extrae de la ruta primero; si no, se busca en el body del request.
                 int? idEvento = null;
 
                 if (context.RouteData.Values.TryGetValue("idEvento", out var routeId))
@@ -70,8 +69,7 @@ namespace Votify.API.Filters
                     return;
                 }
 
-                // 3. Verificar si el usuario es organizador del evento
-                var dbUserResponse = await _supabase.From<Usuario>().Where(u => u.Email == user.Email).Single();
+                var dbUserResponse = await _usuarioRepository.GetByEmailAsync(user.Email);
                 if (dbUserResponse == null)
                 {
                     Console.WriteLine($"[OrganizerOnlyFilter] Usuario {user.Email} no encontrado en la tabla 'usuario'");

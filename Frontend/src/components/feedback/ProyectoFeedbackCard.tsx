@@ -3,7 +3,6 @@ import { toast } from "sonner";
 import { Sparkles, Folder, AlertCircle } from "lucide-react";
 import { getSintesisProyecto, generarSintesis } from "../../api/sintesisApi";
 import { SintesisDto, SintesisProyecto, TipoSintesis } from "../../types/sintesis";
-import { cn } from "../ui/utils";
 import { SintesisGenerarButton } from "./SintesisGenerarButton";
 import { SintesisDisplay } from "./SintesisDisplay";
 import { ComentariosOriginales } from "./ComentariosOriginales";
@@ -29,14 +28,8 @@ interface SubseccionState {
     sintesis: SintesisDto | null;
 }
 
-/**
- * Card por proyecto del participante. Contiene dos subsecciones (Jurado / Público),
- * cada una con su botón de generar/regenerar, su display de síntesis y el
- * collapse de comentarios originales.
- *
- * Solo se renderizan los controles de síntesis si la categoría está "Finalizada"
- * (regla de negocio § 4.5 del CLAUDE.md y spec § 2.5).
- */
+// Synthesis controls are only rendered when the category is "Finalizada" —
+// the backend would reject generation requests for non-final categories anyway.
 export function ProyectoFeedbackCard({
     idProyecto,
     idCategoria,
@@ -208,86 +201,6 @@ export function ProyectoFeedbackCard({
                 </div>
             </section>
         </div>
-    );
-}
-
-interface SubseccionProps {
-    tipo: TipoSintesis;
-    tituloIconoColor: string;
-    idProyecto: number;
-    idCategoria: number;
-    comentariosCount: number;
-    categoriaFinalizada: boolean;
-    estado: SubseccionState;
-    onGenerar: () => void;
-}
-
-function Subseccion({
-    tipo,
-    tituloIconoColor,
-    idProyecto,
-    idCategoria,
-    comentariosCount,
-    categoriaFinalizada,
-    estado,
-    onGenerar,
-}: SubseccionProps) {
-    const titulo = tipo === "jurado" ? "Feedback del jurado" : "Feedback del público";
-    const subtitulo =
-        tipo === "jurado"
-            ? "Resumen estructurado de la evaluación técnica"
-            : "Resumen estructurado de la impresión general";
-
-    return (
-        <section>
-            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-5">
-                <div className="flex items-start gap-2.5">
-                    <Sparkles size={20} strokeWidth={2.25} style={{ color: tituloIconoColor }} />
-                    <div>
-                        <h3 className="text-base font-heading font-bold text-slate-900">{titulo}</h3>
-                        <p className="text-xs text-slate-500 mt-0.5">{subtitulo}</p>
-                    </div>
-                </div>
-                <SintesisGenerarButton
-                    tipo={tipo}
-                    categoriaFinalizada={categoriaFinalizada}
-                    comentariosCount={comentariosCount}
-                    yaExiste={estado.sintesis !== null}
-                    cargando={estado.cargandoGen}
-                    onClick={onGenerar}
-                />
-            </div>
-
-            {estado.sintesis ? (
-                <div className="mb-4">
-                    <SintesisDisplay sintesis={estado.sintesis} />
-                </div>
-            ) : (
-                <div
-                    className={cn(
-                        "mb-4 py-8 text-center border-2 border-dashed rounded-2xl",
-                        "border-slate-200 bg-slate-50/40"
-                    )}
-                >
-                    <p className="text-sm text-slate-400 font-medium">
-                        {categoriaFinalizada
-                            ? comentariosCount < 2
-                                ? "Aún no hay suficientes comentarios para generar una síntesis."
-                                : "Pulsa \"Generar síntesis\" para crear el resumen."
-                            : "La síntesis se podrá generar cuando la categoría finalice."}
-                    </p>
-                </div>
-            )}
-
-            {categoriaFinalizada && comentariosCount > 0 && (
-                <ComentariosOriginales
-                    idProyecto={idProyecto}
-                    idCategoria={idCategoria}
-                    tipo={tipo}
-                    accentColor={tituloIconoColor}
-                />
-            )}
-        </section>
     );
 }
 

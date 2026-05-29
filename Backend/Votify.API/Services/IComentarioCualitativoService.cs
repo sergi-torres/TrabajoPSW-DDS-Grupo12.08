@@ -6,8 +6,6 @@ namespace Votify.API.Services
     {
         Task<List<ComentarioCualitativo>> GetComentariosPorVotacion(long idVotacion);
 
-        Task<ComentarioCualitativo?> CreateComentarioAsync(ComentarioCualitativo comentario);
-
         Task<ComentarioCualitativo?> CreateComentarioAsync(
             long idVotacion,
             string comentarioTexto);

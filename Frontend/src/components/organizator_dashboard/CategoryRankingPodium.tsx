@@ -82,19 +82,23 @@ export default function CategoryRankingPodium({ categorias, premios = [], isOrga
 
   return (
     <div className="crp">
-      {/* ── Category Tabs ── */}
-      <div className="crp-tabs" role="tablist" aria-label="Categorías del ranking">
-        {categorias.map((cat) => (
-          <button
-            key={cat.id}
-            role="tab"
-            aria-selected={cat.id === activeTabId}
-            className={`crp-tab ${cat.id === activeTabId ? "crp-tab--active" : ""}`}
-            onClick={() => handleTabChange(cat.id)}
+      {/* ── Category selector ── */}
+      <div className="px-6 pt-5 pb-2">
+        <div className="relative">
+          <select
+            className="w-full appearance-none pl-4 pr-10 py-2.5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-white text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all cursor-pointer shadow-sm"
+            value={activeTabId ?? ""}
+            onChange={(e) => handleTabChange(Number(e.target.value))}
+            aria-label="Seleccionar categoría"
           >
-            {cat.nombre}
-          </button>
-        ))}
+            {categorias.map((cat) => (
+              <option key={cat.id} value={cat.id}>{cat.nombre}</option>
+            ))}
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-slate-400">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </div>
+        </div>
       </div>
 
       {/* ── Content ── */}

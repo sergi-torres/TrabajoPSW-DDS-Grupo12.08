@@ -60,5 +60,14 @@ namespace Votify.API.Repositories
 
             return response.Models;
         }
+
+        public async Task<List<EventoUsuario>> GetByEventoAsync(int idEvento)
+        {
+            var response = await _supabase
+                .From<EventoUsuario>()
+                .Where(eu => eu.IdEvento == idEvento)
+                .Get();
+            return response.Models;
+        }
     }
 }

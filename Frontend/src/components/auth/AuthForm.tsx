@@ -8,6 +8,8 @@ export interface AuthFormProps {
     mode?: "login" | "register";
     isMobile?: boolean;
     invitationToken?: string | null;
+    /** Called with the target path after a successful login/register so the parent can control navigation timing. */
+    onSuccess?: (path: string) => void;
 }
 
 /**
@@ -17,8 +19,8 @@ export interface AuthFormProps {
  * 
  * Toda la lógica de red y estado global vive en useAuth().
  */
-export function AuthForm({ mode = "login", isMobile = false, invitationToken = null }: AuthFormProps) {
-    const { login, register } = useAuth();
+export function AuthForm({ mode = "login", isMobile = false, invitationToken = null, onSuccess }: AuthFormProps) {
+    const { login, register } = useAuth(onSuccess);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [nombreCompleto, setNombreCompleto] = useState("");

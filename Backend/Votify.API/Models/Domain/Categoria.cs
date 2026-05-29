@@ -21,7 +21,7 @@ namespace Votify.API.Models.Domain
         public DateTime? FechaFin { get; set; }
 
         [Column("estado")]
-        public string Estado { get; set; } = "Pendiente"; // Pendiente,Activa, Finalizada, Pausada
+        public string Estado { get; set; } = "Pendiente";
 
         [Column("votosmaximos")]
         public int VotosMaximos { get; set; } = 3;

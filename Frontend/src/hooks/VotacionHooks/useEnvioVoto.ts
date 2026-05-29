@@ -20,8 +20,7 @@ export const useEnviarVoto = (): UseEnviarVotoReturn => {
             toast.success("¡Voto registrado correctamente!");
             return true;
         } catch (err) {
-            console.error(err);
-            const errorMessage = (err as any).message || "Ocurrió un error al enviar el voto";
+            const errorMessage = err instanceof Error ? err.message : "Ocurrió un error al enviar el voto";
             setError(errorMessage);
             toast.error(errorMessage);
             return false;

@@ -1,6 +1,14 @@
 import React, { createContext, useState, useEffect, ReactNode } from "react";
 import { login as apiLogin, loginPublic as apiLoginPublic } from "../api/authApi";
 
+export interface LoginCredentials {
+  email: string;
+  password: string;
+  invitationToken?: string | null;
+  nombreUsuario?: string;
+  nombreCompleto?: string;
+}
+
 export interface AuthContextType {
   token: string | null;
   userId: number | null;
@@ -8,8 +16,8 @@ export interface AuthContextType {
   sessionId: string | null;
   isAuthenticated: boolean;
   isPublic: boolean;
-  login: (credentials: any) => Promise<any>;
-  loginPublic: (pin: string) => Promise<any>;
+  login: (credentials: LoginCredentials) => Promise<void>;
+  loginPublic: (pin: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -26,7 +34,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const isAuthenticated = !!token;
   const isPublic = !!sessionId && !token;
 
-  const login = async (credentials: any) => {
+  const login = async (credentials: LoginCredentials): Promise<void> => {
     const data = await apiLogin(credentials);
     const name = data.userName || data.nombreUsuario || data.nombrecompleto || "";
     setToken(data.token);
@@ -35,11 +43,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem("token", data.token);
     localStorage.setItem("userId", data.userId.toString());
     localStorage.setItem("userName", name);
-    return data;
   };
 
-  const loginPublic = async (pin: string) => {
-    // Limpieza de sesión previa
+  const loginPublic = async (pin: string): Promise<void> => {
+    // Clear any existing authenticated session before entering as public
     setToken(null);
     setUserId(null);
     setUserName(null);
@@ -55,7 +62,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem("sessionId", sid);
     localStorage.setItem("eventoId", data.id.toString());
     localStorage.setItem("eventoNombre", data.nombre);
-    return data;
   };
 
   const logout = () => {

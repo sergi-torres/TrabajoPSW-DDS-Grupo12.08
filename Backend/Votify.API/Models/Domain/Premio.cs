@@ -23,10 +23,8 @@ namespace Votify.API.Models.Domain
         [Column("icono")]
         public string? Icono { get; set; } = string.Empty;
 
-        // Constructor sin parámetros (necesario para Supabase/deserialización)
         public Premio() { }
 
-        // Constructor con parámetros (usado por las Factories)
         public Premio(int id, string nombre, int idCategoria, string descripcion, int posicion, string icono)
         {
             Id = id;

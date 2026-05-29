@@ -4,7 +4,7 @@ import { AuthContext } from "../context/AuthContext";
 import { login, register } from "../api/authApi";
 import { toast } from "sonner";
 
-export const useAuth = () => {
+export const useAuth = (onSuccess?: (path: string) => void) => {
   const context = useContext(AuthContext);
   const navigate = useNavigate();
 
@@ -14,22 +14,30 @@ export const useAuth = () => {
 
   const { login: contextLogin, logout, isAuthenticated, isPublic, userId, userName, loginPublic: contextLoginPublic } = context;
 
-  const handleLogin = async (credentials: any) => {
+  const doNavigate = (path: string) => {
+    if (onSuccess) {
+      onSuccess(path);
+    } else {
+      navigate(path);
+    }
+  };
+
+  const handleLogin = async (credentials: { email: string; password: string; invitationToken?: string | null }) => {
     try {
       await contextLogin(credentials);
       toast.success("¡Bienvenido!");
-      navigate("/eventos");
+      doNavigate("/eventos");
     } catch (error: any) {
       toast.error(error.message || "Error al iniciar sesión");
       throw error;
     }
   };
 
-  const handleRegister = async (data: any) => {
+  const handleRegister = async (data: { email: string; password: string; nombreCompleto: string; nombreUsuario?: string; invitationToken?: string | null }) => {
     try {
       await register(data);
       toast.success("Registro exitoso. Ahora puedes iniciar sesión.");
-      navigate("/login");
+      doNavigate("/login");
     } catch (error: any) {
       toast.error(error.message || "Error en el registro");
       throw error;

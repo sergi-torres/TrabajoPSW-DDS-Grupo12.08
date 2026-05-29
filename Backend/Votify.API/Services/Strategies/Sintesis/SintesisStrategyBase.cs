@@ -97,7 +97,6 @@ namespace Votify.API.Services.Strategies.Sintesis
             return sb.ToString();
         }
 
-        // Helper común: carga votos por proyecto y categoría enriquecidos con comentario_cualitativo.
         protected async Task<List<string>> CargarComentariosVotoAsync(
             int idProyecto, int idCategoria, bool soloJurado, CancellationToken ct)
         {

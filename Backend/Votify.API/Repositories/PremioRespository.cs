@@ -41,7 +41,6 @@ namespace Votify.API.Repositories
             return premio;
         }
 
-        // Implementación conforme a la interfaz: devuelve los premios del evento
         public async Task<List<Premio>> ObtenerPremiosDelEventoAsync(int eventoId)
         {
             var categorias = await ObtenerCategoriasPorEventoAsync(eventoId);
@@ -58,7 +57,7 @@ namespace Votify.API.Repositories
             .From<Premio>()
             .Insert(premio);
 
-            return response.Models.Count > 0;//Verificar si renta mas pasaar el nuevo premio creado
+            return response.Models.Count > 0;
         }
 
         public async Task EliminarPremioAsync(int premioId)

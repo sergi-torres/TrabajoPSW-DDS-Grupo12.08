@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-using Votify.API.Models.DTOs;
-namespace Votify.API.Models.DTOs
+﻿namespace Votify.API.Models.DTOs
 {
 
     public class CategoriaResponseDto

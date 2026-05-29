@@ -28,19 +28,22 @@ const ConfigLimiteVotos: React.FC<ConfigLimiteVotosProps> = ({ eventoId }) => {
     }
   }, [eventoId, obtenerCategoriasControl]);
 
-  // Filtrar solo las pendientes
+  // En modo global aplica solo a Pendiente; en modo personalizado se puede elegir cualquier categoría
   const categoriasPendientes = useMemo(() => {
-    return categorias.filter((c: any) => c.estado === "Pendiente" || c.Estado === "Pendiente");
+    return categorias.filter((c: any) => {
+      const est = c.estado || c.Estado || "";
+      return est.toLowerCase() === "pendiente";
+    });
   }, [categorias]);
 
   const categoriaSeleccionada = useMemo(() => {
     if (!categoriaSelId) return null;
-    return categoriasPendientes.find((c: any) => 
-        c.id?.toString() === categoriaSelId || 
-        c.categoriaId?.toString() === categoriaSelId || 
+    return categorias.find((c: any) =>
+        c.id?.toString() === categoriaSelId ||
+        c.categoriaId?.toString() === categoriaSelId ||
         c.CategoriaId?.toString() === categoriaSelId
     );
-  }, [categoriaSelId, categoriasPendientes]);
+  }, [categoriaSelId, categorias]);
 
   const togglePersonalizar = () => {
     if (!modoPersonalizado) {
@@ -154,12 +157,13 @@ const ConfigLimiteVotos: React.FC<ConfigLimiteVotosProps> = ({ eventoId }) => {
                         }}
                         className="w-full p-4 bg-gray-50 border-2 border-transparent focus:border-orange-500 rounded-2xl outline-none transition-all appearance-none cursor-pointer"
                     >
-                        <option value="">-- Selecciona una categoría pendiente --</option>
-                        {categoriasPendientes.map((cat: any) => {
+                        <option value="">-- Selecciona una categoría --</option>
+                        {categorias.map((cat: any) => {
                             const id = cat.id || cat.categoriaId || cat.CategoriaId;
+                            const est = cat.estado || cat.Estado || "Pendiente";
                             return (
                                 <option key={id} value={id}>
-                                    {cat.nombre || cat.Nombre}
+                                    {cat.nombre || cat.Nombre} ({est})
                                 </option>
                             );
                         })}

@@ -1,7 +1,5 @@
 using Supabase.Postgrest.Attributes;
 using Supabase.Postgrest.Models;
-using System.Collections.Generic;
-using System;
 
 namespace Votify.API.Models.Domain
 {
@@ -44,10 +42,8 @@ namespace Votify.API.Models.Domain
         [Column("comentarios_obligatorios")]
         public bool ComentariosObligatorios { get; set; } = false;
 
-        // Constructor sin parámetros (necesario para Supabase/deserialización)
         public Event() { }
 
-        // Constructor con parámetros (usado por las Factories)
         public Event(int id, string nombre, string descripcion, DateTime fechaInicio,
                      DateTime fechaFin, string estado, int idOrganizador,
                      List<Categoria> categorias, List<Baremo> baremos, int codEvento)

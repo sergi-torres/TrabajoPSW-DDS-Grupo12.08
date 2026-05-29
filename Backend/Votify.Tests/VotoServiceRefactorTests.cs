@@ -41,7 +41,6 @@ namespace Votify.Tests
         [Fact]
         public void SessionHelper_ObtenerClaveSesion_ShouldGenerateCorrectKeys()
         {
-            // Prueba del Move Method (Refactorización 1)
             var juradoKey = SessionHelper.ObtenerClaveSesion(10, null);
             var publicoKey = SessionHelper.ObtenerClaveSesion(null, "session-123");
             var anonKey = SessionHelper.ObtenerClaveSesion(null, null);
@@ -54,20 +53,17 @@ namespace Votify.Tests
         [Fact]
         public async Task ObtenerDashboardAsync_ShouldWorkCorrectlyAfterExtractMethod()
         {
-            // Prueba de la Refactorización 2 (Extract Method: DeterminarVotosUsuarioAsync)
             int eventoId = 1;
             int userId = 5;
 
             _votoRepoMock.Setup(r => r.ObtenerVotosDeUsuarioAsync(userId))
                 .ReturnsAsync(new List<VotoJurado>());
-            
+
             _categoriaRepoMock.Setup(r => r.ObtenerTodosCamposAsync(eventoId))
                 .ReturnsAsync(new List<CategoriaResponseActualizadoDto>());
 
-            // Act
             var result = await _votoService.ObtenerDashboardAsync(eventoId, idUsuario: userId);
 
-            // Assert
             Assert.NotNull(result);
             _votoRepoMock.Verify(r => r.ObtenerVotosDeUsuarioAsync(userId), Times.Once);
         }
@@ -75,19 +71,14 @@ namespace Votify.Tests
         [Fact]
         public async Task Decorator_ObtenerDashboardAsync_ShouldEnrichDtoWithEventConfig()
         {
-            // PROBANDO EL PATRÓN DECORADOR
-            // Nota: El decorador usa Supabase.Client directamente, lo cual es difícil de mockear sin una DB real.
-            // Pero podemos verificar la estructura del decorador mockeando el inner service.
-            
+            // El decorador usa Supabase.Client directamente y no puede instanciarse sin DB real.
+            // Este test verifica la interfaz de delegación mockeando el inner service.
             var innerResponse = new DashboardResponseDto { ComentariosObligatorios = false };
             _innerServiceMock.Setup(s => s.ObtenerDashboardAsync(It.IsAny<int>(), null, null, null))
                 .ReturnsAsync(innerResponse);
 
-            // En un entorno real, el decorador consultaría Supabase y cambiaría ComentariosObligatorios a true si el evento lo requiere.
-            // Aquí verificamos que el patrón de delegación funciona.
-            
             var result = await _innerServiceMock.Object.ObtenerDashboardAsync(1);
-            
+
             Assert.False(result.ComentariosObligatorios);
             _innerServiceMock.Verify(s => s.ObtenerDashboardAsync(1, null, null, null), Times.Once);
         }
