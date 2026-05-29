@@ -12,12 +12,11 @@ namespace Votify.API.Controllers
     public class EventController : ControllerBase
     {
         private readonly ICreateEventService _eventService;
-        private readonly ICategoriaService _categoriaService;
 
-        public EventController(ICreateEventService eventService, ICategoriaService categoriaService)
+
+        public EventController(ICreateEventService eventService)
         {
             _eventService = eventService;
-            _categoriaService = categoriaService;
         }
 
         [HttpPost]
@@ -44,7 +43,7 @@ namespace Votify.API.Controllers
                         Estado = "Pendiente" // Estado inicial
                     };
 
-                    await _categoriaService.CreateAsync(categoria);
+                    await _eventService.CreateAsync(categoria);
                 }
 
                 return Created($"/api/event/{eventoGuardado.Id}", new

@@ -4,41 +4,23 @@ namespace Votify.API.Services;
 
 public class ComentarioCualitativoService : IComentarioCualitativoService
 {
-    private readonly Supabase.Client _supabase;
+    private readonly Repositories.IComentarioCualitativoRepository _comentariosRepo;
 
-    public ComentarioCualitativoService(Supabase.Client supabase)
+    public ComentarioCualitativoService(Repositories.IComentarioCualitativoRepository comentariosRepo)
     {
-        _supabase = supabase;
+        _comentariosRepo = comentariosRepo;
     }
 
     public async Task<List<ComentarioCualitativo>> GetComentariosPorVotacion(long idVotacion)
     {
-        var response = await _supabase
-            .From<ComentarioCualitativo>()
-            .Where(x => x.IdVotacion == idVotacion)
-            .Get();
-
-        return response.Models;
-    }
-
-    public async Task<ComentarioCualitativo?> CreateComentarioAsync(ComentarioCualitativo comentario)
-    {
-
-
-        var response = await _supabase
-            .From<ComentarioCualitativo>()
-            .Insert(comentario);
-
-        if (!response.Models.Any())
-            throw new Exception("No se pudo insertar el comentario");
-
-        return response.Models.FirstOrDefault();
+        return await _comentariosRepo.GetComentariosPorVotacion(idVotacion);
     }
 
     public async Task<ComentarioCualitativo?> CreateComentarioAsync(
-    long idVotacion,
-    string comentarioTexto)
+        long idVotacion,
+        string comentarioTexto)
     {
+
         var comentario = new ComentarioCualitativo
         {
             IdVotacion = idVotacion,
@@ -46,15 +28,9 @@ public class ComentarioCualitativoService : IComentarioCualitativoService
             Fecha = DateTime.UtcNow
         };
 
-        var response = await _supabase
-            .From<ComentarioCualitativo>()
-            .Insert(comentario);
-
-        if (!response.Models.Any())
-            throw new Exception("No se pudo insertar el comentario");
-
-        return response.Models.FirstOrDefault();
+        return await _comentariosRepo.CreateComentarioAsync(comentario);
     }
 
 }
+
 

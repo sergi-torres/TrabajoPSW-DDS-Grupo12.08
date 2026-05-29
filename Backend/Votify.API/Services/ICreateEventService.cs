@@ -6,5 +6,7 @@ namespace Votify.API.Services
     public interface ICreateEventService
     {
         Task<Event> CreateEventAsync(CreateEventDto eventDto);
+
+        Task<Categoria> CreateAsync(Categoria categoria);
     }
 }
