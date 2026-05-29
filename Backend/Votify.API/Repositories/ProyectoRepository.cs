@@ -75,7 +75,7 @@ namespace Votify.API.Repositories
             try
             {
                 await _supabase.From<Proyecto>().Where(p => p.Id == id).Delete();
-                return true; // Si no lanza excepción, asumimos éxito
+                return true;
             }
             catch (Exception ex)
             {
@@ -89,7 +89,7 @@ namespace Votify.API.Repositories
             try
             {
                 await _supabase.From<Proyecto>().Where(p => p.Id == proyecto.Id).Update(proyecto);
-                return true; // Si no lanza excepción, asumimos éxito
+                return true;
             }
             catch (Exception ex)
             {

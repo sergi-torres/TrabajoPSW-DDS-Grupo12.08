@@ -102,8 +102,6 @@ namespace Votify.API.Services
         public async Task<IEnumerable<CategoriaResponseActualizadoDto>> ListarCategoriasControlAsync(int eventoId)
         {
             var categorias = await _categoriaRepository.ObtenerTodosCamposAsync(eventoId);
-            
-            // Fetch projects to count them per category
             var proyectos = await _proyectoRepository.ObtenerPorEventoIdAsync(eventoId);
 
             foreach (var cat in categorias)

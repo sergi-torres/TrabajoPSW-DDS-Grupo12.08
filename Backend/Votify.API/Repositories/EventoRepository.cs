@@ -63,5 +63,29 @@ namespace Votify.API.Repositories
             return response.Models;
         }
 
+        public async Task<Event> InsertAsync(Event evento)
+        {
+            var response = await _supabase.From<Event>().Insert(evento);
+            return response.Models.First();
+        }
+
+        public async Task<bool> ExtenderTiempoAsync(int id, int minutosExtra)
+        {
+            var evento = await GetByIdAsync(id);
+            if (evento == null) return false;
+            evento.FechaFin = evento.FechaFin.AddMinutes(minutosExtra);
+            var response = await _supabase.From<EventoLite>().Update(evento);
+            return response.ResponseMessage?.IsSuccessStatusCode ?? false;
+        }
+
+        public async Task<bool> UpdateEstadoAsync(int id, string nuevoEstado)
+        {
+            var response = await _supabase
+                .From<EventoLite>()
+                .Filter("id", Supabase.Postgrest.Constants.Operator.Equals, id.ToString())
+                .Set(e => e.Estado, nuevoEstado)
+                .Update();
+            return response.ResponseMessage?.IsSuccessStatusCode ?? false;
+        }
     }
 }

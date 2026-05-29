@@ -1,16 +1,27 @@
 using Votify.API.Models.Domain.Factories;
 using Votify.API.Models.Domain;
 using Votify.API.Models.DTOs;
+using Votify.API.Repositories;
 
 namespace Votify.API.Services
 {
     public class CreateEventService : ICreateEventService
     {
-        private readonly Supabase.Client _supabaseClient;
+        private readonly IEventoRepository _eventoRepository;
+        private readonly IEventoUsuarioRepository _eventoUsuarioRepository;
+        private readonly IBaremoRepository _baremoRepository;
+        private readonly ICategoriaRepository _categoriaRepository;
 
-        public CreateEventService(Supabase.Client supabaseClient)
+        public CreateEventService(
+            IEventoRepository eventoRepository,
+            IEventoUsuarioRepository eventoUsuarioRepository,
+            IBaremoRepository baremoRepository,
+            ICategoriaRepository categoriaRepository)
         {
-            _supabaseClient = supabaseClient;
+            _eventoRepository = eventoRepository;
+            _eventoUsuarioRepository = eventoUsuarioRepository;
+            _baremoRepository = baremoRepository;
+            _categoriaRepository = categoriaRepository;
         }
 
         public async Task<Event> CreateEventAsync(CreateEventDto eventDto)
@@ -26,7 +37,7 @@ namespace Votify.API.Services
                 _ => throw new ArgumentException($"Tipo de evento desconocido: {eventDto.TipoEvento}")
             };
 
-            var NuevoEvento = creator.CreateEvent(
+            var NuevoEvento = creator.PrepareEvent(
               0,
               eventDto.Nombre,
               eventDto.Descripcion,
@@ -41,8 +52,7 @@ namespace Votify.API.Services
 
             NuevoEvento.ComentariosObligatorios = eventDto.ComentariosObligatorios;
 
-            var response = await _supabaseClient.From<Event>().Insert(NuevoEvento);
-            var eventoCreado = response.Models.First();
+            var eventoCreado = await _eventoRepository.InsertAsync(NuevoEvento);
 
             var relacion = new EventoUsuario
             {
@@ -51,26 +61,34 @@ namespace Votify.API.Services
                 Rol = "Organizador"
             };
 
-            await _supabaseClient.From<EventoUsuario>().Insert(relacion);
+            await _eventoUsuarioRepository.CreateAsync(relacion);
 
-            // Insertar Baremos y Criterios si existen
             if (NuevoEvento.Baremos != null && NuevoEvento.Baremos.Any())
             {
                 foreach (var baremo in NuevoEvento.Baremos)
                 {
                     baremo.IdEvento = eventoCreado.Id;
-                    var baremoResponse = await _supabaseClient.From<Baremo>().Insert(baremo);
-                    var baremoCreado = baremoResponse.Models.First();
+                    var baremoCreado = await _baremoRepository.InsertAsync(baremo);
 
                     if (baremo.Criterios != null && baremo.Criterios.Any())
                     {
                         foreach (var criterio in baremo.Criterios)
                         {
                             criterio.IdBaremo = baremoCreado.Id;
-                            await _supabaseClient.From<Criterio>().Insert(criterio);
+                            await _baremoRepository.InsertCriterioAsync(criterio);
                         }
                     }
                 }
+            }
+
+            foreach (var catDto in eventDto.Categorias)
+            {
+                await _categoriaRepository.InsertarAsync(new Categoria
+                {
+                    Nombre = catDto.Nombre,
+                    IdEvento = eventoCreado.Id,
+                    Estado = "Pendiente"
+                });
             }
 
             return eventoCreado;
@@ -133,7 +151,6 @@ namespace Votify.API.Services
                     }
                 }
 
-                // 2. Luego montamos la categoría y le metemos sus pesos
                 categorias.Add(new CategoriaConPesos
                 {
                     Nombre = dtoCat.Nombre,
@@ -144,25 +161,5 @@ namespace Votify.API.Services
             return categorias;
         }
 
-        public async Task<Categoria> CreateAsync(Categoria categoria)
-        {
-            try
-            {
-                var response = await _supabaseClient
-                    .From<Categoria>()
-                    .Insert(categoria);
-
-                if (response?.Models == null || response.Models.Count == 0)
-                {
-                    throw new Exception("No se pudo crear la categoría");
-                }
-
-                return response.Models[0];
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error al crear la categoría: {ex.Message}", ex);
-            }
-        }
     }
 }

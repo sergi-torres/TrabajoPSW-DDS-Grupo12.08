@@ -47,7 +47,6 @@ namespace Votify.API.Repositories
             }
             catch
             {
-                // Usuario no encontrado en evento_usuario
                 return null;
             }
         }
@@ -119,7 +118,7 @@ namespace Votify.API.Repositories
 
         public async Task<List<Voto>> ObtenerVotosPorProyectoYCategoriaAsync(int proyectoId, int categoriaId)
         {
-            // 1. Obtener votos básicos (Jurado y Público comparten la misma tabla 'voto')
+            // VotoJurado mapea a la tabla 'voto', que es la misma para todos los tipos de voto
             var response = await _supabase
                 .From<VotoJurado>()
                 .Filter("idproyecto", Supabase.Postgrest.Constants.Operator.Equals, proyectoId.ToString())
@@ -128,7 +127,6 @@ namespace Votify.API.Repositories
 
             var votos = response.Models.Cast<Voto>().ToList();
 
-            // 2. Obtener comentarios cualitativos detallados para estos votos
             var idsVotacion = votos.Select(v => (long)v.Id).ToList();
             if (idsVotacion.Any())
             {
@@ -137,18 +135,13 @@ namespace Votify.API.Repositories
                     .Filter("idVotacion", Supabase.Postgrest.Constants.Operator.In, idsVotacion)
                     .Get();
 
-                var comentariosExt = responseComentarios.Models;
-
-                // 3. Vincular los comentarios a los votos. 
-                // Priorizamos el de 'comentario_cualitativo' si existe.
+                // comentario_cualitativo tiene precedencia sobre el campo comentario del voto
                 foreach (var v in votos)
                 {
-                    var c = comentariosExt.FirstOrDefault(cc => cc.IdVotacion == v.Id);
+                    var c = responseComentarios.Models.FirstOrDefault(cc => cc.IdVotacion == v.Id);
                     if (c != null && !string.IsNullOrWhiteSpace(c.Comentario))
                     {
-                        // Si el voto ya tenía comentario, los combinamos o sobreescribimos según preferencia.
-                        // Para la síntesis e historial, lo más seguro es asegurar que el texto esté presente.
-                        v.Comentario = c.Comentario; 
+                        v.Comentario = c.Comentario;
                     }
                 }
             }

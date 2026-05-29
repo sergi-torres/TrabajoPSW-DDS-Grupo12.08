@@ -79,11 +79,10 @@ namespace Votify.API.Services
         private async Task ProcesarInvitacionAsync(int userId, string email, string token)
         {
             var invitacion = await _invitacionRepo.GetByTokenAsync(token);
-            
-            // Validar que la invitación existe y es para este email
+
+            // El token se valida contra el email para evitar que un usuario use la invitación de otro.
             if (invitacion != null && invitacion.Email.Equals(email, StringComparison.OrdinalIgnoreCase))
             {
-                // Asociar usuario al evento como Jurado
                 var relacion = new EventoUsuario
                 {
                     IdEvento = invitacion.IdEvento,
@@ -92,8 +91,6 @@ namespace Votify.API.Services
                 };
 
                 await _eventoUsuarioRepo.CreateAsync(relacion);
-
-                // Eliminar invitación procesada
                 await _invitacionRepo.DeleteAsync(invitacion.Id);
             }
         }

@@ -6,50 +6,42 @@ namespace Votify.API.Services
 {
     public class OrgDashboardService : IOrgDashboardService
     {
-        private readonly Supabase.Client _supabase;
+        private readonly IEventoRepository _eventoRepository;
+        private readonly IEventoUsuarioRepository _eventoUsuarioRepository;
         private readonly ICategoriaRepository _categoriaRepository;
         private readonly IProyectoRepository _proyectoRepository;
         private readonly IVotoRepository _votoRepository;
+        private readonly IUsuarioRepository _usuarioRepository;
 
         public OrgDashboardService(
-            Supabase.Client supabase,
+            IEventoRepository eventoRepository,
+            IEventoUsuarioRepository eventoUsuarioRepository,
             ICategoriaRepository categoriaRepository,
             IProyectoRepository proyectoRepository,
-            IVotoRepository votoRepository)
+            IVotoRepository votoRepository,
+            IUsuarioRepository usuarioRepository)
         {
-            _supabase = supabase;
+            _eventoRepository = eventoRepository;
+            _eventoUsuarioRepository = eventoUsuarioRepository;
             _categoriaRepository = categoriaRepository;
             _proyectoRepository = proyectoRepository;
             _votoRepository = votoRepository;
+            _usuarioRepository = usuarioRepository;
         }
 
         public async Task<OrgDashboardResponseDto> GetDashboardAsync(int eventoId)
         {
             try
             {
-                // 1) Obtener info del evento (no hay repo para EventoLite, se usa Supabase directamente)
-                var eventoResponse = await _supabase
-                    .From<EventoLite>()
-                    .Filter("id", Supabase.Postgrest.Constants.Operator.Equals, eventoId.ToString())
-                    .Get();
-
-                var evento = eventoResponse.Models.FirstOrDefault()
+                var evento = await _eventoRepository.GetByIdAsync(eventoId)
                     ?? throw new Exception("Evento no encontrado.");
 
-                // 2) Obtener usuarios del evento (no hay repo para EventoUsuario, se usa Supabase)
-                var usuariosResponse = await _supabase
-                    .From<EventoUsuario>()
-                    .Filter("idevento", Supabase.Postgrest.Constants.Operator.Equals, eventoId.ToString())
-                    .Get();
-
-                var usuarios = usuariosResponse.Models;
+                var usuarios = await _eventoUsuarioRepository.GetByEventoAsync(eventoId);
                 int totalParticipantes = usuarios.Count(u => u.Rol == "Participante");
                 int totalPublico = usuarios.Count(u => u.Rol == "Publico");
 
-                // 3) Obtener categorías del evento → via repositorio
                 var categorias = await _categoriaRepository.ObtenerPorEventoIdAsync(eventoId);
 
-                // 4) Obtener todos los proyectos de las categorías → via repositorio
                 var todosProyectos = new List<Proyecto>();
                 foreach (var cat in categorias)
                 {
@@ -57,7 +49,6 @@ namespace Votify.API.Services
                     todosProyectos.AddRange(proyectosCategoria);
                 }
 
-                // 5) Obtener todos los votos de los proyectos → via repositorio
                 var todosVotos = new List<VotoPublico>();
                 foreach (var proyecto in todosProyectos)
                 {
@@ -65,20 +56,13 @@ namespace Votify.API.Services
                     todosVotos.AddRange(votosProyecto);
                 }
 
-                // 6) Obtener los pesos por rol de las categorías (no hay repo, se usa Supabase)
                 var todosPesos = new List<PesoCategoriaRol>();
                 foreach (var cat in categorias)
                 {
-                    var pesosResponse = await _supabase
-                        .From<PesoCategoriaRol>()
-                        .Filter("idcategoria", Supabase.Postgrest.Constants.Operator.Equals, cat.Id.ToString())
-                        .Get();
-
-                    todosPesos.AddRange(pesosResponse.Models);
+                    var pesos = await _categoriaRepository.ObtenerPesosPorCategoriaIdAsync(cat.Id);
+                    todosPesos.AddRange(pesos);
                 }
 
-                // 7) Construir stats alineadas con la UI
-                // Separar votos de jurado vs público
                 var idsJurados = usuarios
                     .Where(u => u.Rol == "Jurado")
                     .Select(u => u.IdUsuario)
@@ -91,12 +75,10 @@ namespace Votify.API.Services
                     .Where(v => v.IdEvaluador == null || !idsJurados.Contains(v.IdEvaluador ?? 0))
                     .ToList();
 
-                // Proyectos que ya han recibido al menos 1 voto
                 var proyectosConVotos = todosProyectos
                     .Count(p => todosVotos.Any(v => v.IdProyecto == p.Id));
 
-                // % votos jurado: jurados que han votado / total jurados × 100
-                // (al menos 1 voto por jurado cuenta como "ha votado")
+                // Al menos 1 voto por jurado cuenta como "ha votado" para el porcentaje.
                 var juradosQueVotaron = votosDeJurado
                     .Select(v => v.IdEvaluador)
                     .Distinct()
@@ -114,26 +96,18 @@ namespace Votify.API.Services
                     VotosPublicoCount = votosDePublico.Count
                 };
 
-                // 8) Obtener datos de usuarios para nombres de participantes
                 var participanteIds = todosProyectos.Select(p => p.IdParticipante).Distinct().ToList();
                 var todosUsuarios = new List<Usuario>();
                 foreach (var pid in participanteIds)
                 {
-                    var userRes = await _supabase
-                        .From<Usuario>()
-                        .Filter("id", Supabase.Postgrest.Constants.Operator.Equals, pid.ToString())
-                        .Get();
-                    if (userRes.Models.Any())
-                        todosUsuarios.Add(userRes.Models.First());
+                    var user = await _usuarioRepository.GetByIdAsync(pid);
+                    if (user != null)
+                        todosUsuarios.Add(user);
                 }
 
-                // 9) Construir ranking
                 var ranking = BuildRanking(todosProyectos, todosVotos, usuarios, todosPesos, todosUsuarios);
-
-                // 10) Construir feed de proyectos recientes
                 var feed = BuildFeed(todosProyectos, todosVotos);
 
-                // 11) Construir live header info
                 var liveInfo = new LiveHeaderDto
                 {
                     EventName = evento.Nombre,
@@ -160,19 +134,9 @@ namespace Votify.API.Services
         {
             try
             {
-                var eventoResponse = await _supabase
-                    .From<EventoLite>()
-                    .Filter("id", Supabase.Postgrest.Constants.Operator.Equals, eventoId.ToString())
-                    .Get();
-
-                var evento = eventoResponse.Models.FirstOrDefault()
-                    ?? throw new Exception("Evento no encontrado.");
-
-                evento.FechaFin = evento.FechaFin.AddMinutes(minutosExtra);
-
-                await _supabase
-                    .From<EventoLite>()
-                    .Update(evento);
+                var success = await _eventoRepository.ExtenderTiempoAsync(eventoId, minutosExtra);
+                if (!success)
+                    throw new Exception("Evento no encontrado.");
             }
             catch (Exception ex)
             {
@@ -184,27 +148,15 @@ namespace Votify.API.Services
         {
             try
             {
-                var eventoResponse = await _supabase
-                    .From<EventoLite>()
-                    .Filter("id", Supabase.Postgrest.Constants.Operator.Equals, eventoId.ToString())
-                    .Get();
-
-                var evento = eventoResponse.Models.FirstOrDefault()
-                    ?? throw new Exception("Evento no encontrado.");
-
-                evento.Estado = "Cerrado";
-
-                await _supabase
-                    .From<EventoLite>()
-                    .Update(evento);
+                var success = await _eventoRepository.UpdateEstadoAsync(eventoId, "Cerrado");
+                if (!success)
+                    throw new Exception("Evento no encontrado.");
             }
             catch (Exception ex)
             {
                 throw new Exception($"Error al cerrar la votación: {ex.Message}", ex);
             }
         }
-
-        // ──────────── Métodos privados auxiliares ────────────
 
         private string DeterminarFase(EventoLite evento)
         {
@@ -227,7 +179,6 @@ namespace Votify.API.Services
             {
                 var votosDelProyecto = votos.Where(v => v.IdProyecto == proyecto.Id).ToList();
 
-                // Separar votos de jurado (tienen IdEvaluador no nulo) y público (IdEvaluador nulo)
                 var idsJurados = usuarios
                     .Where(u => u.Rol == "Jurado")
                     .Select(u => u.IdUsuario)
@@ -236,7 +187,6 @@ namespace Votify.API.Services
                 var votosJurado = votosDelProyecto.Where(v => v.IdEvaluador != null && idsJurados.Contains(v.IdEvaluador.Value)).ToList();
                 var votosPublico = votosDelProyecto.Where(v => v.IdEvaluador == null || !idsJurados.Contains(v.IdEvaluador ?? 0)).ToList();
 
-                // Puntuación media (0-100)
                 var juryVotes = votosJurado.Where(v => v.Valor.HasValue).ToList();
                 var publicVotes = votosPublico.Where(v => v.Valor.HasValue).ToList();
 
@@ -244,11 +194,10 @@ namespace Votify.API.Services
                 float publicScore = publicVotes.Count > 0 ? publicVotes.Average(v => v.Valor!.Value) * 10f : 0f;
 
 
-                // Peso jurado/público de la categoría
                 var pesoJurado = pesos.FirstOrDefault(p => p.IdCategoria == proyecto.IdCategoria && p.RolVotante == "Jurado")?.Peso ?? 70f;
                 var pesoPublico = pesos.FirstOrDefault(p => p.IdCategoria == proyecto.IdCategoria && p.RolVotante == "Publico")?.Peso ?? 30f;
 
-                // Normalizar los pesos a formato decimal (0-1) si están en base 100
+                // Pesos vienen en base 100 desde la BD; se normalizan a decimal para el cálculo.
                 if (pesoJurado > 1f || pesoPublico > 1f)
                 {
                     pesoJurado /= 100f;
@@ -257,7 +206,6 @@ namespace Votify.API.Services
 
                 float combinedScore = (juryScore * pesoJurado) + (publicScore * pesoPublico);
 
-                // Nombre del participante (team)
                 var participante = participantes.FirstOrDefault(u => u.Id == proyecto.IdParticipante);
                 var teamName = participante?.NombreCompleto ?? $"Participante #{proyecto.IdParticipante}";
 
@@ -274,7 +222,6 @@ namespace Votify.API.Services
                 });
             }
 
-            // Ordenar por puntuación descendente y asignar posición
             ranking = ranking.OrderByDescending(r => r.Score).ToList();
             for (int i = 0; i < ranking.Count; i++)
             {
@@ -292,15 +239,9 @@ namespace Votify.API.Services
             {
                 var votosDelProyecto = votos.Where(v => v.IdProyecto == proyecto.Id).ToList();
 
-                // Determinar estado según si tiene votos
-                string status;
-                if (votosDelProyecto.Count == 0)
-                    status = "pending";
-                else
-                    status = "ready";
+                string status = votosDelProyecto.Count == 0 ? "pending" : "ready";
 
-                // Determinar tipo según la URL multimedia
-                string type = "pdf"; // por defecto
+                string type = "pdf";
                 if (!string.IsNullOrEmpty(proyecto.UrlMultimedia))
                 {
                     var url = proyecto.UrlMultimedia.ToLower();
@@ -310,7 +251,6 @@ namespace Votify.API.Services
                         type = "mockup";
                 }
 
-                // Calcular hace cuántos minutos fue el último voto
                 int minutesAgo = 0;
                 if (votosDelProyecto.Count > 0)
                 {
@@ -329,7 +269,6 @@ namespace Votify.API.Services
                 });
             }
 
-            // Ordenar por más reciente (menor minutesAgo primero), máximo 10
             return feed.OrderBy(f => f.MinutesAgo).Take(10).ToList();
         }
     }
