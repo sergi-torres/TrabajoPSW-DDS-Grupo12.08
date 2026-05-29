@@ -143,5 +143,26 @@ namespace Votify.API.Services
 
             return categorias;
         }
+
+        public async Task<Categoria> CreateAsync(Categoria categoria)
+        {
+            try
+            {
+                var response = await _supabaseClient
+                    .From<Categoria>()
+                    .Insert(categoria);
+
+                if (response?.Models == null || response.Models.Count == 0)
+                {
+                    throw new Exception("No se pudo crear la categoría");
+                }
+
+                return response.Models[0];
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error al crear la categoría: {ex.Message}", ex);
+            }
+        }
     }
 }

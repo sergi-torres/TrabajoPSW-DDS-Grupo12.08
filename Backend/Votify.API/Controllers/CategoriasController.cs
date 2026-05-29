@@ -12,16 +12,13 @@ namespace Votify.API.Controllers
     public class CategoriasController : ControllerBase
     {
         private readonly ICategoriaRepository _categoriaRepository;
-        private readonly ICategoriaService _categoriaService;
         private readonly Supabase.Client _supabase;
         
   
-        public CategoriasController(ICategoriaRepository categoriaRepository, ICategoriaService categoriaService, Supabase.Client supabase)
+        public CategoriasController(ICategoriaRepository categoriaRepository, Supabase.Client supabase)
         {
             _categoriaRepository = categoriaRepository;
-            _categoriaService = categoriaService;
             _supabase = supabase;
-
         }
 
         // GET: api/categorias

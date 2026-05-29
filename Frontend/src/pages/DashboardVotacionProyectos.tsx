@@ -12,6 +12,12 @@ import { useVoting } from '../context/VotingContext';
 import { cn } from '../components/ui/utils';
 import { ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
+import {
+  buildJuradoBatchPayload,
+  buildPublicVoteDto,
+  getLocalVotingContext,
+  withSubmitGuard,
+} from '../utils/dashboardVotacionProyectosBuilders';
 
 interface Props {
   categoria: any;
@@ -36,82 +42,76 @@ const DashboardVotacionProyectos: React.FC<Props> = ({ categoria, alVolver, come
   const themeColor = effectivelyPublic ? "#059669" : (userColor || "#2563eb");
 
   const handleConfirmarPublico = async () => {
-    if (!seleccionado || submitLock.current) return;
+    if (!seleccionado) return;
 
     if (comentariosObligatorios && !comentario.trim()) {
       toast.error("El comentario es obligatorio para evaluar en este evento.");
       return;
     }
 
-    submitLock.current = true;
-    setSubmitting(true);
-    try {
-      const userIdRaw = localStorage.getItem('userId');
-      const idUsuario = userIdRaw ? parseInt(userIdRaw) : null;
-      const sessionId = localStorage.getItem('sessionId');
-      const storedEventoId = localStorage.getItem('eventoId');
-      const finalEventoId = eventoId || (storedEventoId ? parseInt(storedEventoId) : 0);
+    await withSubmitGuard({
+      submitLock,
+      setSubmitting,
+      action: async () => {
+        const { finalEventoId, idUsuario, sessionId } = getLocalVotingContext({
+          eventoIdFromContext: eventoId,
+          categoriaId: categoria.id,
+        });
 
-      const votoDto = {
-        eventoId: finalEventoId,
-        categoriaId: categoria.id,
-        proyectoId: seleccionado.id,
-        comentario: comentario,
-        idUsuario: (idUsuario !== null && !Number.isNaN(idUsuario)) ? idUsuario : null,
-        sessionId: sessionId || null,
-        identificadorHash: fingerprint || undefined,
-        valor: 1,
-        idcriterio: null,
-        idproyecto: seleccionado.id,
-        idevaluador: idUsuario,
-        idcategoria: categoria.id
-      };
+        const votoDto = buildPublicVoteDto({
+          eventoId: finalEventoId,
+          categoriaId: categoria.id,
+          proyectoId: seleccionado.id,
+          comentario,
+          idUsuario: idUsuario ?? undefined,
+          sessionId,
 
-      await enviarVoto(votoDto as any);
-      alVolver();
-    } finally {
-      submitLock.current = false;
-      setSubmitting(false);
-    }
+          identificadorHash: fingerprint || undefined,
+          valor: 1,
+        });
+
+        await enviarVoto(votoDto as any);
+        alVolver();
+      },
+    });
   };
 
   const { addNotification } = useVoting();
 
   const handleConfirmarJurado = async (evaluaciones: { criterioId: number, valor: number, comentario: string }[], comentarioGlobal: string) => {
-    if (!seleccionado || submitLock.current) return;
+    if (!seleccionado) return;
 
-    const userIdRaw = localStorage.getItem('userId');
-    const idUsuario = userIdRaw ? parseInt(userIdRaw) : null;
-    const storedEventoId = localStorage.getItem('eventoId');
-    const finalEventoId = eventoId || (storedEventoId ? parseInt(storedEventoId) : 0);
+    await withSubmitGuard({
+      submitLock,
+      setSubmitting,
+      action: async () => {
+        const { finalEventoId, idUsuario } = getLocalVotingContext({
+          eventoIdFromContext: eventoId,
+          categoriaId: categoria.id,
+        });
 
-    submitLock.current = true;
-    setSubmitting(true);
-    try {
-      const batchPayload = {
-        eventoId: finalEventoId,
-        categoriaId: categoria.id,
-        proyectoId: seleccionado.id,
-        idUsuario: idUsuario,
-        comentarioGlobal: comentarioGlobal || undefined,
-        evaluaciones: evaluaciones.map(e => ({
-          criterioId: e.criterioId,
-          valor: e.valor,
-          comentario: e.comentario
-        }))
-      };
 
-      await enviarDatosVotoBatch(batchPayload);
-      toast.success("Evaluación completa registrada correctamente");
-      addNotification("vote_cast");
-      alVolver();
-    } catch (err) {
-      console.error(err);
-      toast.error((err as any)?.message || "Error al procesar la evaluación completa");
-    } finally {
-      submitLock.current = false;
-      setSubmitting(false);
-    }
+
+        const batchPayload = buildJuradoBatchPayload({
+          eventoId: finalEventoId,
+          categoriaId: categoria.id,
+          proyectoId: seleccionado.id,
+          idUsuario,
+          comentarioGlobal,
+          evaluaciones,
+        });
+
+        try {
+          await enviarDatosVotoBatch(batchPayload);
+          toast.success("Evaluación completa registrada correctamente");
+          addNotification("vote_cast");
+          alVolver();
+        } catch (err) {
+          console.error(err);
+          toast.error((err as any)?.message || "Error al procesar la evaluación completa");
+        }
+      },
+    });
   };
 
   const handleExit = () => {

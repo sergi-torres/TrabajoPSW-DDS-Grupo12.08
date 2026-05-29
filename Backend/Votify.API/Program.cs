@@ -50,11 +50,11 @@ builder.Services.AddScoped<Votify.API.Services.IAuthService, Votify.API.Services
 builder.Services.AddScoped<Votify.API.Repositories.IEventoRepository, Votify.API.Repositories.EventoRepository>();
 builder.Services.AddScoped<Votify.API.Repositories.IBaremoRepository, Votify.API.Repositories.BaremoRepository>();
 builder.Services.AddScoped<Votify.API.Services.IEventoService, Votify.API.Services.EventoService>();
+builder.Services.AddScoped<Votify.API.Repositories.IComentarioCualitativoRepository, Votify.API.Repositories.ComentarioCualitativoRepository>();
 builder.Services.AddScoped<Votify.API.Services.IComentarioCualitativoService, Votify.API.Services.ComentarioCualitativoService>();
 // El servicio IVotoService ya está registrado arriba con el Decorator
-builder.Services.AddScoped<Votify.API.Services.IComentarioCualitativoService, Votify.API.Services.ComentarioCualitativoService>();
+
 builder.Services.AddScoped<Votify.API.Services.IOrgDashboardService, Votify.API.Services.OrgDashboardService>();
-builder.Services.AddScoped<Votify.API.Services.ICategoriaService, Votify.API.Services.CategoriaService>();
 builder.Services.AddScoped<Votify.API.Services.IJuradoService, Votify.API.Services.JuradoService>();
 builder.Services.AddScoped<Votify.API.Services.IEmailService, Votify.API.Services.ResendEmailService>();
 builder.Services.AddScoped<Votify.API.Filters.OrganizerOnlyFilter>();
