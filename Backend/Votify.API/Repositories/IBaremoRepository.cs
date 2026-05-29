@@ -12,5 +12,6 @@ namespace Votify.API.Repositories
         Task<bool> DeleteCriterioAsync(int criterioId);
         Task<Criterio> InsertCriterioAsync(Criterio criterio);
         Task<bool> UpdateCriterioAsync(Criterio criterio);
+        Task<Criterio?> GetCriterioByIdAsync(int id);
     }
 }

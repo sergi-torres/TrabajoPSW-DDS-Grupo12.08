@@ -76,5 +76,14 @@ namespace Votify.API.Repositories
                 .Update();
             return response.ResponseMessage?.IsSuccessStatusCode ?? false;
         }
+
+        public async Task<Criterio?> GetCriterioByIdAsync(int id)
+        {
+            var response = await _supabase
+                .From<Criterio>()
+                .Filter("id", Supabase.Postgrest.Constants.Operator.Equals, id.ToString())
+                .Get();
+            return response.Models.FirstOrDefault();
+        }
     }
 }
