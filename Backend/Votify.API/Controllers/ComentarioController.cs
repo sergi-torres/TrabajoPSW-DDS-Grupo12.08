@@ -10,12 +10,12 @@ namespace Votify.API.Controllers
     [Route("api/[controller]")]
     public class ComentariosController : ControllerBase
     {
-        private readonly Supabase.Client _supabase;
+        private readonly IComentarioCualitativoService _comentarioService;
         private readonly IVotoService _votoService;
 
-        public ComentariosController(Supabase.Client supabase, IVotoService votoService)
+        public ComentariosController(IComentarioCualitativoService comentarioService, IVotoService votoService)
         {
-            _supabase = supabase;
+            _comentarioService = comentarioService;
             _votoService = votoService;
         }
 
@@ -50,23 +50,23 @@ namespace Votify.API.Controllers
         [HttpGet]
         public async Task<IActionResult> GetComentarios([FromQuery] long idVotacion)
         {
-            var response = await _supabase
-                .From<ComentarioCualitativo>()
-                .Where(x => x.IdVotacion == idVotacion)
-                .Get();
-
-            var dto = response.Models.Select(c => new ComentarioRequestDTO
+            try
             {
-                Id = c.Id,
-                Comentario = c.Comentario,
-                Fecha = c.Fecha
-            });
+                var comentarios = await _comentarioService.GetComentariosPorVotacion(idVotacion);
 
+                var dto = comentarios.Select(c => new ComentarioRequestDTO
+                {
+                    Id = c.Id,
+                    Comentario = c.Comentario,
+                    Fecha = c.Fecha
+                });
 
-            //Console.WriteLine($"Comentarios obtenidos para votación {idVotacion}: {dto.Count()} texto: {string.Join(", ", dto.Select(d => d.Comentario))}");
-
-
-            return Ok(dto);
+                return Ok(dto);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error al obtener comentarios: {ex.Message}");
+            }
         }
 
 
@@ -79,18 +79,7 @@ namespace Votify.API.Controllers
                 if (string.IsNullOrWhiteSpace(dto.Comentario))
                     return BadRequest("El comentario no puede estar vacío");
 
-                var comentario = new ComentarioCualitativo
-                {
-                    IdVotacion = dto.IdVotacion,
-                    Comentario = dto.Comentario,
-                    Fecha = DateTime.UtcNow
-                };
-
-                var response = await _supabase
-                    .From<ComentarioCualitativo>()
-                    .Insert(comentario);
-
-                var insertado = response.Models.FirstOrDefault();
+                var insertado = await _comentarioService.CreateComentarioAsync(dto.IdVotacion, dto.Comentario);
 
                 if (insertado == null)
                     return StatusCode(500, "No se pudo crear el comentario");

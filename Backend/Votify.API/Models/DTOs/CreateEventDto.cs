@@ -37,17 +37,14 @@ namespace Votify.API.Models.DTOs
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
-            // 1. La lógica vital: Fecha Fin debe ser posterior a Fecha Inicio
             if (FechaFin <= FechaInicio)
             {
                 yield return new ValidationResult(
                     "Error lógico: La fecha de finalización debe ser posterior a la fecha de inicio.",
-                new[] { nameof(FechaFin) } // Esto le dice al Frontend exactamente qué campo falló
-            );
+                    new[] { nameof(FechaFin) }
+                );
             }
 
-            // 2. Lógica de negocio: Un evento no debería crearse en el pasado
-            // (Usamos .Date para comparar solo los días, ignorando las horas)
             if (FechaInicio.Date < DateTime.Now.Date)
             {
                 yield return new ValidationResult(

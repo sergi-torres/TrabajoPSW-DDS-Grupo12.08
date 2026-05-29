@@ -12,16 +12,12 @@ namespace Votify.API.Controllers
     public class CategoriasController : ControllerBase
     {
         private readonly ICategoriaRepository _categoriaRepository;
-        private readonly Supabase.Client _supabase;
-        
-  
-        public CategoriasController(ICategoriaRepository categoriaRepository, Supabase.Client supabase)
+
+        public CategoriasController(ICategoriaRepository categoriaRepository)
         {
             _categoriaRepository = categoriaRepository;
-            _supabase = supabase;
         }
 
-        // GET: api/categorias
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -41,7 +37,6 @@ namespace Votify.API.Controllers
             }
         }
 
-        // GET: api/categorias/evento/1
         [HttpGet("evento/{eventoId}")]
         public async Task<IActionResult> GetByEvento(int eventoId)
         {
@@ -65,7 +60,6 @@ namespace Votify.API.Controllers
             }
         }
 
-        // GET: api/categorias/evento/1
         [HttpGet("id/{categoriaId}")]
         public async Task<IActionResult> GetById(int categoriaId)
         {
@@ -93,7 +87,6 @@ namespace Votify.API.Controllers
             }
         }
 
-        // POST: api/categorias
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateCategoriaDto dto)
         {
@@ -102,28 +95,24 @@ namespace Votify.API.Controllers
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
 
-                // Aquí solo creamos la categoría básica
                 var categoria = new Categoria
                 {
                     Nombre = dto.Nombre,
                     IdEvento = dto.IdEvento
                 };
 
-                // Insert en Supabase
-                var response = await _categoriaRepository
-                    .CrearAsync(categoria);
+                var response = await _categoriaRepository.CrearAsync(categoria);
 
                 if (dto.Pesos != null && dto.Pesos.Any())
                 {
                     foreach (var peso in dto.Pesos)
                     {
-                        var nuevoPeso = new PesoCategoriaRol
+                        await _categoriaRepository.InsertarPesoAsync(new PesoCategoriaRol
                         {
                             IdCategoria = response.Id,
                             RolVotante = peso.RolVotante,
                             Peso = peso.Peso
-                        };
-                        await _supabase.From<PesoCategoriaRol>().Insert(nuevoPeso);
+                        });
                     }
                 }
 
@@ -136,7 +125,6 @@ namespace Votify.API.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex); // mensaje de eror
                 return StatusCode(500, ex.Message);
             }
         }

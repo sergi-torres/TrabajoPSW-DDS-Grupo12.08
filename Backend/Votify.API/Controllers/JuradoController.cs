@@ -71,9 +71,16 @@ namespace Votify.API.Controllers
         [HttpDelete("evento/{idEvento}/usuario/{idUsuario}")]
         public async Task<IActionResult> EliminarJurado(int idEvento, int idUsuario)
         {
-            var result = await _juradoService.EliminarJuradoAsync(idEvento, idUsuario);
-            if (result) return Ok(new { message = "Jurado eliminado correctamente" });
-            return StatusCode(500, "Error al eliminar jurado");
+            try
+            {
+                var result = await _juradoService.EliminarJuradoAsync(idEvento, idUsuario);
+                if (result) return Ok(new { message = "Jurado eliminado correctamente" });
+                return StatusCode(500, "Error al eliminar jurado");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 

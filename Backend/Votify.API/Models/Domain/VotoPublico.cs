@@ -1,14 +1,13 @@
 using Supabase.Postgrest.Attributes;
 using Votify.API.Models.Domain;
 
-[Table("voto")] //indicaremos que se guarde en esta tabla 
+[Table("voto")]
 public class VotoPublico : Voto
 {
-    //?esto en las dos clases no se si srvirá 
-    public  string ObtenerTipoVotante() => "PUBLICO";
+    public string ObtenerTipoVotante() => "PUBLICO";
 
     public override float CalcularPuntuacionFinal(float peso)
     {
-        return (Valor ?? 0f) * peso; 
+        return (Valor ?? 0f) * peso;
     }
 }

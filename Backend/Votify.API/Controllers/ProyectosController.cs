@@ -2,7 +2,7 @@
 
 using Votify.API.Models.Domain;
 using Votify.API.Models.DTOs;
-using Votify.API.Repositories;
+using Votify.API.Services;
 
 namespace Votify.API.Controllers
 {
@@ -10,32 +10,24 @@ namespace Votify.API.Controllers
     [Route("api/proyectos")]
     public class ProyectosController : ControllerBase
     {
-        private readonly IProyectoRepository _proyectoRepository;
+        private readonly IProyectoService _proyectoService;
 
-        public ProyectosController(IProyectoRepository proyectoRepository)
+        public ProyectosController(IProyectoService proyectoService)
         {
-            _proyectoRepository = proyectoRepository;
+            _proyectoService = proyectoService;
         }
 
-        [HttpGet("test")]
-        public IActionResult Test()
-        {
-            return Ok("ProyectosController is working");
-        }
-
-        // GET: api/proyectos
         [HttpGet]
         public async Task<ActionResult<List<Proyecto>>> ObtenerTodos()
         {
-            var proyectos = await _proyectoRepository.ObtenerTodosAsync();
+            var proyectos = await _proyectoService.ObtenerTodosAsync();
             return Ok(proyectos);
         }
 
-        // GET: api/proyectos/{id}
         [HttpGet("{id}")]
         public async Task<ActionResult<Proyecto>> ObtenerPorId(int id)
         {
-            var proyecto = await _proyectoRepository.ObtenerPorIdAsync(id);
+            var proyecto = await _proyectoService.ObtenerPorIdAsync(id);
 
             if (proyecto == null)
                 return NotFound();
@@ -43,19 +35,17 @@ namespace Votify.API.Controllers
             return Ok(proyecto);
         }
 
-        // GET: api/proyectos/categoria/{categoriaId}
         [HttpGet("categoria/{categoriaId}")]
         public async Task<ActionResult<List<Proyecto>>> ObtenerPorCategoria(int categoriaId)
         {
-            var proyectos = await _proyectoRepository.ObtenerPorCategoriaIdAsync(categoriaId);
+            var proyectos = await _proyectoService.ObtenerPorCategoriaIdAsync(categoriaId);
             return Ok(proyectos);
         }
 
-        // GET: api/proyectos/participante/{id}
         [HttpGet("participante/{id}")]
         public async Task<ActionResult<List<ProyectoRequestDto>>> ObtenerPorParticipante(int id)
         {
-            var proyectos = await _proyectoRepository.ObtenerPorIdParticipanteAsync(id);
+            var proyectos = await _proyectoService.ObtenerPorIdParticipanteAsync(id);
 
             if (proyectos == null)
             {
@@ -78,11 +68,10 @@ namespace Votify.API.Controllers
             return Ok(response);
         }
 
-        // GET: api/proyectos/evento/{eventoId}
         [HttpGet("evento/{eventoId}")]
         public async Task<ActionResult<List<ProyectoRequestDto>>> ObtenerPorEvento(int eventoId)
         {
-            var proyectos = await _proyectoRepository.ObtenerPorEventoIdAsync(eventoId);
+            var proyectos = await _proyectoService.ObtenerPorEventoIdAsync(eventoId);
 
             var proyectosDto = proyectos.Select(p => new ProyectoRequestDto
             {
@@ -97,27 +86,20 @@ namespace Votify.API.Controllers
                 IdMiembros = p.IdMiembros
             });
 
-            return Ok(proyectosDto); // ← Devuelve DTO limpio
+            return Ok(proyectosDto);
         }
 
         [HttpPost]
         public async Task<IActionResult> CrearProyecto([FromBody] Proyecto proyecto)
         {
-            // No null
             if (proyecto == null)
-            {
                 return BadRequest("El proyecto no puede ser null");
-            }
 
-            var creado = await _proyectoRepository.CrearAsync(proyecto);
+            var creado = await _proyectoService.CrearAsync(proyecto);
 
-            // Se creó?
             if (creado == null)
-            {
                 return StatusCode(500, "Error al crear el proyecto");
-            }
 
-            // Mapear a DTO
             var response = new CreateProyectoDto
             {
                 Nombre = creado.Nombre ?? string.Empty,
@@ -135,7 +117,7 @@ namespace Votify.API.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> EliminarProyecto(int id)
         {
-            var eliminado = await _proyectoRepository.EliminarAsync(id);
+            var eliminado = await _proyectoService.EliminarAsync(id);
             if (!eliminado)
             {
                 return NotFound();
@@ -150,7 +132,7 @@ namespace Votify.API.Controllers
             {
                 return BadRequest("El proyecto no puede ser null y el ID debe coincidir");
             }
-            var actualizado = await _proyectoRepository.ActualizarAsync(proyecto);
+            var actualizado = await _proyectoService.ActualizarAsync(proyecto);
             if (!actualizado)
             {
                 return NotFound();

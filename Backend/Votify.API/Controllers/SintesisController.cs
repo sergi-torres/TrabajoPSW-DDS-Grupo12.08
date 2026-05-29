@@ -23,10 +23,6 @@ namespace Votify.API.Controllers
         [HttpGet("proyecto/{idProyecto:int}/categoria/{idCategoria:int}")]
         public async Task<IActionResult> ObtenerAsync(int idProyecto, int idCategoria)
         {
-            // Para el GET, intentamos validar pero permitimos que continúe si falla 
-            // (la validación de ownership en el service decidirá si permite acceso anónimo o no).
-            // Sin embargo, por ahora el service requiere email, así que si falla la validación
-            // devolvemos el error estructurado para que el frontend pueda reaccionar.
             var (email, _, errorResult) = await ValidarJwtAsync();
             if (errorResult != null) return errorResult;
 
@@ -53,7 +49,6 @@ namespace Votify.API.Controllers
         [HttpPost("proyecto/{idProyecto:int}/categoria/{idCategoria:int}")]
         public async Task<IActionResult> GenerarAsync(int idProyecto, int idCategoria, [FromBody] GenerarSintesisRequest body, CancellationToken ct)
         {
-            // El POST sí requiere validación estricta siempre.
             var (email, authUid, errorResult) = await ValidarJwtAsync();
             if (errorResult != null) return errorResult;
 
@@ -103,8 +98,7 @@ namespace Votify.API.Controllers
             }
         }
 
-        // Replica del flujo en OrganizerOnlyFilter pero embebido para no requerir el filter
-        // (esta ruta no es del organizador, es del propietario del proyecto).
+        // Valida JWT directamente porque esta ruta pertenece al propietario del proyecto, no al organizador.
         private async Task<(string? email, Guid? authUid, IActionResult? error)> ValidarJwtAsync()
         {
             var authHeader = HttpContext.Request.Headers["Authorization"].ToString();
@@ -128,7 +122,6 @@ namespace Votify.API.Controllers
             {
                 Console.WriteLine($"[SintesisController.ValidarJwt] Error: {ex.Message}");
                 
-                // Si el mensaje contiene "expired" o similar, devolvemos un error específico
                 if (ex.Message.Contains("expired", StringComparison.OrdinalIgnoreCase))
                 {
                     return (null, null, Unauthorized(new { 

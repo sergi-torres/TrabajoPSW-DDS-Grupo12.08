@@ -18,7 +18,6 @@ namespace Votify.API.Controllers
 
         }
 
-        // GET: api/premios/evento/1
         [HttpGet("evento/{eventoId}")]
         public async Task<IActionResult> ObtenerPorEvento(int eventoId)
         {
@@ -30,7 +29,7 @@ namespace Votify.API.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Error interno obtener: {ex.Message}");
+                return StatusCode(500, $"Error interno: {ex.Message}");
             }
         }
 
@@ -66,13 +65,13 @@ namespace Votify.API.Controllers
                 var seElimino = await _premioService.EliminarPremioAsync(premioId);
                 if (seElimino == false)
                 {
-                    return BadRequest("Fallo en el serice para eliminar el premio.");
+                    return BadRequest("Error al eliminar el premio.");
                 }
 
                 return Ok("Premio eliminado exitosamente.");
 
             }catch (Exception ex){
-                return StatusCode(500, $"Error interno eliminar: {ex.Message}");
+                return StatusCode(500, $"Error interno: {ex.Message}");
             }
         }
 
@@ -89,14 +88,14 @@ namespace Votify.API.Controllers
                 var seActualizo = await _premioService.ActualizarPremioAsync(premioDto.Id, premioDto);
                 if (seActualizo == false)
                 {
-                    return BadRequest("Fallo en el serice para actualizar el premio.");
+                    return BadRequest("Error al actualizar el premio.");
                 }
 
                 return Ok("Premio actualizado exitosamente.");
 
             }catch(Exception ex)
             {
-                return StatusCode(500, $"Error interno actualizar: {ex.Message}");
+                return StatusCode(500, $"Error interno: {ex.Message}");
             }
         }
     }

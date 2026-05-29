@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Votify.API.Models.DTOs
+﻿namespace Votify.API.Models.DTOs
 {
     public class CreateProyectoDto
     {

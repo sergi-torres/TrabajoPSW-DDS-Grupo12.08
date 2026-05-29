@@ -1,18 +1,15 @@
 namespace Votify.API.Models.Domain
 {
-    // El Público es el votante anónimo.
-    // Todo su rastro en la base de datos se hace dejando su ID como NULL
-    // y guardando su 'ipdispositivo' en la tabla 'votacion' para que en el futuro
-    // pueda ser identificado y no pueda hacer más votaciones.
+    // Votante anónimo: su IdEvaluador queda NULL en la tabla voto;
+    // la unicidad se controla por identificador_hash en registro_votos_publicos.
     public class Publico : Usuario
     {
         public Publico()
         {
-            // Forzamos valores anónimos
             Email = "anon@votify.local";
             NombreCompleto = "Votante Anónimo";
         }
-        
+
         public string IpDispositivo { get; set; } = string.Empty;
     }
 }
