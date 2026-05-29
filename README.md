@@ -31,6 +31,68 @@
 
 ---
 
+## Arquitectura del backend
+
+```
+HTTP Request
+    │
+    ▼
+Controllers          ← validan entrada, delegan al servicio, devuelven respuesta HTTP
+    │
+    ▼
+Services             ← lógica de negocio; nunca acceden a la base de datos directamente
+    │
+    ▼
+Repositories         ← único punto de acceso al ORM de Supabase
+    │
+    ▼
+Supabase Client      ← PostgreSQL vía REST/Realtime
+```
+
+Cada capa solo conoce la capa inmediatamente inferior a través de su interfaz.
+
+---
+
+## Patrones de diseño
+
+### Factory Method — `EventCreator` / `IVotoFactory`
+
+`EventCreator` es una clase abstracta con el template method `PrepareEvent()` (equivalente a `orderPizza()` en Head First). Las subclases `HackatonEventCreator`, `InnovationFairEventCreator` y `SmallEventCreator` implementan `CreateEvent()` como método `protected abstract`.
+
+`IVotoFactory` / `VotoFactoryBase` sigue la misma estructura: `VotoJuradoFactory` y `VotoPublicoFactory` extienden la base abstracta, que centraliza la asignación de `FechaVoto`.
+
+### Decorator — `VotoServiceValidationDecorator`
+
+`VotoServiceValidationDecorator : IVotoService` envuelve `IVotoService` añadiendo validaciones de negocio (comentarios obligatorios, límite de votos) antes de delegar en el servicio concreto. Registrado en DI con doble paso: concreto primero, decorador después.
+
+### Strategy + Template Method — `ISintesisStrategy`
+
+`SintesisStrategyBase` implementa el template method `GenerarAsync()`, que aplica sanitización y validaciones comunes, y delega en el método abstracto `CargarComentariosAsync()`. `SintesisJuradoStrategy` y `SintesisPublicoStrategy` definen el comportamiento específico por tipo de votante. `ISintesisStrategyFactory` selecciona la estrategia en tiempo de ejecución.
+
+### Adapter — `GeminiClient`
+
+`GeminiClient : IGeminiClient` adapta la API REST de Google Gemini al contrato `IGeminiClient`. Los servicios que necesitan síntesis IA solo ven la interfaz; nunca acceden directamente al cliente HTTP.
+
+### Action Filter — `OrganizerOnlyFilter`
+
+`OrganizerOnlyFilter : IAsyncActionFilter` implementa autorización basada en rol para los endpoints de organizador. Verifica el JWT contra Supabase Auth y comprueba el rol `Organizador` en `evento_usuario`. Se aplica con `[ServiceFilter(typeof(OrganizerOnlyFilter))]`.
+
+---
+
+## Tests
+
+```powershell
+# Ejecutar todos los tests
+dotnet test Backend/Votify.sln
+
+# Filtrar por clase
+dotnet test Backend/Votify.sln --filter "ClassName=EventoServiceTests"
+```
+
+Los tests cubren los servicios principales (VotoService, EventoService, SintesisComentariosService, SintesisStrategyTests) con xUnit + Moq. Los repositorios no tienen tests unitarios.
+
+---
+
 ## Instalación y configuración (desarrollo local)
 
 ### Requisitos previos
