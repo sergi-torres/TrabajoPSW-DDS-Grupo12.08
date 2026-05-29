@@ -22,10 +22,7 @@ namespace Votify.Tests
         [Fact]
         public async Task Parsear_ReturnsCorrectResult()
         {
-            // Parsear is protected, but we can test it indirectly or via reflection if needed.
-            // However, GenerarAsync calls it.
-            
-            // For brevity, let's test a sample JSON response parsing.
+            // CargarComentariosAsync es protected; se usa una subclase testeable para inyectar comentarios fijos
             var json = JsonSerializer.Serialize(new
             {
                 fortalezas = new[] { "F1", "F2" },
@@ -34,19 +31,14 @@ namespace Votify.Tests
                 resumen_general = "Todo bien."
             });
 
-            // We use a "Testable" version of the strategy or just call the strategy with mocked dependencies.
-            // Since CargarComentariosAsync is protected, we can't easily mock it without a subclass.
-            
             var testable = new TestableSintesisJuradoStrategy(_geminiMock.Object, _votoRepoMock.Object);
             testable.ComentariosToReturn = new List<string> { "C1", "C2" };
-            
+
             _geminiMock.Setup(g => g.GenerarJsonAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(json);
 
-            // Act
             var result = await testable.GenerarAsync(1, 1);
 
-            // Assert
             Assert.Equal(2, result.Fortalezas.Count);
             Assert.Equal("F1", result.Fortalezas[0]);
             Assert.Equal("positivo", result.Sentimiento);

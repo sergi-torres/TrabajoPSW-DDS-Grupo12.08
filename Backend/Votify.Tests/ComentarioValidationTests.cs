@@ -9,10 +9,8 @@ namespace Votify.Tests
         [Fact]
         public void ComentarioObligatorioStrategy_DebeLanzarExcepcion_CuandoComentarioEsVacioONulo()
         {
-            // Arrange
             var strategy = new ComentarioObligatorioStrategy();
 
-            // Act & Assert
             var ex1 = Assert.Throws<ArgumentException>(() => strategy.Validar(""));
             Assert.Equal("El comentario es obligatorio para evaluar en este evento.", ex1.Message);
 
@@ -26,29 +24,23 @@ namespace Votify.Tests
         [Fact]
         public void ComentarioObligatorioStrategy_NoDebeLanzarExcepcion_CuandoComentarioEsValido()
         {
-            // Arrange
             var strategy = new ComentarioObligatorioStrategy();
             string comentarioValido = "Este es un comentario constructivo para el proyecto.";
 
-            // Act
             var excepcion = Record.Exception(() => strategy.Validar(comentarioValido));
 
-            // Assert
-            Assert.Null(excepcion); // Si es null, significa que no se lanzó ninguna excepción
+            Assert.Null(excepcion);
         }
 
         [Fact]
         public void ComentarioOpcionalStrategy_NoDebeLanzarExcepcion_IndependientementeDelComentario()
         {
-            // Arrange
             var strategy = new ComentarioOpcionalStrategy();
 
-            // Act
             var excepcion1 = Record.Exception(() => strategy.Validar(""));
             var excepcion2 = Record.Exception(() => strategy.Validar(null));
             var excepcion3 = Record.Exception(() => strategy.Validar("Un comentario cualquiera"));
 
-            // Assert
             Assert.Null(excepcion1);
             Assert.Null(excepcion2);
             Assert.Null(excepcion3);

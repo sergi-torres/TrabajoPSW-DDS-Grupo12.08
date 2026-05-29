@@ -36,32 +36,27 @@ namespace Votify.Tests
         [Fact]
         public async Task GetEventosByUsuarioAsync_ShouldReturnEvents_WhenUserHasRelations()
         {
-            // Arrange
             int userId = 1;
             var relaciones = new List<EventoUsuario>
             {
                 new EventoUsuario { Id = 1, IdEvento = 101, IdUsuario = userId, Rol = "Organizador" }
             };
-            var evento = new EventoLite 
-            { 
-                Id = 101, 
-                Nombre = "Evento Test", 
-                CodEvento = 1234, 
+            var evento = new EventoLite
+            {
+                Id = 101,
+                Nombre = "Evento Test",
+                CodEvento = 1234,
                 Descripcion = "Desc",
                 Estado = "Activo",
                 FechaInicio = DateTime.Now,
                 FechaFin = DateTime.Now.AddDays(1)
             };
 
-            _eventoUsuarioRepoMock.Setup(r => r.GetByUsuarioAsync(userId))
-                .ReturnsAsync(relaciones);
-            _eventoRepoMock.Setup(r => r.GetByIdAsync(101))
-                .ReturnsAsync(evento);
+            _eventoUsuarioRepoMock.Setup(r => r.GetByUsuarioAsync(userId)).ReturnsAsync(relaciones);
+            _eventoRepoMock.Setup(r => r.GetByIdAsync(101)).ReturnsAsync(evento);
 
-            // Act
             var result = await _eventoService.GetEventosByUsuarioAsync(userId);
 
-            // Assert
             Assert.Single(result);
             Assert.Equal("Evento Test", result[0].Nombre);
             Assert.Equal("Organizador", result[0].Rol);
@@ -71,22 +66,13 @@ namespace Votify.Tests
         [Fact]
         public async Task JoinEventoPorCodigoAsync_ShouldReturnEvent_WhenPinIsValid()
         {
-            // Arrange
             int pin = 1234;
-            var evento = new EventoLite 
-            { 
-                Id = 101, 
-                Nombre = "Evento Encontrado", 
-                CodEvento = pin
-            };
+            var evento = new EventoLite { Id = 101, Nombre = "Evento Encontrado", CodEvento = pin };
 
-            _eventoRepoMock.Setup(r => r.GetByCodigoAsync(pin))
-                .ReturnsAsync(evento);
+            _eventoRepoMock.Setup(r => r.GetByCodigoAsync(pin)).ReturnsAsync(evento);
 
-            // Act
             var result = await _eventoService.JoinEventoPorCodigoAsync(pin);
 
-            // Assert
             Assert.NotNull(result);
             Assert.Equal(101, result.Id);
             Assert.Equal("Evento Encontrado", result.Nombre);
@@ -95,12 +81,9 @@ namespace Votify.Tests
         [Fact]
         public async Task JoinEventoPorCodigoAsync_ShouldThrowException_WhenPinIsInvalid()
         {
-            // Arrange
             int pin = 9999;
-            _eventoRepoMock.Setup(r => r.GetByCodigoAsync(pin))
-                .ReturnsAsync((EventoLite?)null);
+            _eventoRepoMock.Setup(r => r.GetByCodigoAsync(pin)).ReturnsAsync((EventoLite?)null);
 
-            // Act & Assert
             var ex = await Assert.ThrowsAsync<Exception>(() => _eventoService.JoinEventoPorCodigoAsync(pin));
             Assert.Equal("Error al validar el PIN del evento", ex.Message);
             Assert.Contains("El PIN no corresponde a ningun evento", ex.InnerException?.Message);
@@ -109,7 +92,6 @@ namespace Votify.Tests
         [Fact]
         public async Task GetEventoDetalleAsync_ShouldReturnFullDetail()
         {
-            // Arrange
             int eventoId = 101;
             var evento = new EventoLite { Id = eventoId, Nombre = "Evento Completo" };
             var baremos = new List<Baremo> { new Baremo { Id = 1, Nombre = "Baremo 1" } };
@@ -123,10 +105,8 @@ namespace Votify.Tests
             _categoriaRepoMock.Setup(r => r.ObtenerCategoriasDominioPorEventoIdAsync(eventoId)).ReturnsAsync(categorias);
             _categoriaRepoMock.Setup(r => r.ObtenerPesosPorCategoriaIdAsync(1)).ReturnsAsync(pesos);
 
-            // Act
             var result = await _eventoService.GetEventoDetalleAsync(eventoId);
 
-            // Assert
             Assert.Equal("Evento Completo", result.Nombre);
             Assert.Single(result.Baremos);
             Assert.Single(result.Categorias);
@@ -136,7 +116,6 @@ namespace Votify.Tests
         [Fact]
         public async Task UpdateEventoAsync_ShouldUpdateBasicInfoAndBaremos()
         {
-            // Arrange
             int eventoId = 101;
             var dto = new UpdateEventDto
             {
@@ -152,32 +131,23 @@ namespace Votify.Tests
 
             _eventoRepoMock.Setup(r => r.GetByIdAsync(eventoId)).ReturnsAsync(eventoExistente);
             _eventoRepoMock.Setup(r => r.UpdateBasicAsync(eventoId, dto)).ReturnsAsync(true);
-            
-            // First call returns old baremos, second call (from GetEventoDetalleAsync) returns new ones
+
+            // Primera llamada devuelve baremos previos; la segunda (desde GetEventoDetalleAsync al final) devuelve los nuevos
             _baremoRepoMock.SetupSequence(r => r.GetByEventoIdAsync(eventoId))
                 .ReturnsAsync(baremosExistentes)
                 .ReturnsAsync(new List<Baremo> { new Baremo { Id = 6, Nombre = "Nuevo Baremo" } });
-            
-            // Mock deletion of old baremo
+
             _baremoRepoMock.Setup(r => r.DeleteCriteriosByBaremoIdAsync(5)).ReturnsAsync(true);
             _baremoRepoMock.Setup(r => r.DeleteAsync(5)).ReturnsAsync(true);
-            
-            // Mock insertion of new baremo
             _baremoRepoMock.Setup(r => r.InsertAsync(It.IsAny<Baremo>()))
                 .ReturnsAsync(new Baremo { Id = 6, Nombre = "Nuevo Baremo" });
-            
-            // Mock criteria for new baremo
             _baremoRepoMock.Setup(r => r.GetCriteriosByBaremoIdAsync(It.IsAny<int>()))
                 .ReturnsAsync(new List<Criterio>());
-
-            // Mock categories for the final GetEventoDetalleAsync call
             _categoriaRepoMock.Setup(r => r.ObtenerCategoriasDominioPorEventoIdAsync(eventoId))
                 .ReturnsAsync(new List<Categoria>());
 
-            // Act
             var result = await _eventoService.UpdateEventoAsync(eventoId, dto);
 
-            // Assert
             _eventoRepoMock.Verify(r => r.UpdateBasicAsync(eventoId, dto), Times.Once);
             _baremoRepoMock.Verify(r => r.DeleteAsync(5), Times.Once);
             _baremoRepoMock.Verify(r => r.InsertAsync(It.Is<Baremo>(b => b.Nombre == "Nuevo Baremo")), Times.Once);
@@ -186,7 +156,6 @@ namespace Votify.Tests
         [Fact]
         public async Task GetEventosDisponiblesAsync_ShouldExcludeUserEvents()
         {
-            // Arrange
             int userId = 1;
             var todos = new List<EventoLite>
             {
@@ -202,10 +171,8 @@ namespace Votify.Tests
             _eventoRepoMock.Setup(r => r.GetAllAsync()).ReturnsAsync(todos);
             _eventoUsuarioRepoMock.Setup(r => r.GetByUsuarioAsync(userId)).ReturnsAsync(misRelaciones);
 
-            // Act
             var result = await _eventoService.GetEventosDisponiblesAsync(userId);
 
-            // Assert
             Assert.Equal(2, result.Count);
             Assert.DoesNotContain(result, e => e.Id == 1);
             Assert.Contains(result, e => e.Id == 2);
@@ -215,17 +182,13 @@ namespace Votify.Tests
         [Fact]
         public async Task UnirseAEventoAsync_ShouldCreateRelation_WhenNotAlreadyRegistered()
         {
-            // Arrange
             int eventoId = 10, userId = 5;
-            _eventoUsuarioRepoMock.Setup(r => r.GetAsync(eventoId, userId))
-                .ReturnsAsync((EventoUsuario?)null);
+            _eventoUsuarioRepoMock.Setup(r => r.GetAsync(eventoId, userId)).ReturnsAsync((EventoUsuario?)null);
             _eventoUsuarioRepoMock.Setup(r => r.CreateAsync(It.IsAny<EventoUsuario>()))
                 .ReturnsAsync(new EventoUsuario { IdEvento = eventoId, IdUsuario = userId, Rol = "Participante" });
 
-            // Act
             var result = await _eventoService.UnirseAEventoAsync(eventoId, userId);
 
-            // Assert
             Assert.True(result);
             _eventoUsuarioRepoMock.Verify(r => r.CreateAsync(It.Is<EventoUsuario>(
                 eu => eu.IdEvento == eventoId && eu.IdUsuario == userId && eu.Rol == "Participante"
@@ -235,12 +198,10 @@ namespace Votify.Tests
         [Fact]
         public async Task UnirseAEventoAsync_ShouldThrow_WhenAlreadyRegistered()
         {
-            // Arrange
             int eventoId = 10, userId = 5;
             _eventoUsuarioRepoMock.Setup(r => r.GetAsync(eventoId, userId))
                 .ReturnsAsync(new EventoUsuario { IdEvento = eventoId, IdUsuario = userId, Rol = "Participante" });
 
-            // Act & Assert
             var ex = await Assert.ThrowsAsync<Exception>(
                 () => _eventoService.UnirseAEventoAsync(eventoId, userId));
             Assert.Contains("Ya estás inscrito", ex.InnerException?.Message);
@@ -249,14 +210,11 @@ namespace Votify.Tests
         [Fact]
         public async Task AbandonarEventoAsync_ShouldCallDelete()
         {
-            // Arrange
             int eventoId = 10, userId = 5;
             _eventoUsuarioRepoMock.Setup(r => r.DeleteAsync(eventoId, userId)).ReturnsAsync(true);
 
-            // Act
             var result = await _eventoService.AbandonarEventoAsync(eventoId, userId);
 
-            // Assert
             Assert.True(result);
             _eventoUsuarioRepoMock.Verify(r => r.DeleteAsync(eventoId, userId), Times.Once);
         }
