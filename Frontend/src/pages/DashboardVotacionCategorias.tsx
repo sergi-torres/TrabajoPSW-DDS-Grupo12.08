@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { ArrowLeft, Target, Award, LogOut } from 'lucide-react';
 import SimpleSearchBar from '../components/layout/SimpleSearchBar';
 
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import StatsBar from '../components/votacion/votacionCategorias/StatsBar';
 import CategoriaCard from '../components/votacion/votacionCategorias/CategoriaCard';
 import DashboardVotacionProyectos from './DashboardVotacionProyectos';
@@ -12,22 +12,32 @@ import { AuthContext } from '../context/AuthContext';
 import { EventSidebar } from '../components/layout/EventSidebar';
 import { LogoutConfirmModal } from '../components/layout/LogoutConfirmModal';
 import { cn } from '../components/ui/utils';
+import { useVoting } from '../context/VotingContext';
 
 const DashboardVotacionCategorias = () => {
   const navigate = useNavigate();
+  const { eventoId: eventoIdParam } = useParams<{ eventoId: string }>();
   const { logout, isPublic, isAuthenticated } = useContext(AuthContext)!;
   const { userRole, userColor, isCollapsed, clearEventContext, setEventContext } = useContext(EventContext)!;
   const { datos, cargando, cargarDashboard } = useVotacionDashboard();
+  const { eventConfig } = useVoting();
   const [vistaActual, setVistaActual] = useState('categorias');
   const [categoriaElegida, setCategoriaElegida] = useState<any>(null);
   const [busquedaCategorias, setBusquedaCategorias] = useState('');
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Determinar si es público de forma inmediata para el layout
-  // PRIORIDAD: Si no estoy autenticado pero tengo sesión de PIN, soy PÚBLICO.
+  // PIN sessions are unauthenticated (no JWT) but have isPublic=true
   const effectivelyPublic = (!isAuthenticated && isPublic) || userRole === "Público";
   const themeColor = effectivelyPublic ? "#059669" : (userColor || "#2563eb");
+
+  // Garantiza que localStorage.eventoId coincida con el parámetro de ruta,
+  // para que useVotacionDashboard cargue el evento correcto incluso con navegación directa.
+  useEffect(() => {
+    if (eventoIdParam) {
+      localStorage.setItem('eventoId', eventoIdParam);
+    }
+  }, [eventoIdParam]);
 
   // Inicializar contexto si es público y no está seteado
   useEffect(() => {
@@ -103,7 +113,7 @@ const DashboardVotacionCategorias = () => {
                   Volver a eventos
                 </button>
               ) : (
-                <div /> // Spacer
+                <div />
               )}
 
               {effectivelyPublic && (
@@ -120,7 +130,7 @@ const DashboardVotacionCategorias = () => {
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
               <div className="max-w-2xl">
                 <h1 className="text-3xl lg:text-4xl font-heading font-bold tracking-tight mb-3">
-                  {effectivelyPublic ? `Votación: ${localStorage.getItem("eventoNombre") || "Evento"}` : "Panel de Evaluación"}
+                  {effectivelyPublic ? `Votación: ${eventConfig.eventName || "Evento"}` : "Panel de Evaluación"}
                 </h1>
                 <p className="text-lg font-medium opacity-90">
                   {effectivelyPublic 
@@ -194,7 +204,6 @@ const DashboardVotacionCategorias = () => {
         </main>
       </div>
 
-      {/* Modal de confirmación de logout */}
       <LogoutConfirmModal
         isOpen={showLogoutModal}
         onConfirm={handleConfirmLogout}
